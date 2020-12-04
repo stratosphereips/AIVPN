@@ -38,9 +38,9 @@ services:
             restart_policy:
                 condition: on-failure
     mod_redis:
-        image: alpine
+        image: redis
         volumes:
-            - mod_redis:/opt/redis
+            - mod_redis:/data
         stdin_open: true
         tty: true
         deploy:
@@ -61,5 +61,5 @@ volumes:
         mod_email:
         mod_report:
         mod_slips:
-        mod_redis:
         mod_openvpn:
+        mod_redis:
