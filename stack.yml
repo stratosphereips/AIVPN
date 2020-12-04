@@ -2,7 +2,7 @@ version: '3.1'
 
 services:
     mod_manager:
-        image: alpine
+        image: python:slim
         volumes:
             - mod_manager:/opt/manager
         stdin_open: true
@@ -11,7 +11,7 @@ services:
             restart_policy:
                 condition: on-failure
     mod_email:
-        image: alpine
+        image: python:slim
         volumes:
             - mod_email:/opt/mod_email
         stdin_open: true
