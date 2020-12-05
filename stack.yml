@@ -10,10 +10,19 @@ services:
         deploy:
             restart_policy:
                 condition: on-failure
-    mod_email:
+    mod_comm_recv:
         image: python:slim
         volumes:
-            - mod_email:/opt/mod_email
+            - mod_comm_send:/opt/mod_comm_recv
+        stdin_open: true
+        tty: true
+        deploy:
+            restart_policy:
+                condition: on-failure
+    mod_comm_send:
+        image: python:slim
+        volumes:
+            - mod_comm_send:/opt/mod_comm_send
         stdin_open: true
         tty: true
         deploy:
@@ -58,8 +67,9 @@ services:
 
 volumes:
         mod_manager:
-        mod_email:
         mod_report:
         mod_slips:
         mod_openvpn:
         mod_redis:
+        mod_comm_send:
+        mod_comm_recv:
