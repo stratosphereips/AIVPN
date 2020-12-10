@@ -13,7 +13,7 @@ services:
     mod_comm_recv:
         image: python:slim
         volumes:
-            - mod_comm_send:/opt/mod_comm_recv
+            - ./mod_comm_recv:/opt/mod_comm_recv
         stdin_open: true
         tty: true
         deploy:
