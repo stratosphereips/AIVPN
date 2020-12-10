@@ -11,6 +11,7 @@ services:
             restart_policy:
                 condition: on-failure
     mod_comm_recv:
+        image: aivpn_mod_comm_recv:latest
         deploy:
             restart_policy:
                 condition: on-failure
