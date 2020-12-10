@@ -2,11 +2,9 @@ version: '3.1'
 
 services:
     mod_manager:
-        image: python:slim
+        image: aivpn_mod_manager:latest
         volumes:
             - ./mod_manager:/opt/manager
-        stdin_open: true
-        tty: true
         deploy:
             restart_policy:
                 condition: on-failure
