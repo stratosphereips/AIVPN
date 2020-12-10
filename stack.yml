@@ -14,20 +14,16 @@ services:
             restart_policy:
                 condition: on-failure
     mod_comm_send:
-        image: python:slim
+        image: aivpn_mod_comm_send:latest
         volumes:
             - ./mod_comm_send:/opt/mod_comm_send
-        stdin_open: true
-        tty: true
         deploy:
             restart_policy:
                 condition: on-failure
     mod_report:
-        image: alpine
+        image: aivpn_mod_report:latest
         volumes:
             - ./mod_report:/opt/report
-        stdin_open: true
-        tty: true
         deploy:
             restart_policy:
                 condition: on-failure
