@@ -4,7 +4,7 @@ services:
     mod_manager:
         image: python:slim
         volumes:
-            - mod_manager:/opt/manager
+            - ./mod_manager:/opt/manager
         stdin_open: true
         tty: true
         deploy:
@@ -13,7 +13,7 @@ services:
     mod_comm_recv:
         image: python:slim
         volumes:
-            - mod_comm_send:/opt/mod_comm_recv
+            - ./mod_comm_recv:/opt/mod_comm_recv
         stdin_open: true
         tty: true
         deploy:
@@ -22,7 +22,7 @@ services:
     mod_comm_send:
         image: python:slim
         volumes:
-            - mod_comm_send:/opt/mod_comm_send
+            - ./mod_comm_send:/opt/mod_comm_send
         stdin_open: true
         tty: true
         deploy:
@@ -31,7 +31,7 @@ services:
     mod_report:
         image: alpine
         volumes:
-            - mod_report:/opt/report
+            - ./mod_report:/opt/report
         stdin_open: true
         tty: true
         deploy:
@@ -40,7 +40,7 @@ services:
     mod_slips:
         image: alpine
         volumes:
-            - mod_slips:/opt/dataset
+            - ./mod_slips:/opt/dataset
         stdin_open: true
         tty: true
         deploy:
@@ -49,7 +49,7 @@ services:
     mod_redis:
         image: redis
         volumes:
-            - mod_redis:/data
+            - ./mod_redis:/data
         stdin_open: true
         tty: true
         deploy:
@@ -58,7 +58,7 @@ services:
     mod_openvpn:
         image: alpine
         volumes:
-            - mod_openvpn:/opt/openvpn
+            - ./mod_openvpn:/opt/openvpn
         stdin_open: true
         tty: true
         deploy:
