@@ -1,4 +1,5 @@
 FROM python:slim
-WORKDIR /opt/mod_comm_recv/
+ADD . /code
+WORKDIR /code
 RUN pip install -r requirements.txt
 CMD ["python3", "mod_comm_recv.py"]
