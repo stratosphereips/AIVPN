@@ -14,7 +14,7 @@ def redis_connect_to_db(REDIS_SERVER):
     except Exception as err:
         return err
 
-def redis_create_publisher(publisher):
+def redis_create_subscriber(publisher):
     try:
         subscriber = publisher.pubsub()
         return subscriber
@@ -41,7 +41,7 @@ if __name__ == '__main__':
 
     # Creating a Redis subscriber
     try:
-        db_subscriber = redis_create_publisher(db_publisher)
+        db_subscriber = redis_create_subscriber(db_publisher)
     except:
         print("Unable to create a Redis subscriber")
         sys.exit(-1)
