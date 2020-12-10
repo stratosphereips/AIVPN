@@ -11,3 +11,11 @@ def redis_create_subscriber(publisher):
         return subscriber
     except Exception as err:
         return err
+
+def redis_subscribe_to_channel(subscriber,CHANNEL):
+    try:
+        subscriber.subscribe(CHANNEL)
+        return True
+    except Exception as err:
+        return err
+
