@@ -11,11 +11,6 @@ services:
             restart_policy:
                 condition: on-failure
     mod_comm_recv:
-        image: python:slim
-        volumes:
-            - ./mod_comm_recv:/opt/mod_comm_recv
-        stdin_open: true
-        tty: true
         deploy:
             restart_policy:
                 condition: on-failure
