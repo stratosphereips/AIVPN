@@ -54,6 +54,8 @@ if __name__ == '__main__':
         sys.exit(-1)
 
     print("Connection and channel subscription to redis successful.")
+    db_publisher.publish('services_status', 'MOD_REPORT:online')
+
 
     # Checking for messages
     for item in db_subscriber.listen():
@@ -61,4 +63,5 @@ if __name__ == '__main__':
             print(item['channel'])
             print(item['data'])
 
+    db_publisher.publish('services_status', 'MOD_REPORT:offline')
     sys.exit(0)
