@@ -4,3 +4,10 @@ def redis_connect_to_db(REDIS_SERVER):
         return publisher
     except Exception as err:
         return err
+
+def redis_create_subscriber(publisher):
+    try:
+        subscriber = publisher.pubsub()
+        return subscriber
+    except Exception as err:
+        return err
