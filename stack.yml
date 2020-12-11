@@ -1,4 +1,4 @@
-version: '3.1'
+version: '3.8'
 
 services:
     mod_manager:
@@ -8,6 +8,8 @@ services:
         deploy:
             restart_policy:
                 condition: on-failure
+            update_config:
+                delay: 10s
     mod_comm_recv:
         image: aivpn_mod_comm_recv:latest
         volumes:
@@ -15,6 +17,8 @@ services:
         deploy:
             restart_policy:
                 condition: on-failure
+            update_config:
+                delay: 10s
     mod_comm_send:
         image: aivpn_mod_comm_send:latest
         volumes:
@@ -22,6 +26,8 @@ services:
         deploy:
             restart_policy:
                 condition: on-failure
+            update_config:
+                delay: 10s
     mod_report:
         image: aivpn_mod_report:latest
         volumes:
@@ -29,6 +35,8 @@ services:
         deploy:
             restart_policy:
                 condition: on-failure
+            update_config:
+                delay: 10s
     mod_slips:
         image: alpine
         volumes:
@@ -38,6 +46,8 @@ services:
         deploy:
             restart_policy:
                 condition: on-failure
+            update_config:
+                delay: 10s
     mod_redis:
         image: redis
         volumes:
@@ -56,6 +66,8 @@ services:
         deploy:
             restart_policy:
                 condition: on-failure
+            update_config:
+                delay: 10s
 
 volumes:
         mod_manager:
