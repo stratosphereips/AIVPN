@@ -34,7 +34,7 @@ if __name__ == '__main__':
     LOG_FILE = '/logs/mod_comm_recv.log'
 
     try:
-        logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s %(message)s')
+        logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s, MOD_CONN_RECV, %(message)s')
     except:
         sys.exit(-1)
 
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     try:
         db_publisher = redis_connect_to_db(REDIS_SERVER)
     except:
-        logging.error(MODULE_NAME,": Unable to connect to the Redis database (",REDIS_SERVER,")")
+        logging.error("Unable to connect to the Redis database (",REDIS_SERVER,")")
         sys.exit(-1)
 
     # Creating a Redis subscriber
@@ -69,7 +69,7 @@ if __name__ == '__main__':
             logging.info(item['data'])
 
     db_publisher.publish('services_status', 'MOD_COMM_RECV:offline')
-    logging.info("MOD_COMM_RECV, terminating.")
+    logging.info("Terminating.")
     
     publisher.close()
     subscriber.close()
