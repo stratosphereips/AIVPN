@@ -37,6 +37,7 @@ if __name__ == '__main__':
         logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s %(message)s')
     except:
         sys.exit(-1)
+
     # Connecting to the Redis database
     try:
         db_publisher = redis_connect_to_db(REDIS_SERVER)
