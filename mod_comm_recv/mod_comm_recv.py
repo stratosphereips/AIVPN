@@ -31,16 +31,17 @@ def redis_subscribe_to_channel(subscriber,CHANNEL):
 if __name__ == '__main__': 
     REDIS_SERVER = 'aivpn_mod_redis'
     CHANNEL = 'mod_comm_recv_check'
+    LOG_FILE = '/logs/mod_comm_recv.log'
 
     try:
-        logging.basicConfig(filename='example.log', encoding='utf-8', level=logging.DEBUG)
+        logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s %(message)s')
     except:
         sys.exit(-1)
     # Connecting to the Redis database
     try:
         db_publisher = redis_connect_to_db(REDIS_SERVER)
     except:
-        logging.error("Unable to connect to the Redis database (",REDIS_SERVER,")")
+        logging.error(MODULE_NAME,": Unable to connect to the Redis database (",REDIS_SERVER,")")
         sys.exit(-1)
 
     # Creating a Redis subscriber
@@ -67,7 +68,7 @@ if __name__ == '__main__':
             logging.info(item['data'])
 
     db_publisher.publish('services_status', 'MOD_COMM_RECV:offline')
-    logging.info("MOD_COMM_RECV terminating.")
+    logging.info("MOD_COMM_RECV, terminating.")
     
     publisher.close()
     subscriber.close()
