@@ -71,5 +71,5 @@ if __name__ == '__main__':
             logging.innfo(item['data'])
 
     db_publisher.publish('services_status', 'MOD_REPORT:offline')
-    logging.info("Terminating"
+    logging.info("Terminating")
     sys.exit(0)
