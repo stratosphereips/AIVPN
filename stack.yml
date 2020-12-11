@@ -4,26 +4,28 @@ services:
     mod_manager:
         image: aivpn_mod_manager:latest
         volumes:
-            - ./mod_manager:/opt/manager
+            - ./logs:/logs/
         deploy:
             restart_policy:
                 condition: on-failure
     mod_comm_recv:
         image: aivpn_mod_comm_recv:latest
+        volumes:
+            - ./logs:/logs/
         deploy:
             restart_policy:
                 condition: on-failure
     mod_comm_send:
         image: aivpn_mod_comm_send:latest
         volumes:
-            - ./mod_comm_send:/opt/mod_comm_send
+            - ./logs:/logs/
         deploy:
             restart_policy:
                 condition: on-failure
     mod_report:
         image: aivpn_mod_report:latest
         volumes:
-            - ./mod_report:/opt/report
+            - ./logs:/logs/
         deploy:
             restart_policy:
                 condition: on-failure
