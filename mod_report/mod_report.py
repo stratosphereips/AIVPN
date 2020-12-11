@@ -5,6 +5,7 @@
 
 import sys
 import redis
+import logging
 
 
 def redis_connect_to_db(REDIS_SERVER):
@@ -31,37 +32,44 @@ def redis_subscribe_to_channel(subscriber,CHANNEL):
 if __name__ == '__main__':
     REDIS_SERVER = 'aivpn_mod_redis'
     CHANNEL = 'mod_report_check'
+    LOG_FILE = '/logs/mod_report.log'
+
+    try:
+        logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s, MOD_REPORT, %(message)s')
+    except:
+        sys.exit(-1)
 
     # Connecting to the Redis database
     try:
         db_publisher = redis_connect_to_db(REDIS_SERVER)
     except:
-        print("Unable to connect to the Redis database (",REDIS_SERVER,")")
+        logging.error("Unable to connect to the Redis database (",REDIS_SERVER,")")
         sys.exit(-1)
 
     # Creating a Redis subscriber
     try:
         db_subscriber = redis_create_subscriber(db_publisher)
     except:
-        print("Unable to create a Redis subscriber")
+        logging.error("Unable to create a Redis subscriber")
         sys.exit(-1)
 
     # Subscribing to Redis channel
     try:
         redis_subscribe_to_channel(db_subscriber,CHANNEL)
     except:
-        print("Channel subscription failed")
+        logging.error("Channel subscription failed")
         sys.exit(-1)
 
-    print("Connection and channel subscription to redis successful.")
+    logging.info("Connection and channel subscription to redis successful.")
     db_publisher.publish('services_status', 'MOD_REPORT:online')
 
 
     # Checking for messages
     for item in db_subscriber.listen():
         if item['type'] == 'message':
-            print(item['channel'])
-            print(item['data'])
+            logging.info(item['channel'])
+            logging.innfo(item['data'])
 
     db_publisher.publish('services_status', 'MOD_REPORT:offline')
+    logging.info("Terminating"
     sys.exit(0)
