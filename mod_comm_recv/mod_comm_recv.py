@@ -71,9 +71,8 @@ if __name__ == '__main__':
 
         db_publisher.publish('services_status', 'MOD_COMM_RECV:offline')
         logging.info("Terminating.")
-        
-        publisher.close()
-        subscriber.close()
+        db_publisher.close()
+        db_subscriber.close()
         sys.exit(0)
     except Exception as err:
         db_publisher.close()
