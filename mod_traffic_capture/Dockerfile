@@ -1,4 +1,4 @@
-FROM bitnami/minideb
+FROM python:slim
 ADD . /code
 WORKDIR /code
 RUN pip install -r requirements.txt
