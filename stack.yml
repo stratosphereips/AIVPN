@@ -10,6 +10,8 @@ services:
         deploy:
             restart_policy:
                 condition: on-failure
+        networks:
+            network: {}
     mod_manager:
         image: aivpn_mod_manager:latest
         volumes:
@@ -19,6 +21,8 @@ services:
                 condition: on-failure
             update_config:
                 delay: 10s
+        networks:
+            network: {}
     mod_comm_recv:
         image: aivpn_mod_comm_recv:latest
         volumes:
@@ -28,6 +32,8 @@ services:
                 condition: on-failure
             update_config:
                 delay: 10s
+        networks:
+            network: {}
     mod_comm_send:
         image: aivpn_mod_comm_send:latest
         volumes:
@@ -37,6 +43,8 @@ services:
                 condition: on-failure
             update_config:
                 delay: 10s
+        networks:
+            network: {}
     mod_report:
         image: aivpn_mod_report:latest
         volumes:
@@ -46,6 +54,8 @@ services:
                 condition: on-failure
             update_config:
                 delay: 10s
+        networks:
+            network: {}
     mod_slips:
         image: alpine
         volumes:
@@ -57,6 +67,9 @@ services:
                 condition: on-failure
             update_config:
                 delay: 10s
+        networks:
+            network: {}
+            aivpn_host: {}
     mod_openvpn:
         image: alpine
         volumes:
@@ -68,12 +81,35 @@ services:
                 condition: on-failure
             update_config:
                 delay: 10s
-
+        networks:
+            network: {}
+    mod_traffic_capture:
+        image: bitnami/minideb
+        volumes:
+            - ./mod_traffic_capture:/data/
+        stdin_open: true
+        tty: true
+        deploy:
+            restart_policy:
+                condition: on-failure
+            update_config:
+                delay: 10s
+        networks:
+            network: {}
+            aivpn_host: {}
 volumes:
-        mod_manager:
-        mod_report:
-        mod_slips:
-        mod_openvpn:
-        mod_redis:
-        mod_comm_send:
-        mod_comm_recv:
+    mod_manager:
+    mod_report:
+    mod_slips:
+    mod_openvpn:
+    mod_redis:
+    mod_comm_send:
+    mod_comm_recv:
+
+networks:
+    network:
+        driver: overlay
+    aivpn_host:
+        external: true
+        name: host
+
