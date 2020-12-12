@@ -68,7 +68,6 @@ services:
                 delay: 10s
         networks:
             network: {}
-            aivpn_host: {}
     mod_slips:
         image: alpine
         volumes:
@@ -107,7 +106,3 @@ volumes:
 networks:
     network:
         driver: overlay
-    aivpn_host:
-        external: true
-        name: host
-
