@@ -1,4 +1,4 @@
-FROM binami/minideb
+FROM bitnami/minideb
 ADD . /code
 WORKDIR /code
 RUN pip install -r requirements.txt
