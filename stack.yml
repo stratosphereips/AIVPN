@@ -1,6 +1,15 @@
 version: '3.8'
 
 services:
+    mod_redis:
+        image: redis
+        volumes:
+            - ./mod_redis:/data
+        stdin_open: true
+        tty: true
+        deploy:
+            restart_policy:
+                condition: on-failure
     mod_manager:
         image: aivpn_mod_manager:latest
         volumes:
@@ -48,15 +57,6 @@ services:
                 condition: on-failure
             update_config:
                 delay: 10s
-    mod_redis:
-        image: redis
-        volumes:
-            - ./mod_redis:/data
-        stdin_open: true
-        tty: true
-        deploy:
-            restart_policy:
-                condition: on-failure
     mod_openvpn:
         image: alpine
         volumes:
