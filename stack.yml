@@ -16,6 +16,7 @@ services:
         image: aivpn_mod_manager:latest
         volumes:
             - ./logs:/logs/
+            - ./common:/code/common/:ro
         deploy:
             restart_policy:
                 condition: on-failure
@@ -27,6 +28,7 @@ services:
         image: aivpn_mod_comm_recv:latest
         volumes:
             - ./logs:/logs/
+            - ./common:/code/common/:ro
         deploy:
             restart_policy:
                 condition: on-failure
@@ -38,6 +40,7 @@ services:
         image: aivpn_mod_comm_send:latest
         volumes:
             - ./logs:/logs/
+            - ./common:/code/common/:ro
         deploy:
             restart_policy:
                 condition: on-failure
@@ -49,6 +52,7 @@ services:
         image: aivpn_mod_report:latest
         volumes:
             - ./logs:/logs/
+            - ./common:/code/common/:ro
         deploy:
             restart_policy:
                 condition: on-failure
@@ -60,6 +64,7 @@ services:
         image: aivpn_mod_traffic_capture:latest
         volumes:
             - ./logs:/logs/
+            - ./common:/code/common/:ro
             - ./mod_traffic_capture:/data/
         deploy:
             restart_policy:
