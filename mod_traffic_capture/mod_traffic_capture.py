@@ -7,9 +7,10 @@ import sys
 import redis
 import logging
 from common.database import *
+from common.swarm_modules import *
 
 if __name__ == '__main__':
-    REDIS_SERVER = 'aivpn_mod_redis'
+    REDIS_SERVER = aivpn_mod_redis
     CHANNEL = 'mod_traffic_capture_check'
     LOG_FILE = '/logs/mod_traffic_capture.log'
 
@@ -21,6 +22,7 @@ if __name__ == '__main__':
     # Connecting to the Redis database
     try:
         db_publisher = redis_connect_to_db(REDIS_SERVER)
+        logging.info("Connection to redis successful.")
     except:
         logging.error("Unable to connect to the Redis database (",REDIS_SERVER,")")
         sys.exit(-1)
@@ -28,6 +30,7 @@ if __name__ == '__main__':
     # Creating a Redis subscriber
     try:
         db_subscriber = redis_create_subscriber(db_publisher)
+        logging.info("Redis subscriber created.")
     except:
         logging.error("Unable to create a Redis subscriber")
         sys.exit(-1)
@@ -35,8 +38,10 @@ if __name__ == '__main__':
     # Subscribing to Redis channel
     try:
         redis_subscribe_to_channel(db_subscriber,CHANNEL)
+        logging.info("Subscribed to channel: ", CHANNEL)
     except:
         logging.error("Channel subscription failed")
+        logging.info("Channel subscription failed")
         sys.exit(-1)
 
     try:
@@ -47,7 +52,7 @@ if __name__ == '__main__':
         for item in db_subscriber.listen():
             if item['type'] == 'message':
                 logging.info(item['channel'])
-                logging.innfo(item['data'])
+                logging.info(item['data'])
 
         db_publisher.publish('services_status', 'MOD_TRAFFIC_CAPTURE:offline')
         logging.info("Terminating")
