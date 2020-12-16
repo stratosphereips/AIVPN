@@ -16,7 +16,7 @@ services:
         image: aivpn_mod_manager:latest
         volumes:
             - ./logs:/logs/
-            - ./common:/code/common/:ro
+            - ./common:/code/common/
         deploy:
             restart_policy:
                 condition: on-failure
@@ -33,7 +33,7 @@ services:
             restart_policy:
                 condition: on-failure
             update_config:
-                delay: 10s
+                delay: 30s
         networks:
             network: {}
     mod_comm_send:
@@ -45,7 +45,7 @@ services:
             restart_policy:
                 condition: on-failure
             update_config:
-                delay: 10s
+                delay: 30s
         networks:
             network: {}
     mod_report:
@@ -57,22 +57,9 @@ services:
             restart_policy:
                 condition: on-failure
             update_config:
-                delay: 10s
+                delay: 30s
         networks:
             network: {}
-    mod_traffic_capture:
-        image: aivpn_mod_traffic_capture:latest
-        volumes:
-            - ./logs:/logs/
-            - ./common:/code/common/:ro
-            - ./mod_traffic_capture:/data/
-        deploy:
-            restart_policy:
-                condition: on-failure
-            update_config:
-                delay: 10s
-        networks:
-            hostnet: {}
     mod_slips:
         image: alpine
         volumes:
@@ -83,7 +70,7 @@ services:
             restart_policy:
                 condition: on-failure
             update_config:
-                delay: 10s
+                delay: 30s
         networks:
             network: {}
     mod_openvpn:
@@ -96,9 +83,22 @@ services:
             restart_policy:
                 condition: on-failure
             update_config:
-                delay: 10s
+                delay: 30s
         networks:
             network: {}
+    mod_traffic_capture:
+        image: aivpn_mod_traffic_capture:latest
+        volumes:
+            - ./logs:/logs/
+            - ./common:/code/common/:ro
+            - ./mod_traffic_capture:/data/
+        deploy:
+            restart_policy:
+                condition: on-failure
+            update_config:
+                delay: 60s
+        networks:
+            hostnet: {}
 volumes:
     mod_manager:
     mod_report:
