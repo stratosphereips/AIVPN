@@ -72,7 +72,7 @@ services:
             update_config:
                 delay: 10s
         networks:
-            network: {}
+            hostnet: {}
     mod_slips:
         image: alpine
         volumes:
@@ -111,3 +111,6 @@ volumes:
 networks:
     network:
         driver: overlay
+    hostnet:
+        external: true
+        name: host
