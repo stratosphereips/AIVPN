@@ -49,7 +49,7 @@ def thread_redis_channel_status_check(MOD_CHANNELS,db_publisher):
             for channel in MOD_CHANNELS:
                 logging.info("Sending report status message to: ",channel)
                 db_publisher.publish(channel, 'report_status')
-            time.sleep(300)
+            time.sleep(60)
         except:
             logging.info("Error in loop in thread services_status_check")
             time.sleep(10)
