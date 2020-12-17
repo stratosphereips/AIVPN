@@ -6,8 +6,9 @@
 import sys
 import time
 import redis
-import logging
 import socket
+import logging
+import threading
 from common.database import *
 
 def create_swarm_hosts_configuration_file(SWARM_CONF_FILE):
