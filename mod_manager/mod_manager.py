@@ -40,6 +40,21 @@ def thread_redis_channel_monitoring(CHANNEL,db_subscriber,db_publisher):
             redis_subscribe_to_channel(db_subscriber,CHANNEL)
             time.sleep(10)
             pass
+
+def thread_redis_channel_status_check(MOD_CHANNELS,db_publisher):
+    while True:
+        try:
+            logging.info("Sending report status message to: ",MOD_CHANNELS)
+            # send status check to every channel
+            for channel in MOD_CHANNELS:
+                logging.info("Sending report status message to: ",channel)
+                db_publisher.publish(channel, 'report_status')
+            time.sleep(300)
+        except:
+            logging.info("Error in loop in thread services_status_check")
+            time.sleep(10)
+            pass
+
 if __name__ == '__main__':
     REDIS_SERVER = 'aivpn_mod_redis'
     CHANNEL = 'services_status'
