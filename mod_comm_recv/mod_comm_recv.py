@@ -48,6 +48,8 @@ if __name__ == '__main__':
             if item['type'] == 'message':
                 logging.info(item['channel'])
                 logging.info(item['data'])
+                if item['data'] == 'report_status':
+                    db_publisher.publish('services_status', 'MOD_COMM_RECV:online')
 
         db_publisher.publish('services_status', 'MOD_COMM_RECV:offline')
         logging.info("Terminating.")
