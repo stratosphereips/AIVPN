@@ -41,7 +41,6 @@ if __name__ == '__main__':
 
     try: 
         logging.info("Connection and channel subscription to redis successful.")
-        db_publisher.publish('services_status', 'MOD_COMM_SEND:online')
 
         # Checking for messages
         for item in db_subscriber.listen():
