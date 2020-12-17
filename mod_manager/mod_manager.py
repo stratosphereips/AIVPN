@@ -105,6 +105,12 @@ if __name__ == '__main__':
         services_status_monitor.start()
         logging.info("services_status_monitor thread started")
 
+        # This thread checks for incoming messages
+        services_status_check = threading.Thread(target=thread_redis_channel_status_check,args=(MOD_CHANNELS,db_publisher,))
+        services_status_check.start()
+        logging.info("services_status_check thread started")
+
+        time.sleep(3600)
         db_publisher.publish('services_status', 'MOD_MANAGER:offline')
         logging.info("Terminating")
         db_publisher.close()
