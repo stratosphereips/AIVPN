@@ -96,7 +96,7 @@ services:
             restart_policy:
                 condition: on-failure
             update_config:
-                delay: 60s
+                delay: 120s
         networks:
             hostnet: {}
 volumes:
