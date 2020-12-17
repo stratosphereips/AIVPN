@@ -100,11 +100,10 @@ if __name__ == '__main__':
         db_publisher.publish('services_status', 'MOD_MANAGER:online')
 
 
-        # Checking for messages
-        for item in db_subscriber.listen():
-            if item['type'] == 'message':
-                logging.info(item['channel'])
-                logging.info(item['data'])
+        # This thread checks for incoming messages
+        services_status_monitor = threading.Thread(target=thread_redis_channel_monitoring,args=(CHANNEL,db_subscriber,db_publisher,))
+        services_status_monitor.start()
+        logging.info("services_status_monitor thread started")
 
         db_publisher.publish('services_status', 'MOD_MANAGER:offline')
         logging.info("Terminating")
