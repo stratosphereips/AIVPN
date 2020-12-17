@@ -26,6 +26,20 @@ def create_swarm_hosts_configuration_file(SWARM_CONF_FILE):
     except Exception as err:
         return False
 
+def thread_redis_channel_monitoring(CHANNEL,db_subscriber,db_publisher):
+    while True:
+        try:
+            # Checking for messages
+            for item in db_subscriber.listen():
+                if item['type'] == 'message':
+                    logging.info(item['channel'])
+                    logging.info(item['data'])
+        except:
+            logging.info("Error in loop in thread services_status_monitor")
+            db_subscriber = redis_create_subscriber(db_publisher)
+            redis_subscribe_to_channel(db_subscriber,CHANNEL)
+            time.sleep(10)
+            pass
 if __name__ == '__main__':
     REDIS_SERVER = 'aivpn_mod_redis'
     CHANNEL = 'services_status'
