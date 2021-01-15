@@ -10,7 +10,7 @@ from common.database import *
 from common.swarm_modules import *
 
 if __name__ == '__main__':
-    REDIS_SERVER = aivpn_mod_redis
+    REDIS_SERVER = 'aivpn_mod_redis'
     CHANNEL = 'mod_traffic_capture_check'
     LOG_FILE = '/logs/mod_traffic_capture.log'
 
@@ -54,6 +54,7 @@ if __name__ == '__main__':
                 logging.info(item['data'])
                 if item['data'] == b'report_status':
                     db_publisher.publish('services_status', 'MOD_TRAFFIC_CAPTURE:online')
+                    logging.info('MOD_TRAFFIC_CAPTURE:online')
 
         db_publisher.publish('services_status', 'MOD_TRAFFIC_CAPTURE:offline')
         logging.info("Terminating")
