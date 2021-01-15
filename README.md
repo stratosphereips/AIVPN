@@ -4,6 +4,20 @@ To better protect the privacy of civil society by researching and developing a l
 
 ## Get started
 
+Build the images:
+```bash
+cd mod_report
+docker build -t aivpn_mod_report:latest .
+```
+
+Deploy the service:
 ```bash
 $ docker stack deploy aivpn -c stack.yml
+```
+
+Check the status of the deployment:
+```bash
+docker stack ps
+docker service ls
+docker container ps
 ```
