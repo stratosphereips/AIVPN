@@ -49,6 +49,7 @@ if __name__ == '__main__':
                 logging.info(item['data'])
                 if item['data'] == b'report_status':
                     db_publisher.publish('services_status', 'MOD_COMM_RECV:online')
+                    logging.info('MOD_COMM_RECV:online')
 
         db_publisher.publish('services_status', 'MOD_COMM_RECV:offline')
         logging.info("Terminating.")
