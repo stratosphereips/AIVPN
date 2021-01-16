@@ -74,7 +74,7 @@ services:
         networks:
             network: {}
     mod_openvpn:
-        image: alpine
+        image: aivpn_mod_openvpn:latest
         volumes:
             - ./mod_openvpn:/opt/openvpn
         stdin_open: true
