@@ -48,6 +48,14 @@ if __name__ == '__main__':
                 logging.info(item['channel'])
                 logging.info(item['data'])
                 if item['data'] == b'report_status':
+                    # Check for new emails
+                    # Load credentials
+                    # check_new_requests()
+                    #    - Parse the email to find valid requests (only VPN requests, etc)
+                    # If there are new requests:
+                    #    - Write request to REDIS with status PENDING
+                    #    - Answer manager with message indicating there are new requests to process.
+                    # If there are no new requests, report OK
                     db_publisher.publish('services_status', 'MOD_COMM_RECV:online')
                     logging.info('MOD_COMM_RECV:online')
 
