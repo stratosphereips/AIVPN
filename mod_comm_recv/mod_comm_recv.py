@@ -32,8 +32,8 @@ def get_new_requests(db_publisher,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD,loggin
         mail.login(IMAP_USERNAME,IMAP_PASSWORD)
         logging.info("Connected to account successful")
 
-        # Connect to Inbox
-        mail.select("Inbox", readonly=False)
+        # Connect to Inbox. Readyonly option: False=marks msgs as read; True=keep messages as unread.
+        mail.select("Inbox", readonly=True)
 
         # Search and return UIDS of all UNSEEN/UNREAD emails in Inbox
         result, data = mail.uid('search', None, "UNSEEN")
