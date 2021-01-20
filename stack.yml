@@ -29,6 +29,7 @@ services:
         volumes:
             - ./logs:/logs/
             - ./common:/code/common/:ro
+            - ./config:/code/config/:ro
         deploy:
             restart_policy:
                 condition: on-failure
