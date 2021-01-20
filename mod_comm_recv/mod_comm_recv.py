@@ -9,12 +9,31 @@ import logging
 import configparser
 from common.database import *
 
-if __name__ == '__main__': 
-    REDIS_SERVER = 'aivpn_mod_redis'
-    CHANNEL = 'mod_comm_recv_check'
-    LOG_FILE = '/logs/mod_comm_recv.log'
+def send_request_to_redis():
+    """
+    This function writes a new AI-VPN request to Redis.
+    This is the first step to get a new account provisioned.
+    """
+    try:
+        print("Sending a request to Redis")
+        return True
+    except Exception as e:
+        print(e)
 
+if __name__ == '__main__': 
+    # Initialize logging
     logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s, MOD_CONN_RECV, %(message)s')
+
+    # Read configuration file
+    config = configparser.ConfigParser()
+    config.read('config/config.ini')
+
+    REDIS_SERVER = config['REDIS']['REDIS_SERVER']
+    CHANNEL = config['REDIS']['REDIS_COMM_RECV_CHECK']
+    LOG_FILE = config['LOGS']['LOG_COMM_RECV']
+    IMAP_SERVER = config['IMAP']['SERVER']
+    IMAP_USERNAME = config['IMAP']['USERNAME']
+    IMAP_PASSWORD = config['IMAP']['PASSWORD']
 
     # Connecting to the Redis database
     try:
@@ -51,7 +70,7 @@ if __name__ == '__main__':
                     # check_new_requests()
                     #    - Parse the email to find valid requests (only VPN requests, etc)
                     # If there are new requests:
-                    #    - Write request to REDIS with status PENDING
+                    #    - Write request to REDIS with status PENDING (send_request_to_redis)
                     #    - Answer manager with message indicating there are new requests to process.
                     # If there are no new requests, report OK
                     db_publisher.publish('services_status', 'MOD_COMM_RECV:online')
