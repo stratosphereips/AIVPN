@@ -23,13 +23,13 @@ def send_request_to_redis(email_uid, email_date, email_from):
     except Exception as e:
         print(e)
 
-def get_new_requests(db_publisher):
+def get_new_requests(db_publisher,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
     email_requests = []
 
     try:
         # Connect to email
-        mail = imaplib.IMAP4_SSL(SERVER)
-        mail.login(USERNAME,PASSWORD)
+        mail = imaplib.IMAP4_SSL(IMAP_SERVER)
+        mail.login(IMAP_USERNAME,IMAP_PASSWORD)
 
         # Connect to Inbox
         mail.select("Inbox", readonly=False)
@@ -135,9 +135,6 @@ def get_new_requests(db_publisher):
         return False
 
 if __name__ == '__main__': 
-    # Initialize logging
-    logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s, MOD_CONN_RECV, %(message)s')
-
     # Read configuration file
     config = configparser.ConfigParser()
     config.read('config/config.ini')
@@ -148,6 +145,9 @@ if __name__ == '__main__':
     IMAP_SERVER = config['IMAP']['SERVER']
     IMAP_USERNAME = config['IMAP']['USERNAME']
     IMAP_PASSWORD = config['IMAP']['PASSWORD']
+
+    # Initialize logging
+    logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s, MOD_CONN_RECV, %(message)s')
 
     # Connecting to the Redis database
     try:
@@ -179,7 +179,7 @@ if __name__ == '__main__':
                 logging.info(item['channel'])
                 logging.info(item['data'])
                 if item['data'] == b'report_status':
-                    if get_new_requests(db_publisher):
+                    if get_new_requests(db_publisher, IMAP_SERVER, IMAP_USERNAME, IMAP_PASSWORD):
                         db_publisher.publish('services_status', 'MOD_COMM_RECV:online')
                         logging.info('MOD_COMM_RECV:online')
                     else:
