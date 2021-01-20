@@ -1,5 +1,3 @@
 redis
-imaplib
 configparser
-re
 emails
