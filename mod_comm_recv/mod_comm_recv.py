@@ -6,6 +6,7 @@
 import sys
 import redis
 import logging
+import configparser
 from common.database import *
 
 if __name__ == '__main__': 
@@ -13,10 +14,7 @@ if __name__ == '__main__':
     CHANNEL = 'mod_comm_recv_check'
     LOG_FILE = '/logs/mod_comm_recv.log'
 
-    try:
-        logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s, MOD_CONN_RECV, %(message)s')
-    except:
-        sys.exit(-1)
+    logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s, MOD_CONN_RECV, %(message)s')
 
     # Connecting to the Redis database
     try:
