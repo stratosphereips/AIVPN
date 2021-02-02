@@ -26,9 +26,9 @@ def redis_create_subscriber(publisher):
 def redis_subscribe_to_channel(subscriber,CHANNEL):
     """ Function to subscribe to a given Redis channel"""
     try:
-        subscriber.subscribe(channel)
+        subscriber.subscribe(CHANNEL)
         return true
-    except exception as err:
+    except Exception as err:
         return err
 
 # PROVISIONING QUEUE
