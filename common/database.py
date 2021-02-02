@@ -10,8 +10,8 @@ import json
 def redis_connect_to_db(REDIS_SERVER):
     """ Function to connect to a Redis database. Returns object publisher. """
     try:
-        publisher = redis.Redis(REDIS_SERVER, port=6379, db=0)
-        return publisher
+        client = redis.Redis(REDIS_SERVER, port=6379, db=0)
+        return client
     except Exception as err:
         return err
 
