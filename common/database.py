@@ -54,7 +54,7 @@ def add_item_provisioning_queue(REDIS_CLIENT,msg_id,msg_type,msg_addr):
         REDIS_CLIENT.zadd(redis_set,score,new_request,nx=True)
 
         return true
-    except exception as err:
+    except Exception as err:
         return err
 
 
@@ -66,5 +66,5 @@ def get_item_provisioning_queue(REDIS_CLIENT):
         redis_set = "provisioning_queue"
         request = REDIS_CLIENT.zpopmin(redis_set,1)
         return request
-    except exception as err:
+    except Exception as err:
         return err
