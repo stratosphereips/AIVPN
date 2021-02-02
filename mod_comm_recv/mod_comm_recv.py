@@ -19,7 +19,7 @@ def send_request_to_redis(msg_id, msg_addr, msg_type, logging, redis_client):
     """
     try:
         logging.debug("Sending a request to Redis: ({}) {} on {}".format(email_uid,email_from,email_date))
-        add_item_provisioning_queue(redis_client,msg_id,msg_type,msg_addr):
+        add_item_provisioning_queue(redis_client,msg_id,msg_type,msg_addr)
         return True
     except Exception as e:
         print(e)
