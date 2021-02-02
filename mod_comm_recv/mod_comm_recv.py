@@ -12,14 +12,14 @@ import imaplib
 from email.parser import BytesFeedParser
 from common.database import *
 
-def send_request_to_redis(msg_id, msg_addr, logging, redis_client):
+def send_request_to_redis(msg_id, msg_addr, msg_type, logging, redis_client):
     """
     This function writes a new AI-VPN request to Redis.
     This is the first step to get a new account provisioned.
     """
     try:
         logging.debug("Sending a request to Redis: ({}) {} on {}".format(email_uid,email_from,email_date))
-        add_item_provisioning_queue(redis_client,msg_id,"email",msg_addr):
+        add_item_provisioning_queue(redis_client,msg_id,msg_type,msg_addr):
         return True
     except Exception as e:
         print(e)
@@ -27,6 +27,7 @@ def send_request_to_redis(msg_id, msg_addr, logging, redis_client):
 
 def get_new_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD,logging):
     email_requests = []
+    msg_type = "email"
 
     try:
         # Connect to email
@@ -102,7 +103,7 @@ def get_new_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD,loggin
                 email_from = re.search(r'[\w\.-]+@[\w\.-]+', msg['from']).group(0)
 
                 # Write pending account to provision in REDIS
-                send_request_to_redis(int(email_uid),email_from,logging,redis_client)
+                send_request_to_redis(int(email_uid),email_from,msg_type,logging,redis_client)
 
                 # Notify manager of new request
                 redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
