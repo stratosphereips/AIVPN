@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# This file is part of the Civilsphere AI VPN 
+# This file is part of the Civilsphere AI VPN
 # See the file 'LICENSE' for copying permission.
 # Author: Veronica Valeros, vero.valeros@gmail.com, veronica.valeros@aic.fel.cvut.cz
 
@@ -12,20 +12,20 @@ import imaplib
 from email.parser import BytesFeedParser
 from common.database import *
 
-def send_request_to_redis(email_uid, email_date, email_from, logging,db_publisher):
+def send_request_to_redis(email_uid, email_date, email_from, logging,redis_client):
     """
     This function writes a new AI-VPN request to Redis.
     This is the first step to get a new account provisioned.
     """
     try:
         logging.debug("Sending a request to Redis: ({}) {} on {}".format(email_uid,email_from,email_date))
-        db_publisher.publish('aivpn_accounts_new', [email_uid,email_from_email_date])
+        redis_client.publish('aivpn_accounts_new', [email_uid,email_from_email_date])
         return True
     except Exception as e:
         print(e)
         return False
 
-def get_new_requests(db_publisher,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD,logging):
+def get_new_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD,logging):
     email_requests = []
 
     try:
@@ -102,10 +102,10 @@ def get_new_requests(db_publisher,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD,loggin
                 email_from = re.search(r'[\w\.-]+@[\w\.-]+', msg['from']).group(0)
 
                 # Write pending account to provision in REDIS
-                send_request_to_redis(int(email_uid),email_date,email_from,logging,db_publisher)
+                send_request_to_redis(int(email_uid),email_date,email_from,logging,redis_client)
 
                 # Notify manager of new request
-                db_publisher.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
+                redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
 
                 logging.debug("This email matches the keywords")
                 logging.debug('{:8}: {}'.format("email id",int(email_uid)))
@@ -134,7 +134,7 @@ def get_new_requests(db_publisher,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD,loggin
         print(e)
         return False
 
-if __name__ == '__main__': 
+if __name__ == '__main__':
     # Read configuration file
     config = configparser.ConfigParser()
     config.read('config/config.ini')
@@ -151,14 +151,14 @@ if __name__ == '__main__':
 
     # Connecting to the Redis database
     try:
-        db_publisher = redis_connect_to_db(REDIS_SERVER)
+        redis_client = redis_connect_to_db(REDIS_SERVER)
     except:
         logging.error("Unable to connect to the Redis database (",REDIS_SERVER,")")
         sys.exit(-1)
 
     # Creating a Redis subscriber
     try:
-        db_subscriber = redis_create_subscriber(db_publisher)
+        db_subscriber = redis_create_subscriber(redis_client)
     except:
         logging.error("Unable to create a Redis subscriber")
         sys.exit(-1)
@@ -169,8 +169,8 @@ if __name__ == '__main__':
     except:
         logging.error("Channel subscription failed")
         sys.exit(-1)
-        
-    try: 
+
+    try:
         logging.info("Connection and channel subscription to redis successful.")
 
         # Checking for messages
@@ -179,20 +179,20 @@ if __name__ == '__main__':
                 logging.info(item['channel'])
                 logging.info(item['data'])
                 if item['data'] == b'report_status':
-                    if get_new_requests(db_publisher, IMAP_SERVER, IMAP_USERNAME, IMAP_PASSWORD,logging):
-                        db_publisher.publish('services_status', 'MOD_COMM_RECV:online')
+                    if get_new_requests(redis_client, IMAP_SERVER, IMAP_USERNAME, IMAP_PASSWORD,logging):
+                        redis_client.publish('services_status', 'MOD_COMM_RECV:online')
                         logging.info('MOD_COMM_RECV:online')
                     else:
-                        db_publisher.publish('services_status', 'MOD_COMM_RECV:error_checking_requests')
+                        redis_client.publish('services_status', 'MOD_COMM_RECV:error_checking_requests')
                         logging.info('MOD_COMM_RECV:error_checking_requests')
 
-        db_publisher.publish('services_status', 'MOD_COMM_RECV:offline')
+        redis_client.publish('services_status', 'MOD_COMM_RECV:offline')
         logging.info("Terminating.")
-        db_publisher.close()
+        redis_client.close()
         db_subscriber.close()
         sys.exit(0)
     except Exception as err:
-        db_publisher.close()
+        redis_client.close()
         db_subscriber.close()
         logging.info("Terminating via exception in main")
         logging.info(err)
