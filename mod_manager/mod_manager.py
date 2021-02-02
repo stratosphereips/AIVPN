@@ -5,6 +5,7 @@
 
 import sys
 import time
+import json
 import redis
 import socket
 import logging
@@ -34,6 +35,9 @@ def thread_redis_channel_monitoring(CHANNEL,db_subscriber,db_publisher):
                 if item['type'] == 'message':
                     logging.info(item['channel'])
                     logging.info(item['data'])
+                    if item['data'] == b'MOD_COMM_RECV:NEW_REQUEST':
+                        new_request = get_item_provisioning_queue(db_publisher)
+                        logging.info(new_request)
         except:
             logging.info("Error in loop in thread services_status_monitor")
             db_subscriber = redis_create_subscriber(db_publisher)
