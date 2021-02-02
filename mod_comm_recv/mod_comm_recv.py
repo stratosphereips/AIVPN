@@ -102,7 +102,7 @@ def get_new_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD,loggin
                 email_from = re.search(r'[\w\.-]+@[\w\.-]+', msg['from']).group(0)
 
                 # Write pending account to provision in REDIS
-                send_request_to_redis(int(email_uid),email_date,email_from,logging,redis_client)
+                send_request_to_redis(int(email_uid),email_from,logging,redis_client)
 
                 # Notify manager of new request
                 redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
