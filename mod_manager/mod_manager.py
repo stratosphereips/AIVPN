@@ -68,7 +68,8 @@ if __name__ == '__main__':
 
     try:
         logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s, MOD_MANAGER, %(message)s')
-    except:
+    except Exception as e:
+        logging.info(e)
         sys.exit(-1)
 
     while not ( create_swarm_hosts_configuration_file(SWARM_CONF_FILE) ):
@@ -80,22 +81,25 @@ if __name__ == '__main__':
     # Connecting to the Redis database
     try:
         redis_client = redis_connect_to_db(REDIS_SERVER)
-    except:
+    except Exception as e:
         logging.info("Unable to connect to the Redis database (",REDIS_SERVER,")")
+        logging.info(e)
         sys.exit(-1)
 
     # Creating a Redis subscriber
     try:
         db_subscriber = redis_create_subscriber(redis_client)
-    except:
+    except Exception as e:
         logging.info("Unable to create a Redis subscriber")
+        logging.info(e)
         sys.exit(-1)
 
     # Subscribing to Redis channel
     try:
         redis_subscribe_to_channel(db_subscriber,CHANNEL)
-    except:
+    except Exception as e:
         logging.info("Channel subscription failed")
+        logging.info(e)
         sys.exit(-1)
 
     # Main manager module logic starts here
