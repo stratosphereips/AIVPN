@@ -24,7 +24,31 @@ def redis_create_subscriber(publisher):
 def redis_subscribe_to_channel(subscriber,CHANNEL):
     """ Function to subscribe a subscriber object to a given Redis channel"""
     try:
-        subscriber.subscribe(CHANNEL)
-        return True
-    except Exception as err:
+        subscriber.subscribe(channel)
+        return true
+    except exception as err:
         return err
+
+# PROVISIONING QUEUE
+## The provisioning queue is where new requests are queued before being handled.
+## We receive many types of requests, through many types of messaging apps.
+## One client can do many requests. 
+## We store { "msg_id":45, "msg_type":"email", "msg_addr":"email@email.com" }
+
+def add_item_provisioning_queue(REDIS_CLIENT,new_request):
+    """ Function to add an item to the provisioning_queue Redis SET"""
+    try:
+        redis_set = "provisioning_queue"
+        REDIS_CLIENT.zadd(redis_set,new_request)
+        return true
+    except exception as err:
+        return err
+
+
+def get_item_provisioning_queue(REDIS_CLIENT):
+    """ Function to get an item from the provisioning_queue Redis SET"""
+    try:
+        return true
+    except exception as err:
+        return err
+
