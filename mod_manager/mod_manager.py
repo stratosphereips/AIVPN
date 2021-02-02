@@ -13,16 +13,16 @@ from common.database import *
 
 def create_swarm_hosts_configuration_file(SWARM_CONF_FILE):
     MODULES = ['aivpn_mod_redis']
-    try: 
+    try:
         f = open(SWARM_CONF_FILE, 'w')
         for mod in MODULES:
-            try: 
+            try:
                 f.write(mod+'=\''+socket.gethostbyname(mod)+'\'\n')
             except:
                 f.close()
                 return False
         f.close()
-        return True 
+        return True
     except Exception as err:
         return False
 
