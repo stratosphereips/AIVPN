@@ -27,7 +27,7 @@ def create_swarm_hosts_configuration_file(SWARM_CONF_FILE):
     except Exception as err:
         return False
 
-def thread_redis_channel_monitoring(CHANNEL,db_subscriber,db_publisher):
+def thread_redis_channel_monitoring(CHANNEL,db_subscriber,redis_client):
     while True:
         try:
             # Checking for messages
@@ -36,23 +36,23 @@ def thread_redis_channel_monitoring(CHANNEL,db_subscriber,db_publisher):
                     logging.info(item['channel'])
                     logging.info(item['data'])
                     if item['data'] == b'MOD_COMM_RECV:NEW_REQUEST':
-                        new_request = get_item_provisioning_queue(db_publisher)
+                        new_request = get_item_provisioning_queue(redis_client)
                         logging.info(new_request)
         except:
             logging.info("Error in loop in thread services_status_monitor")
-            db_subscriber = redis_create_subscriber(db_publisher)
+            db_subscriber = redis_create_subscriber(redis_client)
             redis_subscribe_to_channel(db_subscriber,CHANNEL)
             time.sleep(10)
             pass
 
-def thread_redis_channel_status_check(MOD_CHANNELS,db_publisher):
+def thread_redis_channel_status_check(MOD_CHANNELS,redis_client):
     while True:
         try:
             logging.info("Sending report status message to: ",MOD_CHANNELS)
             # send status check to every channel
             for channel in MOD_CHANNELS:
                 logging.info("Sending report status message to: ",channel)
-                db_publisher.publish(channel, 'report_status')
+                redis_client.publish(channel, 'report_status')
             time.sleep(60)
         except:
             logging.info("Error in loop in thread services_status_check")
@@ -79,14 +79,14 @@ if __name__ == '__main__':
 
     # Connecting to the Redis database
     try:
-        db_publisher = redis_connect_to_db(REDIS_SERVER)
+        redis_client = redis_connect_to_db(REDIS_SERVER)
     except:
         logging.info("Unable to connect to the Redis database (",REDIS_SERVER,")")
         sys.exit(-1)
 
     # Creating a Redis subscriber
     try:
-        db_subscriber = redis_create_subscriber(db_publisher)
+        db_subscriber = redis_create_subscriber(redis_client)
     except:
         logging.info("Unable to create a Redis subscriber")
         sys.exit(-1)
@@ -101,27 +101,27 @@ if __name__ == '__main__':
     # Main manager module logic starts here
     try:
         logging.info("Connection and channel subscription to redis successful.")
-        db_publisher.publish('services_status', 'MOD_MANAGER:online')
+        redis_client.publish('services_status', 'MOD_MANAGER:online')
 
 
         # This thread checks for incoming messages
-        services_status_monitor = threading.Thread(target=thread_redis_channel_monitoring,args=(CHANNEL,db_subscriber,db_publisher,))
+        services_status_monitor = threading.Thread(target=thread_redis_channel_monitoring,args=(CHANNEL,db_subscriber,redis_client,))
         services_status_monitor.start()
         logging.info("services_status_monitor thread started")
 
         # This thread checks for incoming messages
-        services_status_check = threading.Thread(target=thread_redis_channel_status_check,args=(MOD_CHANNELS,db_publisher,))
+        services_status_check = threading.Thread(target=thread_redis_channel_status_check,args=(MOD_CHANNELS,redis_client,))
         services_status_check.start()
         logging.info("services_status_check thread started")
 
         time.sleep(3600)
-        db_publisher.publish('services_status', 'MOD_MANAGER:offline')
+        redis_client.publish('services_status', 'MOD_MANAGER:offline')
         logging.info("Terminating")
-        db_publisher.close()
+        redis_client.close()
         db_subscriber.close()
         sys.exit(0)
     except Exception as err:
-        db_publisher.close()
+        redis_client.close()
         db_subscriber.close()
         logging.info("Terminating via exception in main")
         logging.info(err)
