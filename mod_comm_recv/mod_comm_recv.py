@@ -12,14 +12,14 @@ import imaplib
 from email.parser import BytesFeedParser
 from common.database import *
 
-def send_request_to_redis(email_uid, email_date, email_from, logging,redis_client):
+def send_request_to_redis(msg_id, msg_addr, logging, redis_client):
     """
     This function writes a new AI-VPN request to Redis.
     This is the first step to get a new account provisioned.
     """
     try:
         logging.debug("Sending a request to Redis: ({}) {} on {}".format(email_uid,email_from,email_date))
-        redis_client.publish('aivpn_accounts_new', [email_uid,email_from_email_date])
+        add_item_provisioning_queue(redis_client,msg_id,"email",msg_addr):
         return True
     except Exception as e:
         print(e)
