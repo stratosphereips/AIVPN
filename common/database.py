@@ -48,10 +48,9 @@ def add_item_provisioning_queue(REDIS_CLIENT,msg_id,msg_type,msg_addr):
         dataset = { "msg_id":int(msg_id), "msg_type":str(msg_type),
                 "msg_addr":str(msg_addr) }
         json_dump = json.dumps(dataset)
-        new_request = json.loads(json_dump)
 
         # If new_request exists, ignore and do not update score.
-        REDIS_CLIENT.zadd(redis_set,score,new_request,nx=True)
+        REDIS_CLIENT.zadd(redis_set,{new_request:score},nx=True)
 
         return true
     except Exception as err:
