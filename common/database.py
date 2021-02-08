@@ -7,6 +7,17 @@ import redis
 import time
 import json
 
+# Import the word dictionary to be used for generating the profile_names
+try:
+    with open(WORDS_JSON) as f:
+        WORDS_DICT = json.load(f)
+except:
+    WORDS_DICT = {}
+
+# REDIS COMMON
+## Series of functions to handle the connections to the Redis database, as well
+## as subscribing to channels using pub/sub.
+
 def redis_connect_to_db(REDIS_SERVER):
     """ Function to connect to a Redis database. Returns object publisher. """
     try:
@@ -30,6 +41,34 @@ def redis_subscribe_to_channel(subscriber,CHANNEL):
         return true
     except Exception as err:
         return err
+
+# PROFILE HANDLING
+## The PROFILE_HANDLING are a series of functions associated with the
+## generation on profile_names, storage, and other functions.
+
+def gen_profile_name():
+    """
+    Generates a new profile_name based on a recipe.
+    Profile name recipe: YYYYMMDDmmss_<word>_<word>
+    """
+    try:
+        string1 = random.choice(WORDS_DICT['data'])
+        string2 = random.choice(WORDS_DICT['data'])
+        datenow = datetime.now().strftime("%Y%m%d%H%M%S")
+        profile_name = "{}-{}_{}".format(date_now, string1, string2)
+
+        return profile_name
+    except Exception as e:
+        return False
+
+def add_profile_name(profile_name,msg_addr):
+    """ Stores the profile_name:msg_addr in Redis  """
+
+def get_profile_name():
+    """ Obtains a msg_addr given a profile_name """
+
+def del_profile_name():
+    """ Deletes a profile_name from Redis """
 
 # PROVISIONING QUEUE
 ## The provisioning queue is where new requests are queued before being handled.
