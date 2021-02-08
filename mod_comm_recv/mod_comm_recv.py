@@ -18,7 +18,7 @@ def send_request_to_redis(msg_id, msg_addr, msg_type, logging, redis_client):
     This is the first step to get a new account provisioned.
     """
     try:
-        logging.debug("Sending a request to Redis: ({}) {} on {}".format(email_uid,email_from,email_date))
+        logging.debug("Sending a request to Redis: ({}) {} on {}".format(str(msg_id),msg_addr,msg_type))
         add_item_provisioning_queue(redis_client,msg_id,msg_type,msg_addr)
         return True
     except Exception as e:
@@ -36,7 +36,7 @@ def get_new_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD,loggin
         logging.info("Connected to account successful")
 
         # Connect to Inbox. Readyonly option: False=marks msgs as read; True=keep messages as unread.
-        mail.select("Inbox", readonly=True)
+        mail.select("Inbox", readonly=False)
 
         # Search and return UIDS of all UNSEEN/UNREAD emails in Inbox
         result, data = mail.uid('search', None, "UNSEEN")
@@ -135,7 +135,7 @@ def get_new_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD,loggin
         print(e)
         return False
 
-if __name__ == '__main__':
+def read_configuration():
     # Read configuration file
     config = configparser.ConfigParser()
     config.read('config/config.ini')
@@ -146,6 +146,12 @@ if __name__ == '__main__':
     IMAP_SERVER = config['IMAP']['SERVER']
     IMAP_USERNAME = config['IMAP']['USERNAME']
     IMAP_PASSWORD = config['IMAP']['PASSWORD']
+
+    return REDIS_SERVER,CHANNEL,LOG_FILE,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD
+
+if __name__ == '__main__':
+    # Read cofiguration file 
+    REDIS_SERVER,CHANNEL,LOG_FILE,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD = read_configuration()
 
     # Initialize logging
     logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.INFO,format='%(asctime)s, MOD_CONN_RECV, %(message)s')
@@ -184,6 +190,7 @@ if __name__ == '__main__':
                         redis_client.publish('services_status', 'MOD_COMM_RECV:online')
                         logging.info('MOD_COMM_RECV:online')
                     else:
+                        REDIS_SERVER,CHANNEL,LOG_FILE,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD = read_configuration()
                         redis_client.publish('services_status', 'MOD_COMM_RECV:error_checking_requests')
                         logging.info('MOD_COMM_RECV:error_checking_requests')
 
