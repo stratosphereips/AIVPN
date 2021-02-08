@@ -36,8 +36,11 @@ def thread_redis_channel_monitoring(CHANNEL,db_subscriber,redis_client):
                     logging.info(item['channel'])
                     logging.info(item['data'])
                     if item['data'] == b'MOD_COMM_RECV:NEW_REQUEST':
-                        new_request = get_item_provisioning_queue(redis_client)
-                        logging.info(new_request)
+                        try:
+                            new_request = get_item_provisioning_queue(redis_client)
+                            logging.info(new_request)
+                        except Exception as e:
+                            logging.info(e)
         except:
             logging.info("Error in loop in thread services_status_monitor")
             db_subscriber = redis_create_subscriber(redis_client)
