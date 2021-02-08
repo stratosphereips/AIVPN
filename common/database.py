@@ -6,13 +6,16 @@
 import redis
 import time
 import json
+import random
+
+WORDS_JSON = 'words.json'
 
 # Import the word dictionary to be used for generating the profile_names
 try:
     with open(WORDS_JSON) as f:
         WORDS_DICT = json.load(f)
 except:
-    WORDS_DICT = {}
+    pass
 
 # REDIS COMMON
 ## Series of functions to handle the connections to the Redis database, as well
@@ -54,7 +57,7 @@ def gen_profile_name():
     try:
         string1 = random.choice(WORDS_DICT['data'])
         string2 = random.choice(WORDS_DICT['data'])
-        datenow = datetime.now().strftime("%Y%m%d%H%M%S")
+        datenow = time.strftime("%Y%m%d%H%M%S")
         profile_name = "{}-{}_{}".format(date_now, string1, string2)
 
         return profile_name
