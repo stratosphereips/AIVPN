@@ -49,6 +49,7 @@ def thread_redis_channel_monitoring(CHANNEL,db_subscriber,redis_client):
             pass
 
 def thread_redis_channel_status_check(MOD_CHANNELS,redis_client):
+    """ """
     while True:
         try:
             logging.info("Sending report status message to: ",MOD_CHANNELS)
@@ -61,6 +62,19 @@ def thread_redis_channel_status_check(MOD_CHANNELS,redis_client):
             logging.info("Error in loop in thread services_status_check")
             time.sleep(10)
             pass
+
+def provision_accout(msg_addr):
+    """
+    """
+    # Step 0: Can we provision this account? space, internet, PIDs, IPs, limits
+
+    # Step 1: Generate profile name. Store it. Create folder.
+
+    # Step 2: Generate VPN Profile. OpenVPN or alternative.
+
+    # Step 3: Start traffic capture. Store PID.
+
+    # Step 4: Send profile or instruct manager to send profile.
 
 if __name__ == '__main__':
     REDIS_SERVER = 'aivpn_mod_redis'
