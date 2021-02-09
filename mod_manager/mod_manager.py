@@ -69,6 +69,8 @@ def provision_accout(new_request):
     # Step 0: Can we provision this account? space, internet, PIDs, IPs, limits
     #         If we cannot, request is stored back in the provisioning queue.
 
+    ## Parse the new_request to extract values: msg_addr, msg_type, etc.
+
     # Step 1: Generate profile name. Store it. Create folder.
 
     ## Get an account name
@@ -80,18 +82,35 @@ def provision_accout(new_request):
 
     ## Store the mapping of profile_name:msg_addr to quickly know how to reach
     ## the user when the reports are finished, or a contact is needed.
+    prov_status = add_profile_name(profile_name,msg_addr)
+    if not prov_status:
+        # Request is stored back in the previous queue
+        # Return error
+        pass
 
     ## Store the mapping of msg_addr:profile_name to check for user usage limit.
     ## There will be a maximum number of accounts 
+    prov_status = add_identity(msg_addr)
+    if not prov_status:
+        # Request is stored back in the previous queue
+        # Return error
+        pass
 
     ## Create a folder to store all files associated with the profile_name.
     ## The specific folder is specified in the configuration file.
+    prov_status = create_working_directory(profile_name)
+    if not prov_status:
+        # Request is stored back in the previous queue
+        # Return error
+        pass
 
     ## Store profile name to the next queue: prov_generate_vpn
+    prov_status = add_prov_generate_vpn(profile_name)
 
     # Step 2: Generate VPN Profile. OpenVPN or alternative.
 
     ## Get profile from the queue using profile_name as key.
+    prov_status = get_prov_generate_vpn(profile_name)
 
     ## Trigger generation of VPN profile using profile_name.
     ## Retrieve from this process the client IP assigned to the profile_name.
