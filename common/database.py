@@ -45,6 +45,17 @@ def redis_subscribe_to_channel(subscriber,CHANNEL):
     except Exception as err:
         return err
 
+# IDENTITY HANDLING
+## The IDENTITY HANDLING are a series of functions associated with the handling
+##of user identities. The identity of a user is an email address, account name or
+## any other account identified used to communicate between the AIVPN and the user
+
+def add_identity(msg_addr):
+    """ stores the msg_addr in redis  """
+
+def del_identity(msg_addr):
+    """ deletes the msg_addr in redis  """
+
 # PROFILE HANDLING
 ## The PROFILE_HANDLING are a series of functions associated with the
 ## generation on profile_names, storage, and other functions.
