@@ -63,16 +63,54 @@ def thread_redis_channel_status_check(MOD_CHANNELS,redis_client):
             time.sleep(10)
             pass
 
-def provision_accout(msg_addr):
-    """
-    """
+def provision_accout(new_request):
+    """ This function handles the steps needed to provision a new account."""
+
     # Step 0: Can we provision this account? space, internet, PIDs, IPs, limits
+    #         If we cannot, request is stored back in the provisioning queue.
 
     # Step 1: Generate profile name. Store it. Create folder.
 
+    ## Get an account name
+    acc_profile_name = gen_profile_name()
+    if not acc_profile_name:
+        # Request is stored back in the provisioning queue.
+        # Return error.
+        pass
+
+    ## Store the mapping of profile_name:msg_addr to quickly know how to reach
+    ## the user when the reports are finished, or a contact is needed.
+
+    ## Store the mapping of msg_addr:profile_name to check for user usage limit.
+    ## There will be a maximum number of accounts 
+
+    ## Create a folder to store all files associated with the profile_name.
+    ## The specific folder is specified in the configuration file.
+
+    ## Store profile name to the next queue: prov_generate_vpn
+
     # Step 2: Generate VPN Profile. OpenVPN or alternative.
 
+    ## Get profile from the queue using profile_name as key.
+
+    ## Trigger generation of VPN profile using profile_name.
+    ## Retrieve from this process the client IP assigned to the profile_name.
+    ## The profile is stored in a folder or in Redis.
+
+    ## Store profile_name:ip_addr in a data list in Redis
+
+    ## Store profile_name to the next queue: prov_start_capture
+
     # Step 3: Start traffic capture. Store PID.
+
+    ## Get profile from the queue using profile_name as key
+
+    ## Get IP address from list using profile_name as key
+
+    ## Trigger start capturing for profile_name by mod_traffic_capture.
+    ## Module will store a PID in Redis.
+
+    ## Stores profile_name to the next queue: prov_send_profile
 
     # Step 4: Send profile or instruct manager to send profile.
 
