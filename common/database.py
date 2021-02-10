@@ -89,8 +89,53 @@ def upd_identity_counter(msg_addr):
 
 def del_identity(msg_addr):
     """ Deletes the msg_addr in redis """
-    try: 
+    try:
         hdel(hash_account_identities,msg_addr)
+        return True
+    except:
+        return False
+
+# ACTIVE PROFILE HASH
+## We want to quickly consult the number of active profiles in a given identity
+## to check that it a certain limit has been reached or not. Users cannot
+## request unlimited number of accounts. This is a DDoS protection.
+hash_active_profiles = "active_profiles"
+
+def add_active_profile_counter(msg_addr):
+    """ Increases the counter of active profiles for a given identity by one. """
+
+    try:
+        # Create a new entry if there is not one. Initalize at 0.
+        hsetnx(hash_active_profiles,msg_addr,0)
+
+        hincrby(hash_active_profiles,msg_addr,1) 
+
+        return True
+    except:
+        return False
+
+def subs_active_profile_counter(msg_addr):
+    """ Decreases the counter of active profiles for a given identity by one. """
+
+    try:
+        # Get current value, if above zero substract one.
+        counter_active_profiles = hget(hash_active_profiles,msg_addr)
+        if counter_active_profiles > 0:
+            hincrby(hash_active_profiles,msg_addr,-1) 
+        return True
+    except:
+        return False
+
+def get_active_profile_counter(msg_addr):
+    """ Returns the counter of active profiles for a given identity. """
+    counter_active_profiles = hget(hash_active_profiles,msg_addr)
+    return counter_active_profiles
+
+
+def del_active_profile_counter(msg_addr):
+    """ Deletes the counter of active profiles for a given identity. """
+    try:
+        hdel(hash_active_profiles,msg_addr)
         return True
     except:
         return False
@@ -114,7 +159,7 @@ def gen_profile_name():
     except Exception as e:
         return False
 
-def add_profile_name(profile_name,msg_addr):
+def add_profile_nam e(profile_name,msg_addr):
     """ Stores the profile_name:msg_addr in Redis  """
 
 def get_profile_name():
