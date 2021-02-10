@@ -88,7 +88,12 @@ def upd_identity_counter(msg_addr):
     status = hset(hash_account_identities,msg_addr,identity_value)
 
 def del_identity(msg_addr):
-    """ Deletes the msg_addr in redis  """
+    """ Deletes the msg_addr in redis """
+    try: 
+        hdel(hash_account_identities,msg_addr)
+        return True
+    except:
+        return False
 
 # PROFILE HANDLING
 ## The PROFILE_HANDLING are a series of functions associated with the
