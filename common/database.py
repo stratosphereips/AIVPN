@@ -77,7 +77,7 @@ def exists_identity(msg_addr):
     return status
 
 def upd_identity_counter(msg_addr):
-    """ Updates counter if the msg_addr in redis exists """
+    """ Updates counter if the msg_addr in redis exists  by 1. """
     identity_value = json.dumps(hget(hash_account_identities,msg_addr))
     identity_object = json.loads(identity_value)
 
@@ -99,7 +99,7 @@ def upd_identity_profiles(msg_addr,profile_name):
     status = hset(hash_account_identities,msg_addr,identity_value)
 
 def upd_identity_gpg(msg_addr,gpg_key):
-    """ If identity exists, add a new profile for the identity """
+    """ If identity exists, add a new gpg key for the identity """
     identity_value = json.dumps(hget(hash_account_identities,msg_addr))
     identity_object = json.loads(identity_value)
 
@@ -181,7 +181,7 @@ def gen_profile_name():
     except Exception as e:
         return False
 
-def add_profile_nam e(profile_name,msg_addr):
+def add_profile_name(profile_name,msg_addr):
     """ Stores the profile_name:msg_addr in Redis  """
 
 def get_profile_name():
