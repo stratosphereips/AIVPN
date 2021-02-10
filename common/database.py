@@ -55,7 +55,7 @@ def redis_subscribe_to_channel(subscriber,CHANNEL):
 ## Value:
 ## {'total_profiles':1,'profiles':'[profile_name1,profile_name2]','gpg':string-gpg}
 
-identity_template = json.dumps({'total_profiles':0,'profiles':'[]','gpg':''})
+identity_template = json.dumps({'total_profiles':0,'profiles':[],'gpg':''})
 hash_account_identities = "account_identities"
 
 def add_identity(msg_addr):
@@ -77,11 +77,33 @@ def exists_identity(msg_addr):
     return status
 
 def upd_identity_counter(msg_addr):
-    """ Checks if the msg_addr in redis exists """
+    """ Updates counter if the msg_addr in redis exists """
     identity_value = json.dumps(hget(hash_account_identities,msg_addr))
     identity_object = json.loads(identity_value)
 
     identity_object['total_profiles'] = identity_object['total_profiles'] + 1
+
+    identity_value = json.dumps(identity_object)
+
+    status = hset(hash_account_identities,msg_addr,identity_value)
+
+def upd_identity_profiles(msg_addr,profile_name):
+    """ If identity exists, add a new profile for the identity """
+    identity_value = json.dumps(hget(hash_account_identities,msg_addr))
+    identity_object = json.loads(identity_value)
+
+    identity_object['profiles'].append(profile_name)
+
+    identity_value = json.dumps(identity_object)
+
+    status = hset(hash_account_identities,msg_addr,identity_value)
+
+def upd_identity_gpg(msg_addr,gpg_key):
+    """ If identity exists, add a new profile for the identity """
+    identity_value = json.dumps(hget(hash_account_identities,msg_addr))
+    identity_object = json.loads(identity_value)
+
+    identity_object['gpg'] = gpg_key
 
     identity_value = json.dumps(identity_object)
 
