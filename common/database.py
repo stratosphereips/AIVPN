@@ -47,14 +47,48 @@ def redis_subscribe_to_channel(subscriber,CHANNEL):
 
 # IDENTITY HANDLING
 ## The IDENTITY HANDLING are a series of functions associated with the handling
-##of user identities. The identity of a user is an email address, account name or
+## of user identities. The identity of a user is an email address, account name or
 ## any other account identified used to communicate between the AIVPN and the user
+##
+## The hash table will be account_identities and the value will be a JSON.
+## Fields: msg_addr
+## Value:
+## {'total_profiles':1,'profiles':'[profile_name1,profile_name2]','gpg':string-gpg}
+
+identity_template = json.dumps({'total_profiles':0,'profiles':'[]','gpg':''})
+hash_account_identities = "account_identities"
 
 def add_identity(msg_addr):
-    """ stores the msg_addr in redis  """
+    """ Stores the msg_addr in redis  """
+
+    status = hsetnx(hash_account_identities,msg_addr,identity_template)
+
+    # status==1 if HSETNX created a field in the hash set
+    # status==0 if the identity exists and no operation is done.
+    return status
+
+def exists_identity(msg_addr):
+    """ Checks if the msg_addr in redis exists """
+    hash_table = "account_identities"
+
+    status = hexists(hash_account_identities,msg_addr)
+
+    # Returns a boolean indicating if key exists within hash name
+    return status
+
+def upd_identity_counter(msg_addr):
+    """ Checks if the msg_addr in redis exists """
+    identity_value = json.dumps(hget(hash_account_identities,msg_addr))
+    identity_object = json.loads(identity_value)
+
+    identity_object['total_profiles'] = identity_object['total_profiles'] + 1
+
+    identity_value = json.dumps(identity_object)
+
+    status = hset(hash_account_identities,msg_addr,identity_value)
 
 def del_identity(msg_addr):
-    """ deletes the msg_addr in redis  """
+    """ Deletes the msg_addr in redis  """
 
 # PROFILE HANDLING
 ## The PROFILE_HANDLING are a series of functions associated with the
