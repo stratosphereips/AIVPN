@@ -10,12 +10,17 @@
 
 import sys
 import logging
+import configparser
 from common.database import *
 
 if __name__ == '__main__':
-    REDIS_SERVER = 'aivpn_mod_redis'
-    CHANNEL = 'mod_comm_openvpn_check'
-    LOG_FILE = '/logs/mod_comm_send.log'
+    # Read configuration file
+    config = configparser.ConfigParser()
+    config.read('config/config.ini')
+
+    REDIS_SERVER = config['REDIS']['REDIS_SERVER']
+    CHANNEL = config['REDIS']['REDIS_OPENVPN_CHECK']
+    LOG_FILE = config['LOGS']['LOG_OPENVPN']
 
     try:
         logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s, MOD_OPENVPN, %(message)s')
