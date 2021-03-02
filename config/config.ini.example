@@ -19,3 +19,6 @@ LOG_OPENVPN = /logs/mod_openvpn.log
 SERVER = imap.example-server.com
 USERNAME = example@example-server.com
 PASSWORD = addheretheaccountpassword
+
+[STORAGE]
+PATH = /opt/aivpn/data/
