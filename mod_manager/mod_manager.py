@@ -63,7 +63,7 @@ def thread_redis_channel_status_check(MOD_CHANNELS,redis_client):
             time.sleep(10)
             pass
 
-def provision_accout(new_request):
+def provision_account(new_request):
     """ This function handles the steps needed to provision a new account."""
 
     ## Parse the new_request to extract values: msg_addr, msg_type, etc.
