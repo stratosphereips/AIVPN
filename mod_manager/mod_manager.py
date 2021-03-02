@@ -73,11 +73,16 @@ def provision_accout(new_request):
     p_msg_id = new_request_object['msg_id']
     p_msg_type = new_request_object['msg_type']
 
-
     # Step 0: Can we provision this account? space, internet, PIDs, IPs, limits
     #         If we cannot, request is stored back in the provisioning queue.
 
     ## Check msg_addr hasn't reached the maximum limit of active profiles
+    ## TODO: read limit from configuration file
+    ACTIVE_ACCOUNT_LIMIT=2
+    if get_active_profile_counter(p_msg_addr) > ACTIVE_ACCOUNT_LIMIT:
+        # New message sent to user saying the number of simultaneous accounts
+        # has been reached. Try again later.
+        pass
 
     ## Check if we have enough storage to provision the new account.
 
