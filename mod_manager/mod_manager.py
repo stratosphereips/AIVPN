@@ -11,6 +11,7 @@ import socket
 import logging
 import threading
 from common.database import *
+from common.storage import *
 
 def create_swarm_hosts_configuration_file(SWARM_CONF_FILE):
     MODULES = ['aivpn_mod_redis']
@@ -66,7 +67,7 @@ def thread_redis_channel_status_check(MOD_CHANNELS,redis_client):
 def provision_account(new_request):
     """ This function handles the steps needed to provision a new account."""
 
-    # Step 0: Parse the new_request to extract values: msg_addr, msg_type, etc.
+    # Step 0: Parse the new_request to extract values: msg_addr, msg_type, msg_id.
     ## new_request="msg_id":int(msg_id), "msg_type":str(msg_type), "msg_addr":str(msg_addr)
     new_request_object = json.loads(new_request)
     p_msg_addr = new_request_object['msg_addr']
@@ -79,14 +80,15 @@ def provision_account(new_request):
     ## Check msg_addr hasn't reached the maximum limit of active profiles
     ## TODO: read limit from configuration file
     ACTIVE_ACCOUNT_LIMIT=2
+
     if get_active_profile_counter(p_msg_addr) > ACTIVE_ACCOUNT_LIMIT:
         # New message sent to user saying the number of simultaneous accounts
         # has been reached. Try again later.
         pass
 
-    ## Check if we have enough storage to provision the new account.
+    ## TODO: Check if we have enough storage to provision the new account.
 
-    ## Check if we have enough IP addresses to provision new account.
+    ## TODO: Check if we have enough IP addresses to provision new account.
 
     # Step 2: Generate profile name. Store it. Create folder.
 
