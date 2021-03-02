@@ -66,14 +66,14 @@ def thread_redis_channel_status_check(MOD_CHANNELS,redis_client):
 def provision_account(new_request):
     """ This function handles the steps needed to provision a new account."""
 
-    ## Parse the new_request to extract values: msg_addr, msg_type, etc.
+    # Step 0: Parse the new_request to extract values: msg_addr, msg_type, etc.
     ## new_request="msg_id":int(msg_id), "msg_type":str(msg_type), "msg_addr":str(msg_addr)
     new_request_object = json.loads(new_request)
     p_msg_addr = new_request_object['msg_addr']
     p_msg_id = new_request_object['msg_id']
     p_msg_type = new_request_object['msg_type']
 
-    # Step 0: Can we provision this account? space, internet, PIDs, IPs, limits
+    # Step 1: Can we provision this account? space, internet, PIDs, IPs, limits
     #         If we cannot, request is stored back in the provisioning queue.
 
     ## Check msg_addr hasn't reached the maximum limit of active profiles
@@ -88,7 +88,7 @@ def provision_account(new_request):
 
     ## Check if we have enough IP addresses to provision new account.
 
-    # Step 1: Generate profile name. Store it. Create folder.
+    # Step 2: Generate profile name. Store it. Create folder.
 
     ## Get an account name
     acc_profile_name = gen_profile_name()
@@ -124,7 +124,7 @@ def provision_account(new_request):
     ## Store profile name to the next queue: prov_generate_vpn
     prov_status = add_prov_generate_vpn(profile_name)
 
-    # Step 2: Generate VPN Profile. OpenVPN or alternative.
+    # Step 3: Generate VPN Profile. OpenVPN or alternative.
 
     ## Get profile from the queue using profile_name as key.
     prov_status = get_prov_generate_vpn(profile_name)
@@ -137,7 +137,7 @@ def provision_account(new_request):
 
     ## Store profile_name to the next queue: prov_start_capture
 
-    # Step 3: Start traffic capture. Store PID.
+    # Step 4: Start traffic capture. Store PID.
 
     ## Get profile from the queue using profile_name as key
 
@@ -148,7 +148,7 @@ def provision_account(new_request):
 
     ## Stores profile_name to the next queue: prov_send_profile
 
-    # Step 4: Send profile or instruct manager to send profile.
+    # Step 5: Send profile or instruct manager to send profile.
 
 if __name__ == '__main__':
     REDIS_SERVER = 'aivpn_mod_redis'
