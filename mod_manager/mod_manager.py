@@ -192,8 +192,7 @@ if __name__ == '__main__':
             try:
                 redis_channel_monitoring(CHANNEL,db_subscriber,redis_client)
             except Exception as e:
-                logging.info("services_status_monitor restarting due to
-                        exception")
+                logging.info("services_status_monitor restarting due to exception")
                 logging.info(e)
                 pass
 
