@@ -64,7 +64,7 @@ def thread_redis_channel_status_check(MOD_CHANNELS,redis_client):
             time.sleep(10)
             pass
 
-def provision_account(new_request):
+def provision_account(new_request,REDIS_CLIENT):
     """ This function handles the steps needed to provision a new account."""
 
     # Step 0: Parse the new_request to extract values: msg_addr, msg_type, msg_id.
@@ -101,7 +101,7 @@ def provision_account(new_request):
 
     ## Store the mapping of profile_name:msg_addr to quickly know how to reach
     ## the user when the reports are finished, or a contact is needed.
-    prov_status = add_profile_name(profile_name,msg_addr)
+    prov_status = add_profile_name(acc_profile_name,p_msg_addr)
     if not prov_status:
         # Request is stored back in the previous queue
         # Return error
@@ -109,7 +109,7 @@ def provision_account(new_request):
 
     ## Store the mapping of msg_addr:profile_name to check for user usage limit.
     ## There will be a maximum number of accounts 
-    prov_status = add_identity(msg_addr)
+    prov_status = add_identity(p_msg_addr)
     if not prov_status:
         # Request is stored back in the previous queue
         # Return error
@@ -117,19 +117,25 @@ def provision_account(new_request):
 
     ## Create a folder to store all files associated with the profile_name.
     ## The specific folder is specified in the configuration file.
-    prov_status = create_working_directory(profile_name)
+    prov_status = create_working_directory(acc_profile_name)
     if not prov_status:
         # Request is stored back in the previous queue
         # Return error
         pass
 
+    ## Update identity table with new profile
+    prov_status = upd_identity_profiles(p_msg_addr,acc_profile_name)
+    if not prov_status:
+        # Request is stored back in the previous queue
+        # Return error
+
     ## Store profile name to the next queue: prov_generate_vpn
-    prov_status = add_prov_generate_vpn(profile_name)
+    prov_status = add_prov_generate_vpn(acc_profile_name,REDIS_CLIENT)
 
     # Step 3: Generate VPN Profile. OpenVPN or alternative.
 
     ## Get profile from the queue using profile_name as key.
-    prov_status = get_prov_generate_vpn(profile_name)
+    prov_status = get_prov_generate_vpn(REDIS_CLIENT)
 
     ## Trigger generation of VPN profile using profile_name.
     ## Retrieve from this process the client IP assigned to the profile_name.
