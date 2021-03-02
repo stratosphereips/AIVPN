@@ -197,7 +197,6 @@ if __name__ == '__main__':
                 logging.info(e)
                 pass
 
-        time.sleep(3600)
         redis_client.publish('services_status', 'MOD_MANAGER:offline')
         logging.info("Terminating")
         redis_client.close()
