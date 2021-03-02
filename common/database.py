@@ -41,7 +41,7 @@ def redis_subscribe_to_channel(subscriber,CHANNEL):
     """ Function to subscribe to a given Redis channel"""
     try:
         subscriber.subscribe(CHANNEL)
-        return true
+        return True
     except Exception as err:
         return err
 
@@ -227,7 +227,7 @@ def add_item_provisioning_queue(REDIS_CLIENT,msg_id,msg_type,msg_addr):
         # If new_request exists, ignore and do not update score.
         REDIS_CLIENT.zadd(redis_set,{new_request:score},nx=True)
 
-        return true
+        return True
     except Exception as err:
         return err
 
@@ -240,5 +240,32 @@ def get_item_provisioning_queue(REDIS_CLIENT):
         redis_set = "provisioning_queue"
         request = REDIS_CLIENT.zpopmin(redis_set,1)
         return request
+    except Exception as err:
+        return err
+
+# PROVISIONING GENERATE VPN QUEUE
+# name: prov_generate_vpn
+# This is the queue were new profiles are queued in wait for a VPN profile.
+
+def add_prov_generate_vpn(profile_name,REDIS_CLIENT):
+    """ Function to add an item to the prov_generate_vpn queue."""
+
+    try:
+        redis_set = "prov_generate_vpn"
+        score = time.time()
+
+        REDIS_CLIENT.zadd,redis_set,{profile_name:score},nx=True}
+        return True
+    except Exception as err:
+        return err
+
+def get_prov_generate_vpn(REDIS_CLIENT):
+    """ Function to get the 'oldest' item (lowest score) from the
+    prov_generate_vpn Redis SET. """
+
+    try:
+        redis_set = "prov_generate_vpn"
+        request = REDIS_CLIENT.zpopmin(redis_set,1)
+        return profile_name
     except Exception as err:
         return err
