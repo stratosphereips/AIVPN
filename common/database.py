@@ -181,14 +181,30 @@ def gen_profile_name():
     except Exception as e:
         return False
 
+hash_profile_names = "profile_names"
 def add_profile_name(profile_name,msg_addr):
     """ Stores the profile_name:msg_addr in Redis  """
 
-def get_profile_name():
+    status = hsetnx(hash_profile_names,profile_name,msg_addr)
+
+    # status==1 if HSETNX created a field in the hash set
+    # status==0 if the identity exists and no operation is done.
+    return status
+
+def get_profile_name(profile_name):
     """ Obtains a msg_addr given a profile_name """
 
-def del_profile_name():
+    msg_addr = hget(hash_profile_names,profile_name)
+    return msg_addr
+
+def del_profile_name(profile_name):
     """ Deletes a profile_name from Redis """
+
+    try:
+        hdel(hash_profile_names,profile_name)
+        return True
+    except:
+        return False
 
 # PROVISIONING QUEUE
 ## The provisioning queue is where new requests are queued before being handled.
