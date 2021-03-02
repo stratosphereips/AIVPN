@@ -18,3 +18,6 @@ LOG_TRAFFIC_CAPTURE = /logs/mod_traffic_capture.log
 SERVER = imap.example-server.com
 USERNAME = example@example-server.com
 PASSWORD = addheretheaccountpassword
+
+[STORAGE]
+PATH = /opt/aivpn/data/
