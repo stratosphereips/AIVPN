@@ -181,16 +181,15 @@ if __name__ == '__main__':
         logging.info("Connection and channel subscription to redis successful.")
         redis_client.publish('services_status', 'MOD_MANAGER:online')
 
+        # This thread sends status checks messages to modules
+        services_status_check = threading.Thread(target=thread_redis_channel_status_check,args=(MOD_CHANNELS,redis_client,))
+        services_status_check.start()
+        logging.info("services_status_check thread started")
 
         # This thread checks for incoming messages
         services_status_monitor = threading.Thread(target=thread_redis_channel_monitoring,args=(CHANNEL,db_subscriber,redis_client,))
         services_status_monitor.start()
         logging.info("services_status_monitor thread started")
-
-        # This thread checks for incoming messages
-        services_status_check = threading.Thread(target=thread_redis_channel_status_check,args=(MOD_CHANNELS,redis_client,))
-        services_status_check.start()
-        logging.info("services_status_check thread started")
 
         time.sleep(3600)
         redis_client.publish('services_status', 'MOD_MANAGER:offline')
