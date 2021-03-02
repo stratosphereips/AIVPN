@@ -80,7 +80,6 @@ services:
             - ./logs:/logs/
             - ./config:/code/config/:ro
             - ./common:/code/common/:ro
-            - ./mod_openvpn:/opt/openvpn
             - .certs:/certs
         stdin_open: true
         tty: true
