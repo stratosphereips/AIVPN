@@ -53,10 +53,10 @@ def thread_redis_channel_status_check(MOD_CHANNELS,redis_client):
     """ """
     while True:
         try:
-            logging.info("Sending report status message to: ",MOD_CHANNELS)
+            logging.info("Sending report status message to: {}".format(MOD_CHANNELS))
             # send status check to every channel
             for channel in MOD_CHANNELS:
-                logging.info("Sending report status message to: ",channel)
+                logging.info("Sending report status message to: {}".format(channel))
                 redis_client.publish(channel, 'report_status')
             time.sleep(60)
         except:
