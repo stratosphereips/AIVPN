@@ -6,12 +6,16 @@
 import sys
 import redis
 import logging
+import configparser
 from common.database import *
 
 if __name__ == '__main__':
-    REDIS_SERVER = 'aivpn_mod_redis'
-    CHANNEL = 'mod_traffic_capture_check'
-    LOG_FILE = '/logs/mod_traffic_capture.log'
+    config = configparser.ConfigParser()
+    config.read('config/config.ini')
+
+    REDIS_SERVER = config['REDIS']['REDIS_SERVER']
+    CHANNEL = config['REDIS']['REDIS_TRAFFIC_CAPTURE_CHECK']
+    LOG_FILE = config['LOGS']['LOG_TRAFFIC_CAPTURE']
 
     try:
         logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s, MOD_TRAFFIC_CAPTURE, %(message)s')
@@ -43,7 +47,7 @@ if __name__ == '__main__':
     # Subscribing to Redis channel
     try:
         redis_subscribe_to_channel(db_subscriber,CHANNEL)
-        logging.info("Subscribed to channel: ", CHANNEL)
+        logging.info("Subscribed to channel: {}".format(CHANNEL))
     except:
         logging.error("Channel subscription failed")
         logging.info("Channel subscription failed")
