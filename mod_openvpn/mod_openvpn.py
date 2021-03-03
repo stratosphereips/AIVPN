@@ -41,9 +41,27 @@ def configure_openvpn_server(SERVER_PUBLIC_URL,PKI_ADDRESS):
                 logging.error(e)
 
             try:
+                os.system('mkdir -p /dev/net')
+            except Exception as e:
+                logging.error(e)
+                return False
+
+            try:
+                os.system('mknod /dev/net/tun c 10 200')
+            except Exception as e:
+                logging.error(e)
+                return False
+
+            try:
+                os.system('chmod 600 /dev/net/tun')
+            except Exception as e:
+                logging.error(e)
+                return False
+
+            try:
                 PROCESS = '/usr/sbin/openvpn --config /etc/openvpn/openvpn.conf --client-config-dir /etc/openvpn/ccd --crl-verify /etc/openvpn/pki/crl.pem'
                 logging.info(PROCESS)
-                #subprocess.Popen(["/usr/sbin/openvpn","--config","/etc/openvpn/openvpn.conf","--client-config-dir","/etc/openvpn/ccd","--crl-verify","/etc/openvpn/pki/crl.pem"])
+                subprocess.Popen(["/usr/sbin/openvpn","--config","/etc/openvpn/openvpn.conf","--client-config-dir","/etc/openvpn/ccd","--crl-verify","/etc/openvpn/pki/crl.pem"])
             except Exception as e:
                 logging.error(e)
 
@@ -113,12 +131,11 @@ if __name__ == '__main__':
     # Subscribing to Redis channel
     try:
         redis_subscribe_to_channel(db_subscriber,CHANNEL)
+        logging.info("Connection and channel subscription to redis successful.")
     except Exception as e:
         logging.error("Channel subscription failed")
         logging.error(f"Error {e}")
         sys.exit(-1)
-
-    logging.info("Connection and channel subscription to redis successful.")
 
     # Configuring the OpenVPN server
     if configure_openvpn_server(SERVER_PUBLIC_URL,PKI_ADDRESS):
@@ -126,13 +143,16 @@ if __name__ == '__main__':
 
     try:
         # Checking for messages
-        for item in db_subscriber.listen():
-            if item['type'] == 'message':
-                logging.info(item['channel'])
-                logging.info(item['data'])
-                if item['data'] == b'report_status':
-                    db_publisher.publish('services_status', 'MOD_OPENVPN:online')
-                    logging.info('MOD_OPENVPN:online')
+        while True:
+            logging.info("Listening for messages")
+            for item in db_subscriber.listen():
+                if item['type'] == 'message':
+                    logging.info(item['channel'])
+                    logging.info(item['data'])
+                    if item['data'] == b'report_status':
+                        db_publisher.publish('services_status', 'MOD_OPENVPN:online')
+                        logging.info('MOD_OPENVPN:online')
+            logging.info("Something went wrong while listening for new messages")
 
         db_publisher.publish('services_status', 'MOD_OPENVPN:offline')
         logging.info("Terminating")
