@@ -75,6 +75,8 @@ services:
         networks:
             network: {}
     mod_openvpn:
+        cap_add:
+            - NET_ADMIN
         image: aivpn_mod_openvpn:latest
         volumes:
             - ./logs:/logs/
