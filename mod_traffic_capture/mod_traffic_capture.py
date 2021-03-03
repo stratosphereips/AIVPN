@@ -7,7 +7,6 @@ import sys
 import redis
 import logging
 from common.database import *
-from common.swarm_modules import *
 
 if __name__ == '__main__':
     REDIS_SERVER = 'aivpn_mod_redis'
@@ -18,6 +17,12 @@ if __name__ == '__main__':
         logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s, MOD_TRAFFIC_CAPTURE, %(message)s')
     except:
         sys.exit(-1)
+
+    try:
+        from common.swarm_modules import *
+        REDIS_SERVER=aivpn_mod_redis
+    except:
+        logging.info("Cannot retrieve redis IP from manager")
 
     # Connecting to the Redis database
     try:
