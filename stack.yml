@@ -42,6 +42,7 @@ services:
         image: aivpn_mod_comm_send:latest
         volumes:
             - ./logs:/logs/
+            - ./config:/code/config/:ro
             - ./common:/code/common/:ro
         deploy:
             restart_policy:
@@ -100,6 +101,7 @@ services:
         image: aivpn_mod_traffic_capture:latest
         volumes:
             - ./logs:/logs/
+            - ./config:/code/config/:ro
             - ./common:/code/common/:ro
             - ./mod_traffic_capture:/data/
         deploy:
