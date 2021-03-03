@@ -254,7 +254,7 @@ def add_prov_generate_vpn(profile_name,REDIS_CLIENT):
         redis_set = "prov_generate_vpn"
         score = time.time()
 
-        REDIS_CLIENT.zadd,redis_set,{profile_name:score},nx=True}
+        REDIS_CLIENT.zadd(redis_set,{profile_name:score},nx=True)
         return True
     except Exception as err:
         return err
