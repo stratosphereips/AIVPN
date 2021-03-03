@@ -128,6 +128,7 @@ def provision_account(new_request,REDIS_CLIENT):
     if not prov_status:
         # Request is stored back in the previous queue
         # Return error
+        pass
 
     ## Store profile name to the next queue: prov_generate_vpn
     prov_status = add_prov_generate_vpn(acc_profile_name,REDIS_CLIENT)
