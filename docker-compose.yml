@@ -1,0 +1,87 @@
+version: '3.9'
+
+services:
+    mod_redis:
+        image: redis
+        volumes:
+            - ./mod_redis:/data
+        stdin_open: true
+        tty: true
+        deploy:
+            restart_policy:
+                condition: on-failure
+        ports:
+          - "6379:6379"
+    mod_manager:
+        image: aivpn_mod_manager:latest
+        volumes:
+            - ./logs:/logs/
+            - ./common:/code/common/
+        deploy:
+            restart_policy:
+                condition: on-failure
+    mod_comm_recv:
+        image: aivpn_mod_comm_recv:latest
+        volumes:
+            - ./logs:/logs/
+            - ./common:/code/common/:ro
+            - ./config:/code/config/:ro
+        deploy:
+            restart_policy:
+                condition: on-failure
+    mod_comm_send:
+        image: aivpn_mod_comm_send:latest
+        volumes:
+            - ./logs:/logs/
+            - ./common:/code/common/:ro
+        deploy:
+            restart_policy:
+                condition: on-failure
+    mod_report:
+        image: aivpn_mod_report:latest
+        volumes:
+            - ./logs:/logs/
+            - ./common:/code/common/:ro
+        deploy:
+            restart_policy:
+                condition: on-failure
+    mod_slips:
+        image: alpine
+        volumes:
+            - ./mod_slips:/opt/dataset
+        stdin_open: true
+        tty: true
+        deploy:
+            restart_policy:
+                condition: on-failure
+    mod_openvpn:
+        cap-add:
+            - NET_ADMIN
+        image: aivpn_mod_openvpn:latest
+        volumes:
+            - ./logs:/logs/
+            - ./config:/code/config/:ro
+            - ./common:/code/common/:ro
+            - .certs:/certs
+        deploy:
+            restart_policy:
+                condition: on-failure
+        ports:
+          - "1194:1194"
+    mod_traffic_capture:
+        image: aivpn_mod_traffic_capture:latest
+        volumes:
+            - ./logs:/logs/
+            - ./common:/code/common/:ro
+            - ./mod_traffic_capture:/data/
+        deploy:
+            restart_policy:
+                condition: on-failure
+volumes:
+    mod_manager:
+    mod_report:
+    mod_slips:
+    mod_openvpn:
+    mod_redis:
+    mod_comm_send:
+    mod_comm_recv:
