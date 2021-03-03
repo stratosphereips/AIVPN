@@ -50,14 +50,13 @@ if __name__ == '__main__':
         logging.info("Subscribed to channel: {}".format(CHANNEL))
     except:
         logging.error("Channel subscription failed")
-        logging.info("Channel subscription failed")
         sys.exit(-1)
 
     try:
-        logging.info("Connection and channel subscription to redis successful.")
-
         # Checking for messages
+        logging.info("Listening for messages.")
         for item in db_subscriber.listen():
+            logging.info(item)
             if item['type'] == 'message':
                 logging.info(item['channel'])
                 logging.info(item['data'])
@@ -70,9 +69,9 @@ if __name__ == '__main__':
         db_publisher.close()
         db_subscriber.close()
         sys.exit(0)
-    except Exception as err:
+    except Exception as e:
+        logging.info(e)
+        logging.info("Terminating via exception in main")
         db_publisher.close()
         db_subscriber.close()
-        logging.info("Terminating via exception in main")
-        logging.info(err)
         sys.exit(-1)
