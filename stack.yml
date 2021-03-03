@@ -81,8 +81,6 @@ services:
             - ./config:/code/config/:ro
             - ./common:/code/common/:ro
             - .certs:/certs
-        stdin_open: true
-        tty: true
         deploy:
             restart_policy:
                 condition: on-failure
