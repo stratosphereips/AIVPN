@@ -89,6 +89,11 @@ services:
                 condition: on-failure
             update_config:
                 delay: 30s
+        ports:
+          - target: 1194
+            published: 1194
+            protocol: udp
+            mode: host
         networks:
             network: {}
     mod_traffic_capture:
