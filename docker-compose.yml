@@ -10,8 +10,8 @@ services:
         deploy:
             restart_policy:
                 condition: on-failure
-        networks:
-            network: {}
+        ports:
+          - "6379:6379"
     mod_manager:
         image: aivpn_mod_manager:latest
         volumes:
@@ -20,10 +20,6 @@ services:
         deploy:
             restart_policy:
                 condition: on-failure
-            update_config:
-                delay: 10s
-        networks:
-            network: {}
     mod_comm_recv:
         image: aivpn_mod_comm_recv:latest
         volumes:
@@ -33,10 +29,6 @@ services:
         deploy:
             restart_policy:
                 condition: on-failure
-            update_config:
-                delay: 30s
-        networks:
-            network: {}
     mod_comm_send:
         image: aivpn_mod_comm_send:latest
         volumes:
@@ -45,10 +37,6 @@ services:
         deploy:
             restart_policy:
                 condition: on-failure
-            update_config:
-                delay: 30s
-        networks:
-            network: {}
     mod_report:
         image: aivpn_mod_report:latest
         volumes:
@@ -57,10 +45,6 @@ services:
         deploy:
             restart_policy:
                 condition: on-failure
-            update_config:
-                delay: 30s
-        networks:
-            network: {}
     mod_slips:
         image: alpine
         volumes:
@@ -70,12 +54,8 @@ services:
         deploy:
             restart_policy:
                 condition: on-failure
-            update_config:
-                delay: 30s
-        networks:
-            network: {}
     mod_openvpn:
-        cap_add:
+        cap-add:
             - NET_ADMIN
         image: aivpn_mod_openvpn:latest
         volumes:
@@ -86,10 +66,8 @@ services:
         deploy:
             restart_policy:
                 condition: on-failure
-            update_config:
-                delay: 30s
-        networks:
-            network: {}
+        ports:
+          - "1194:1194"
     mod_traffic_capture:
         image: aivpn_mod_traffic_capture:latest
         volumes:
@@ -99,10 +77,6 @@ services:
         deploy:
             restart_policy:
                 condition: on-failure
-            update_config:
-                delay: 120s
-        networks:
-            hostnet: {}
 volumes:
     mod_manager:
     mod_report:
@@ -111,10 +85,3 @@ volumes:
     mod_redis:
     mod_comm_send:
     mod_comm_recv:
-
-networks:
-    network:
-        driver: overlay
-    hostnet:
-        external: true
-        name: host

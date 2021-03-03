@@ -160,7 +160,7 @@ def provision_account(new_request,REDIS_CLIENT):
 
 if __name__ == '__main__':
     REDIS_SERVER = 'aivpn_mod_redis'
-    MOD_CHANNELS = ['mod_report_check','mod_comm_send_check','mod_comm_recv_check','mod_openvpn_check','mod_traffic_capture_check']
+    MOD_CHANNELS = ['mod_comm_recv_check','mod_comm_send_check','mod_report_check','mod_traffic_capture_check','mod_openvpn_check']
     CHANNEL = 'services_status'
     LOG_FILE = '/logs/mod_manager.log'
     SWARM_CONF_FILE = '/code/common/swarm_modules.py'
