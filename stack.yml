@@ -16,6 +16,7 @@ services:
         image: aivpn_mod_manager:latest
         volumes:
             - ./logs:/logs/
+            - ./config:/code/config/:ro
             - ./common:/code/common/
         deploy:
             restart_policy:
