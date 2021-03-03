@@ -143,22 +143,20 @@ if __name__ == '__main__':
 
     try:
         # Checking for messages
-        while True:
-            logging.info("Listening for messages")
-            for item in db_subscriber.listen():
-                if item['type'] == 'message':
-                    logging.info(item['channel'])
-                    logging.info(item['data'])
-                    if item['data'] == b'report_status':
-                        db_publisher.publish('services_status', 'MOD_OPENVPN:online')
-                        logging.info('MOD_OPENVPN:online')
-            logging.info("Something went wrong while listening for new messages")
+        logging.info("Listening for messages")
+        for item in db_subscriber.listen():
+            if item['type'] == 'message':
+                logging.info(item['channel'])
+                logging.info(item['data'])
+                if item['data'] == b'report_status':
+                    db_publisher.publish('services_status', 'MOD_OPENVPN:online')
+                    logging.info('MOD_OPENVPN:online')
 
         db_publisher.publish('services_status', 'MOD_OPENVPN:offline')
         logging.info("Terminating")
         db_publisher.close()
         db_subscriber.close()
-        sys.exit(0)
+        sys.exit(-1)
     except Exception as err:
         db_publisher.close()
         db_subscriber.close()
