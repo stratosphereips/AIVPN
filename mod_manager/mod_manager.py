@@ -151,9 +151,26 @@ def provision_account(new_request,REDIS_CLIENT):
     # Step 3: Generate VPN Profile. OpenVPN or alternative.
 
     ## Trigger generation of VPN profile using profile_name.
-    ## Retrieve from this process the client IP assigned to the profile_name.
-    ## The profile is stored in a folder or in Redis.
     prov_status = request_openvpn_profile(acc_profile_name,REDIS_CLIENT)
+
+    # Wait for message from mod_openvpn that the generation is done
+    # This wait is from a pub/sub channel dedicate for this step
+    # Wait for message from mod_openvpn that the generation is done
+    openvpn_subscriber = redis_create_subscriber(redis_client)
+    redis_subscribe_to_channel(openvpn_subscriber,'provision_openvpn')
+    item=openvpn_subscriber.listen()
+    if item['type'] == 'message':
+        if item['data'] == 'profile_creation_successful':
+            #Good. Continue.
+            pass
+        if item['data'] == 'profile_creation_failed':
+            #Bad. Roll back or try again.
+            pass
+
+    ## Retrieve from this process the client IP assigned to the profile_name.
+
+    ## The profile is stored in a folder or in Redis.
+
 
 
     ## Get profile from the queue using profile_name as key.
