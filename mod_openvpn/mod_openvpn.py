@@ -106,6 +106,7 @@ if __name__ == '__main__':
     SERVER_PUBLIC_URL = config['OPENVPN']['SERVER_PUBLIC_URL']
     PKI_ADDRESS = config['OPENVPN']['PKI_ADDRESS']
     CERTIFICATES = config['OPENVPN']['CERTIFICATES']
+    NETWORK_CIDR = '192.168.0.0/24'
 
     try:
         #TODO: Fix encoding error.
