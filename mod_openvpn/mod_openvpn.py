@@ -116,7 +116,7 @@ if __name__ == '__main__':
 
     # Connecting to the Redis database
     try:
-        db_publisher = redis_connect_to_db(REDIS_SERVER)
+        redis_client = redis_connect_to_db(REDIS_SERVER)
     except Exception as e:
         logging.error("Unable to connect to the Redis database (",REDIS_SERVER,")")
         logging.error(f"Error {e}")
@@ -124,7 +124,7 @@ if __name__ == '__main__':
 
     # Creating a Redis subscriber
     try:
-        db_subscriber = redis_create_subscriber(db_publisher)
+        db_subscriber = redis_create_subscriber(redis_client)
     except Exception as e:
         logging.error("Unable to create a Redis subscriber")
         logging.error(f"Error {e}")
@@ -151,37 +151,37 @@ if __name__ == '__main__':
                 logging.info(item['channel'])
                 logging.info(item['data'])
                 if item['data'] == b'report_status':
-                    db_publisher.publish('services_status', 'MOD_OPENVPN:online')
+                    redis_client.publish('services_status', 'MOD_OPENVPN:online')
                     logging.info('MOD_OPENVPN:online')
                 elif item['data'] == b'new_profile':
                     logging.info('MOD_OPENVPN:received request for a new profile')
-                    db_publisher.publish('services_status', 'MOD_OPENVPN:generating a new openvpn profile')
+                    redis_client.publish('services_status', 'MOD_OPENVPN:generating a new openvpn profile')
                     # Parse the name obtained in the request
                     msg_account_name=item['data'].split(':')[1]
                     # Retrieve client name from Redis set
-                    CLIENT_NAME = get_prov_generate_vpn(db_publisher)
+                    CLIENT_NAME = get_prov_generate_vpn(redis_client)
                     if msg_account_name == CLIENT_NAME:
                         result = generate_openvpn_profile(CLIENT_NAME)
                         if result:
-                            db_publisher.publish('services_status','MOD_OPENVPN: new profile generated')
-                            db_publisher.publish('provision_openvpn','profile_creation_successful')
+                            redis_client.publish('services_status','MOD_OPENVPN: new profile generated')
+                            redis_client.publish('provision_openvpn','profile_creation_successful')
                             logging.info('MOD_OPENVPN: new openvpn profile generated')
                         else:
-                            db_publisher.publish('services_status','mod_openvpn: failed to create a new profile')
-                            db_publisher.publish('provision_openvpn','profile_creation_failed')
+                            redis_client.publish('services_status','mod_openvpn: failed to create a new profile')
+                            redis_client.publish('provision_openvpn','profile_creation_failed')
                             logging.info('mod_openvpn: failed to create new openvpn profile')
                     else:
-                        db_publisher.publish('services_status','mod_openvpn: profile names did not match. Process failed.')
-                        db_publisher.publish('provision_openvpn','profile_creation_failed')
+                        redis_client.publish('services_status','mod_openvpn: profile names did not match. Process failed.')
+                        redis_client.publish('provision_openvpn','profile_creation_failed')
                         logging.info('mod_openvpn: failed to create new openvpn profile, profile names did not match.')
 
-        db_publisher.publish('services_status', 'MOD_OPENVPN:offline')
+        redis_client.publish('services_status', 'MOD_OPENVPN:offline')
         logging.info("Terminating")
-        db_publisher.close()
+        redis_client.close()
         db_subscriber.close()
         sys.exit(-1)
     except Exception as err:
-        db_publisher.close()
+        redis_client.close()
         db_subscriber.close()
         logging.info("Terminating via exception in main")
         logging.info(err)
