@@ -205,6 +205,32 @@ def openvpn_obtain_client_ip_address(NETWORK_CIDR):
     except:
         return False
 
+# PROFILE_NAME:IP_ADDRESS RELATIONSHIP
+## We want to quickly obtain the IP from a profile name
+
+hash_profile_name_ip_address='profile_name_ip_address'
+
+def add_profile_ip_relationship(profile_name,ip_address):
+    """ Adds a profile:ip to the list. """
+    try:
+        hsetnx(hash_profile_name_ip_address,profile_name,ip_address)
+        return True
+    except:
+        return False
+
+def del_profile_ip_relationship(profile_name):
+    """ Adds a profile:ip to the list. """
+    try:
+        hdel(hash_profile_name_ip_address,profile_name)
+        return True
+    except:
+        return False
+
+def get_ip_for_profile(profile_name):
+    """ Returns the IP address for a given profile name. """
+    ip_address = hget(hash_profile_name_ip_address,profile_name)
+    return ip_address
+
 # PROFILE HANDLING
 ## The PROFILE_HANDLING are a series of functions associated with the
 ## generation on profile_names, storage, and other functions.
