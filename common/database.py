@@ -162,6 +162,32 @@ def del_active_profile_counter(msg_addr):
     except:
         return False
 
+# OPEN VPN IP ADDRESS SPACE HANDLING
+## We want to quickly check if an IP address is in use
+hash_openvpn_blocked_ip_addresses = "mod_openvpn_blocked_ip_addresses"
+
+def add_ip_address(ip_address):
+    """ Adds a new IP address to the blocked IP addresses hash table. """
+    try:
+        hsetnx(hash_openvpn_blocked_ip_addresses,ip_address)
+        return True
+    except:
+        return False
+
+def exists_ip_address(ip_address):
+    """ Checks if a given IP address exists in the blocked IP addresses hash table. """
+
+    status = hexists(hash_openvpn_blocked_ip_addresses,ip_address)
+    return status
+
+def del_ip_address(ip_address):
+    """ Deletes an IP address from the blocked IP addresses hash table. """
+    try:
+        hdel(hash_openvpn_blocked_ip_addresses,ip_address)
+        return True
+    except;
+        return False
+
 # PROFILE HANDLING
 ## The PROFILE_HANDLING are a series of functions associated with the
 ## generation on profile_names, storage, and other functions.
