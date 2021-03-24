@@ -83,7 +83,7 @@ def generate_openvpn_profile(CLIENT_NAME):
         return True
     except exception as e:
         logging.error(e)
-        return false
+        return False
 
 def get_openvpn_profile(CLIENT_NAME,CERTIFICATES):
     """
@@ -93,7 +93,7 @@ def get_openvpn_profile(CLIENT_NAME,CERTIFICATES):
         os.system('/usr/local/bin/ovpn_getclient %s > %s/%s.ovpn' % CLIENT_NAME,CERTIFICATES,CLIENT_NAME)
     except exception as e:
         logging.error(e)
-        return false
+        return False
 
 if __name__ == '__main__':
     # Read configuration file
