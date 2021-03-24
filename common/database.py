@@ -7,6 +7,7 @@ import redis
 import time
 import json
 import random
+import ipaddress
 
 WORDS_JSON = 'words.json'
 
@@ -186,6 +187,22 @@ def del_ip_address(ip_address):
         hdel(hash_openvpn_blocked_ip_addresses,ip_address)
         return True
     except;
+        return False
+
+def openvpn_obtain_client_ip_address(NETWORK_CIDR):
+    """ Obtains a valid IP address for an OpenVPN  client """
+    try:
+        result=0
+        maximum_attempts=len([str(ip) for ip in ipaddress.IPv4Network(NETWORK_CIDR)])
+        while result<maximum_attempts::
+            IP_ADDRESS=random.choice([str(ip) for ip in ipaddress.IPv4Network(NETWORK_CIDR)])
+            if exists_ip_address(IP_ADDRESS):
+                result+=1
+            else:
+                add_ip_address(IP_ADDRESS)
+                return IP_ADDRESS
+        return False
+    except:
         return False
 
 # PROFILE HANDLING
