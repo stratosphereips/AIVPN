@@ -107,7 +107,8 @@ if __name__ == '__main__':
     CERTIFICATES = config['OPENVPN']['CERTIFICATES']
 
     try:
-        #logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s, MOD_OPENVPN, %(message)s')
+        #TODO: Fix encoding error.
+        # logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s, MOD_OPENVPN, %(message)s')
         logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG,format='%(asctime)s, MOD_OPENVPN, %(message)s')
     except Exception:
         sys.exit(-1)
