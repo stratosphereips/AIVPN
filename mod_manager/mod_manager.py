@@ -64,6 +64,20 @@ def thread_redis_channel_status_check(MOD_CHANNELS,redis_client):
             time.sleep(10)
             pass
 
+def request_openvpn_profile(REDIS_CLIENT):
+
+    """
+    This function notifies the mod_openvpn that a new profile is needed.
+    """
+    channel='mod_openvpn_check'
+    try:
+        logging.info("Sending message to mod_openvpn")
+        REDIS_CLIENT.publish(channel,'new_profile')
+        return True
+    except:
+        logging.info("Error in loop in request_openvpn_profile")
+        return False
+
 def provision_account(new_request,REDIS_CLIENT):
     """ This function handles the steps needed to provision a new account."""
 
@@ -135,12 +149,15 @@ def provision_account(new_request,REDIS_CLIENT):
 
     # Step 3: Generate VPN Profile. OpenVPN or alternative.
 
-    ## Get profile from the queue using profile_name as key.
-    prov_status = get_prov_generate_vpn(REDIS_CLIENT)
-
     ## Trigger generation of VPN profile using profile_name.
     ## Retrieve from this process the client IP assigned to the profile_name.
     ## The profile is stored in a folder or in Redis.
+    prov_status = request_openvpn_profile(REDIS_CLIENT)
+
+
+    ## Get profile from the queue using profile_name as key.
+    ## This may be done directly from mod_openvpn
+    ## prov_status = get_prov_generate_vpn(REDIS_CLIENT)
 
     ## Store profile_name:ip_addr in a data list in Redis
 
