@@ -81,7 +81,7 @@ def generate_openvpn_profile(CLIENT_NAME):
     try:
         os.system('/usr/local/bin/easyrsa build-client-full %s nopass' % CLIENT_NAME)
         return True
-    except exception as e:
+    except Exception as e:
         logging.error(e)
         return False
 
@@ -91,7 +91,7 @@ def get_openvpn_profile(CLIENT_NAME,PATH):
     """
     try:
         os.system('/usr/local/bin/ovpn_getclient %s > %s/%s.ovpn' % CLIENT_NAME,PATH,CLIENT_NAME)
-    except exception as e:
+    except Exception as e:
         logging.error(e)
         return False
 
@@ -173,7 +173,7 @@ if __name__ == '__main__':
                         CLIENT_NAME = get_prov_generate_vpn(redis_client)
                         if msg_account_name == CLIENT_NAME:
                             result = generate_openvpn_profile(CLIENT_NAME)
-                            get_openvpn_profile(CLIENT_NAME,PATH)
+                            get_openvpn_profile(CLIENT_NAME,'/logs')
                             if result:
                                 result=add_profile_ip_relationship(CLIENT_NAME,CLIENT_IP,redis_client)
                                 if result:
