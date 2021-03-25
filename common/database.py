@@ -359,7 +359,7 @@ def get_prov_generate_vpn(REDIS_CLIENT):
     try:
         redis_set = "prov_generate_vpn"
         profile_name = REDIS_CLIENT.zpopmin(redis_set,1)
-        return profile_name
+        return profile_name[0][0]
     except Exception as err:
         return err
 
