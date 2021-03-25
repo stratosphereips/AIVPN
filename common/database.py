@@ -78,7 +78,7 @@ def exists_identity(msg_addr):
 def upd_identity_counter(msg_addr):
     """ Updates counter if the msg_addr in redis exists  by 1. """
     try:
-        identity_value = json.dumps(hget(hash_account_identities,msg_addr))
+        identity_value = json.dumps(REDIS_CLIENT.hget(hash_account_identities,msg_addr))
         identity_object = json.loads(identity_value)
 
         identity_object['total_profiles'] = identity_object['total_profiles'] + 1
@@ -94,7 +94,7 @@ def upd_identity_counter(msg_addr):
 def upd_identity_profiles(msg_addr,profile_name,REDIS_CLIENT):
     """ If identity exists, add a new profile for the identity """
     try:
-        identity_value = json.dumps(hget(hash_account_identities,msg_addr))
+        identity_value = json.dumps(REDIS_CLIENT.hget(hash_account_identities,msg_addr))
         identity_object = json.loads(identity_value)
 
         identity_object['profiles'].append(profile_name)
@@ -107,17 +107,17 @@ def upd_identity_profiles(msg_addr,profile_name,REDIS_CLIENT):
     except Exception as e:
         return e
 
-def upd_identity_gpg(msg_addr,gpg_key):
+def upd_identity_gpg(msg_addr,gpg_key,REDIS_CLIENT):
     """ If identity exists, add a new gpg key for the identity """
     try:
-        identity_value = json.dumps(hget(hash_account_identities,msg_addr))
+        identity_value = json.dumps(REDIS_CLIENT.hget(hash_account_identities,msg_addr))
         identity_object = json.loads(identity_value)
 
         identity_object['gpg'] = gpg_key
 
         identity_value = json.dumps(identity_object)
 
-        status = hset(hash_account_identities,msg_addr,identity_value)
+        status = REDIS_CLIENT.hset(hash_account_identities,msg_addr,identity_value)
         return status
     except Exception as e:
         return e
