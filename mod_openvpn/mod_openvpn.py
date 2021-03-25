@@ -197,7 +197,7 @@ if __name__ == '__main__':
                             logging.info('mod_openvpn: failed to create new openvpn profile, profile names did not match.')
                     if account_status==False:
                         #TODO: write profile in the previous provisioning queue
-
+                        pass
         redis_client.publish('services_status', 'MOD_OPENVPN:offline')
         logging.info("Terminating")
         redis_client.close()
