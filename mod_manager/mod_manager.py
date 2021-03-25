@@ -170,15 +170,16 @@ def provision_account(new_request,REDIS_CLIENT):
     # Wait for message from mod_openvpn that the generation is done
     openvpn_subscriber = redis_create_subscriber(REDIS_CLIENT)
     redis_subscribe_to_channel(openvpn_subscriber,'provision_openvpn')
-    item=openvpn_subscriber.listen()
-    if item['type'] == 'message':
-        if item['data'] == 'profile_creation_successful':
-            #Good. Continue.
-            logging.info("message from mod_openvpn: profile_creation_successful")
-        if item['data'] == 'profile_creation_failed':
-            #Bad. Roll back or try again.
-            logging.info("message from mod_openvpn: profile_creation_failed")
-            return False
+    for item in openvpn_subscriber.listen():
+        if item['type'] == 'message':
+            if item['data'] == 'profile_creation_successful':
+                #Good. Continue.
+                logging.info("message from mod_openvpn: profile_creation_successful")
+                break
+            if item['data'] == 'profile_creation_failed':
+                #Bad. Roll back or try again.
+                logging.info("message from mod_openvpn: profile_creation_failed")
+                return False
 
     ## Retrieve from this process the client IP assigned to the profile_name.
     acc_profile_ip = get_ip_for_profile(acc_profile_name,REDIS_CLIENT)
