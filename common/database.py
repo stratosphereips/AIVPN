@@ -186,7 +186,7 @@ def del_ip_address(ip_address):
     try:
         hdel(hash_openvpn_blocked_ip_addresses,ip_address)
         return True
-    except;
+    except:
         return False
 
 def openvpn_obtain_client_ip_address(NETWORK_CIDR):
