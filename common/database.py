@@ -54,55 +54,73 @@ hash_account_identities = "account_identities"
 def add_identity(msg_addr,REDIS_CLIENT):
     """ Stores the msg_addr in redis  """
 
-    status = REDIS_CLIENT.hsetnx(hash_account_identities,msg_addr,identity_template)
+    try:
+        status = REDIS_CLIENT.hsetnx(hash_account_identities,msg_addr,identity_template)
 
-    # status==1 if HSETNX created a field in the hash set
-    # status==0 if the identity exists and no operation is done.
-    return status
+        # status==1 if HSETNX created a field in the hash set
+        # status==0 if the identity exists and no operation is done.
+        return status
+    except Exception as e:
+        return e
 
 def exists_identity(msg_addr):
     """ Checks if the msg_addr in redis exists """
-    hash_table = "account_identities"
+    try:
+        hash_table = "account_identities"
 
-    status = hexists(hash_account_identities,msg_addr)
+        status = hexists(hash_account_identities,msg_addr)
 
-    # Returns a boolean indicating if key exists within hash name
-    return status
+        # Returns a boolean indicating if key exists within hash name
+        return status
+    except Exception as e:
+        return e
 
 def upd_identity_counter(msg_addr):
     """ Updates counter if the msg_addr in redis exists  by 1. """
-    identity_value = json.dumps(hget(hash_account_identities,msg_addr))
-    identity_object = json.loads(identity_value)
+    try:
+        identity_value = json.dumps(hget(hash_account_identities,msg_addr))
+        identity_object = json.loads(identity_value)
 
-    identity_object['total_profiles'] = identity_object['total_profiles'] + 1
+        identity_object['total_profiles'] = identity_object['total_profiles'] + 1
 
-    identity_value = json.dumps(identity_object)
+        identity_value = json.dumps(identity_object)
 
-    status = hset(hash_account_identities,msg_addr,identity_value)
+        status = hset(hash_account_identities,msg_addr,identity_value)
+
+        return status
+    except Exception as e:
+        return e
 
 def upd_identity_profiles(msg_addr,profile_name,REDIS_CLIENT):
     """ If identity exists, add a new profile for the identity """
-    identity_value = json.dumps(hget(hash_account_identities,msg_addr))
-    identity_object = json.loads(identity_value)
+    try:
+        identity_value = json.dumps(hget(hash_account_identities,msg_addr))
+        identity_object = json.loads(identity_value)
 
-    identity_object['profiles'].append(profile_name)
+        identity_object['profiles'].append(profile_name)
 
-    identity_value = json.dumps(identity_object)
+        identity_value = json.dumps(identity_object)
 
-    status = REDIS_CLIENT.hset(hash_account_identities,msg_addr,identity_value)
+        status = REDIS_CLIENT.hset(hash_account_identities,msg_addr,identity_value)
 
-    return status
+        return status
+    except Exception as e:
+        return e
 
 def upd_identity_gpg(msg_addr,gpg_key):
     """ If identity exists, add a new gpg key for the identity """
-    identity_value = json.dumps(hget(hash_account_identities,msg_addr))
-    identity_object = json.loads(identity_value)
+    try:
+        identity_value = json.dumps(hget(hash_account_identities,msg_addr))
+        identity_object = json.loads(identity_value)
 
-    identity_object['gpg'] = gpg_key
+        identity_object['gpg'] = gpg_key
 
-    identity_value = json.dumps(identity_object)
+        identity_value = json.dumps(identity_object)
 
-    status = hset(hash_account_identities,msg_addr,identity_value)
+        status = hset(hash_account_identities,msg_addr,identity_value)
+        return status
+    except Exception as e:
+        return e
 
 def del_identity(msg_addr):
     """ Deletes the msg_addr in redis """
@@ -255,11 +273,14 @@ hash_profile_names = "profile_names"
 def add_profile_name(profile_name,msg_addr,REDIS_CLIENT):
     """ Stores the profile_name:msg_addr in Redis  """
 
-    status = REDIS_CLIENT.hsetnx(hash_profile_names,profile_name,msg_addr)
+    try:
+        status = REDIS_CLIENT.hsetnx(hash_profile_names,profile_name,msg_addr)
 
-    # status==1 if HSETNX created a field in the hash set
-    # status==0 if the identity exists and no operation is done.
-    return status
+        # status==1 if HSETNX created a field in the hash set
+        # status==0 if the identity exists and no operation is done.
+        return status
+    except Exception as e:
+        return e
 
 def get_profile_name(profile_name):
     """ Obtains a msg_addr given a profile_name """
