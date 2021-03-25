@@ -39,8 +39,8 @@ def redis_channel_monitoring(CHANNEL,db_subscriber,redis_client):
                     if item['data'] == b'MOD_COMM_RECV:NEW_REQUEST':
                         try:
                             new_request = get_item_provisioning_queue(redis_client)
-                            logging.info(new_request)
-                            result = provision_account(new_request,redis_client)
+                            logging.info('New request received: {}'.format(new_request[0]))
+                            result = provision_account(new_request[0],redis_client)
                             logging.info('Provisioning result: {}'.format(result))
                         except Exception as e:
                             logging.info(e)
@@ -86,10 +86,11 @@ def provision_account(new_request,REDIS_CLIENT):
 
     # Step 0: Parse the new_request to extract values: msg_addr, msg_type, msg_id.
     ## new_request="msg_id":int(msg_id), "msg_type":str(msg_type), "msg_addr":str(msg_addr)
-    new_request_object = json.loads(new_request)
+    new_request_object = json.loads(new_request.decode())
     p_msg_addr = new_request_object['msg_addr']
     p_msg_id = new_request_object['msg_id']
     p_msg_type = new_request_object['msg_type']
+    logging.info("Provisioning Step 0. Addr: {}, ID: {}, Type: {}".format(p_msg_addr,p_msg_id,p_msg_type))
 
     # Step 1: Can we provision this account? space, internet, PIDs, IPs, limits
     #         If we cannot, request is stored back in the provisioning queue.
@@ -98,7 +99,7 @@ def provision_account(new_request,REDIS_CLIENT):
     ## TODO: read limit from configuration file
     ACTIVE_ACCOUNT_LIMIT=2
 
-    if get_active_profile_counter(p_msg_addr) > ACTIVE_ACCOUNT_LIMIT:
+    if get_active_profile_counter(p_msg_addr,REDIS_CLIENT) > ACTIVE_ACCOUNT_LIMIT:
         # New message sent to user saying the number of simultaneous accounts
         # has been reached. Try again later.
         pass
@@ -107,6 +108,7 @@ def provision_account(new_request,REDIS_CLIENT):
 
     ## TODO: Check if we have enough IP addresses to provision new account.
 
+    logging.info("Provisioning Step 1 completed")
     # Step 2: Generate profile name. Store it. Create folder.
 
     ## Get an account name

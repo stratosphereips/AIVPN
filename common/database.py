@@ -149,9 +149,11 @@ def subs_active_profile_counter(msg_addr):
     except:
         return False
 
-def get_active_profile_counter(msg_addr):
+def get_active_profile_counter(msg_addr,REDIS_CLIENT):
     """ Returns the counter of active profiles for a given identity. """
-    counter_active_profiles = hget(hash_active_profiles,msg_addr)
+    counter_active_profiles = REDIS_CLIENT.hget(hash_active_profiles,msg_addr)
+    if counter_active_profiles is None:
+        counter_active_profiles=0
     return counter_active_profiles
 
 
@@ -308,7 +310,7 @@ def get_item_provisioning_queue(REDIS_CLIENT):
     try:
         redis_set = "provisioning_queue"
         request = REDIS_CLIENT.zpopmin(redis_set,1)
-        return request
+        return request[0]
     except Exception as err:
         return err
 
