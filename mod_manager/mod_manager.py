@@ -40,6 +40,8 @@ def redis_channel_monitoring(CHANNEL,db_subscriber,redis_client):
                         try:
                             new_request = get_item_provisioning_queue(redis_client)
                             logging.info(new_request)
+                            result = provision_account(new_request,redis_client)
+                            logging.info(f'Provisioning result: {}',result)
                         except Exception as e:
                             logging.info(e)
         except:
@@ -168,18 +170,7 @@ def provision_account(new_request,REDIS_CLIENT):
             pass
 
     ## Retrieve from this process the client IP assigned to the profile_name.
-
-    ## The profile is stored in a folder or in Redis.
-
-
-
-    ## Get profile from the queue using profile_name as key.
-    ## This may be done directly from mod_openvpn
-    ## prov_status = get_prov_generate_vpn(REDIS_CLIENT)
-
-    ## Store profile_name:ip_addr in a data list in Redis
-
-    ## Store profile_name to the next queue: prov_start_capture
+    acc_profile_ip = get_ip_for_profile(acc_profile_name)
 
     # Step 4: Start traffic capture. Store PID.
 
@@ -193,6 +184,8 @@ def provision_account(new_request,REDIS_CLIENT):
     ## Stores profile_name to the next queue: prov_send_profile
 
     # Step 5: Send profile or instruct manager to send profile.
+
+    return True
 
 if __name__ == '__main__':
     REDIS_SERVER = 'aivpn_mod_redis'
