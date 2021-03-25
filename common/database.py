@@ -104,7 +104,7 @@ def upd_identity_profiles(msg_addr,profile_name,REDIS_CLIENT):
 
         status = REDIS_CLIENT.hset(hash_account_identities,msg_addr,identity_value)
 
-        return status
+        return True
     except Exception as e:
         return e
 

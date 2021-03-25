@@ -148,8 +148,9 @@ def provision_account(new_request,REDIS_CLIENT):
 
     ## Update identity table with new profile
     prov_status = upd_identity_profiles(p_msg_addr,acc_profile_name,REDIS_CLIENT)
-    logging.info("upd_identity_profiles: {}".format(prov_status))
-    if not prov_status:
+    if prov_status is True:
+        logging.info("upd_identity_profiles: success")
+    else:
         # Request is stored back in the previous queue
         # Return error
         return False
