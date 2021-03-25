@@ -174,11 +174,17 @@ if __name__ == '__main__':
                             result = generate_openvpn_profile(CLIENT_NAME)
                             if result:
                                 result=add_profile_ip_relationship(CLIENT_NAME,CLIENT_IP)
-                                #TODO: Write profile in the next provisioning queue
                                 if result:
-                                    redis_client.publish('services_status','MOD_OPENVPN: new profile generated')
-                                    redis_client.publish('provision_openvpn','profile_creation_successful')
-                                    logging.info('MOD_OPENVPN: new openvpn profile generated')
+                                    # Write profile in the next provisioning queue
+                                    result=add_prov_start_capture(CLIENT_NAME)
+                                    if result:
+                                        redis_client.publish('services_status','MOD_OPENVPN: new profile generated')
+                                        redis_client.publish('provision_openvpn','profile_creation_successful')
+                                        logging.info('MOD_OPENVPN: new openvpn profile generated')
+                                    else:
+                                        account_status=False
+                                else:
+                                    account_status=False
                             else:
                                 account_status=False
                                 redis_client.publish('services_status','mod_openvpn: failed to create a new profile')
