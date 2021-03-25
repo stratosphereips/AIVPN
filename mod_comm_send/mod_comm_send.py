@@ -47,7 +47,7 @@ if __name__ == '__main__':
             if item['type'] == 'message':
                 logging.info(item['channel'])
                 logging.info(item['data'])
-                if item['data'] == b'report_status':
+                if item['data'] == 'report_status':
                     db_publisher.publish('services_status', 'MOD_COMM_SEND:online')
                     logging.info('MOD_COMM_SEND:online')
 

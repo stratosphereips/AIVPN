@@ -94,8 +94,7 @@ def upd_identity_counter(msg_addr):
 def upd_identity_profiles(msg_addr,profile_name,REDIS_CLIENT):
     """ If identity exists, add a new profile for the identity """
     try:
-        redis_value = REDIS_CLIENT.hget(hash_account_identities,msg_addr)
-        identity_value = json.dumps(redis_value)
+        identity_value = REDIS_CLIENT.hget(hash_account_identities,msg_addr)
         identity_object = json.loads(identity_value)
 
         #identity = {'total_profiles':0,'profiles':[],'gpg':''}

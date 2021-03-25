@@ -151,10 +151,10 @@ if __name__ == '__main__':
             if item['type'] == 'message':
                 logging.info(item['channel'])
                 logging.info(item['data'])
-                if item['data'] == b'report_status':
+                if item['data'] == 'report_status':
                     redis_client.publish('services_status', 'MOD_OPENVPN:online')
                     logging.info('MOD_OPENVPN:online')
-                elif item['data'] == b'new_profile':
+                elif item['data'] == 'new_profile':
                     logging.info('MOD_OPENVPN:received request for a new profile')
                     redis_client.publish('services_status', 'MOD_OPENVPN:generating a new openvpn profile')
                     # Obtain IP address for client. If this cannot be done,
