@@ -17,7 +17,7 @@ import ipaddress
 def redis_connect_to_db(REDIS_SERVER):
     """ Function to connect to a Redis database. Returns object publisher. """
     try:
-        client = redis.Redis(REDIS_SERVER, port=6379, db=0)
+        client = redis.Redis(REDIS_SERVER, port=6379, db=0, decode_responses=True )
         return client
     except Exception as err:
         return err
@@ -63,12 +63,12 @@ def add_identity(msg_addr,REDIS_CLIENT):
     except Exception as e:
         return e
 
-def exists_identity(msg_addr):
+def exists_identity(msg_addr,REDIS_CLIENT):
     """ Checks if the msg_addr in redis exists """
     try:
         hash_table = "account_identities"
 
-        status = hexists(hash_account_identities,msg_addr)
+        status = REDIS_CLIENT.hexists(hash_account_identities,msg_addr)
 
         # Returns a boolean indicating if key exists within hash name
         return status
@@ -94,10 +94,12 @@ def upd_identity_counter(msg_addr):
 def upd_identity_profiles(msg_addr,profile_name,REDIS_CLIENT):
     """ If identity exists, add a new profile for the identity """
     try:
-        identity_value = json.dumps(REDIS_CLIENT.hget(hash_account_identities,msg_addr))
+        redis_value = REDIS_CLIENT.hget(hash_account_identities,msg_addr)
+        identity_value = json.dumps(redis_value)
         identity_object = json.loads(identity_value)
 
-        identity_object['profiles'].append(profile_name)
+        #identity = {'total_profiles':0,'profiles':[],'gpg':''}
+        identity_object['profiles'].append(str(profile_name))
 
         identity_value = json.dumps(identity_object)
 
