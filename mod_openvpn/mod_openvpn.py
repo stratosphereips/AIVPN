@@ -85,12 +85,12 @@ def generate_openvpn_profile(CLIENT_NAME):
         logging.error(e)
         return False
 
-def get_openvpn_profile(CLIENT_NAME,CERTIFICATES):
+def get_openvpn_profile(CLIENT_NAME,PATH):
     """
     This function returns the new generated client profile.
     """
     try:
-        os.system('/usr/local/bin/ovpn_getclient %s > %s/%s.ovpn' % CLIENT_NAME,CERTIFICATES,CLIENT_NAME)
+        os.system('/usr/local/bin/ovpn_getclient %s > %s/%s.ovpn' % CLIENT_NAME,PATH,CLIENT_NAME)
     except exception as e:
         logging.error(e)
         return False
@@ -107,6 +107,7 @@ if __name__ == '__main__':
     PKI_ADDRESS = config['OPENVPN']['PKI_ADDRESS']
     CERTIFICATES = config['OPENVPN']['CERTIFICATES']
     NETWORK_CIDR = '192.168.0.0/24'
+    PATH = config['STORAGE']['PATH']
 
     try:
         #TODO: Fix encoding error.
@@ -154,7 +155,7 @@ if __name__ == '__main__':
                 if item['data'] == 'report_status':
                     redis_client.publish('services_status', 'MOD_OPENVPN:online')
                     logging.info('MOD_OPENVPN:online')
-                elif item['data'] == 'new_profile':
+                elif 'new_profile' in item['data']:
                     logging.info('MOD_OPENVPN:received request for a new profile')
                     redis_client.publish('services_status', 'MOD_OPENVPN:generating a new openvpn profile')
                     # Obtain IP address for client. If this cannot be done,
@@ -172,6 +173,7 @@ if __name__ == '__main__':
                         CLIENT_NAME = get_prov_generate_vpn(redis_client)
                         if msg_account_name == CLIENT_NAME:
                             result = generate_openvpn_profile(CLIENT_NAME)
+                            get_openvpn_profile(CLIENT_NAME,PATH)
                             if result:
                                 result=add_profile_ip_relationship(CLIENT_NAME,CLIENT_IP,redis_client)
                                 if result:
@@ -197,6 +199,7 @@ if __name__ == '__main__':
                             logging.info('mod_openvpn: failed to create new openvpn profile, profile names did not match.')
                     if account_status==False:
                         #TODO: write profile in the previous provisioning queue
+                        logging.info('mod_openvpn: failed to create new openvpn profile.')
                         pass
         redis_client.publish('services_status', 'MOD_OPENVPN:offline')
         logging.info("Terminating")
