@@ -41,7 +41,7 @@ def redis_channel_monitoring(CHANNEL,db_subscriber,redis_client):
                             new_request = get_item_provisioning_queue(redis_client)
                             logging.info(new_request)
                             result = provision_account(new_request,redis_client)
-                            logging.info(f'Provisioning result: {}',result)
+                            logging.info('Provisioning result: {}'.format(result))
                         except Exception as e:
                             logging.info(e)
         except:
