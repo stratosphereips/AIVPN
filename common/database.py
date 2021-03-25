@@ -182,39 +182,39 @@ def del_active_profile_counter(msg_addr):
 ## We want to quickly check if an IP address is in use
 hash_openvpn_blocked_ip_addresses = "mod_openvpn_blocked_ip_addresses"
 
-def add_ip_address(ip_address):
+def add_ip_address(ip_address,REDIS_CLIENT):
     """ Adds a new IP address to the blocked IP addresses hash table. """
     try:
-        hsetnx(hash_openvpn_blocked_ip_addresses,ip_address)
+        REDIS_CLIENT.hsetnx(hash_openvpn_blocked_ip_addresses,ip_address)
         return True
     except:
         return False
 
-def exists_ip_address(ip_address):
+def exists_ip_address(ip_address,REDIS_CLIENT):
     """ Checks if a given IP address exists in the blocked IP addresses hash table. """
 
-    status = hexists(hash_openvpn_blocked_ip_addresses,ip_address)
+    status = REDIS_CLIENT.hexists(hash_openvpn_blocked_ip_addresses,ip_address)
     return status
 
-def del_ip_address(ip_address):
+def del_ip_address(ip_address,REDIS_CLIENT):
     """ Deletes an IP address from the blocked IP addresses hash table. """
     try:
-        hdel(hash_openvpn_blocked_ip_addresses,ip_address)
+        REDIS_CLIENT.hdel(hash_openvpn_blocked_ip_addresses,ip_address)
         return True
     except:
         return False
 
-def openvpn_obtain_client_ip_address(NETWORK_CIDR):
+def openvpn_obtain_client_ip_address(NETWORK_CIDR,REDIS_CLIENT):
     """ Obtains a valid IP address for an OpenVPN  client """
     try:
         result=0
         maximum_attempts=len([str(ip) for ip in ipaddress.IPv4Network(NETWORK_CIDR)])
         while result < maximum_attempts:
             IP_ADDRESS=random.choice([str(ip) for ip in ipaddress.IPv4Network(NETWORK_CIDR)])
-            if exists_ip_address(IP_ADDRESS):
+            if exists_ip_address(IP_ADDRESS,REDIS_CLIENT):
                 result+=1
             else:
-                add_ip_address(IP_ADDRESS)
+                add_ip_address(IP_ADDRESS,REDIS_CLIENT)
                 return IP_ADDRESS
         return False
     except:
@@ -345,9 +345,10 @@ def add_prov_generate_vpn(profile_name,REDIS_CLIENT):
     try:
         redis_set = "prov_generate_vpn"
         score = time.time()
+        value={profile_name:score}
 
-        REDIS_CLIENT.zadd(redis_set,{profile_name:score},nx=True)
-        return True
+        status = REDIS_CLIENT.zadd(redis_set,value,nx=True)
+        return status
     except Exception as err:
         return err
 
@@ -357,7 +358,7 @@ def get_prov_generate_vpn(REDIS_CLIENT):
 
     try:
         redis_set = "prov_generate_vpn"
-        request = REDIS_CLIENT.zpopmin(redis_set,1)
+        profile_name = REDIS_CLIENT.zpopmin(redis_set,1)
         return profile_name
     except Exception as err:
         return err
