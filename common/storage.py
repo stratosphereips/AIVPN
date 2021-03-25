@@ -6,21 +6,22 @@
 import os
 import configparser
 
-# Read the file path to be used from config file
-config = configparser.ConfigParser()
-config.read('config/config.ini')
-PATH = config['STORAGE']['PATH']
-
-def create_working_directory(profile_name,PATH):
+def create_working_directory(profile_name):
     """
     Create a working directory to store files related with a profile_name.
     """
-    profile_directory = PATH+"/"+profile
-
     try:
+        # Read the file path to be used from config file
+        config = configparser.ConfigParser()
+        config.read('config/config.ini')
+        PATH = config['STORAGE']['PATH']
+
+        profile_directory = PATH+"/"+profile_name
+
         if not os.path.exists(profile_directory):
             os.makedirs(profile_directory)
+
         return True
-    except OSError:
-        return False
+    except Exception as e:
+        return e
 
