@@ -9,14 +9,6 @@ import json
 import random
 import ipaddress
 
-WORDS_JSON = 'words.json'
-
-# Import the word dictionary to be used for generating the profile_names
-try:
-    with open(WORDS_JSON) as f:
-        WORDS_DICT = json.load(f)
-except:
-    pass
 
 # REDIS COMMON
 ## Series of functions to handle the connections to the Redis database, as well
@@ -244,15 +236,20 @@ def gen_profile_name():
     Generates a new profile_name based on a recipe.
     Profile name recipe: YYYYMMDDmmss_<word>_<word>
     """
+    WORDS_JSON = 'common/words.json'
     try:
+        # Import the word dictionary to be used for generating the profile_names
+        with open(WORDS_JSON) as f:
+            WORDS_DICT = json.load(f)
+
         string1 = random.choice(WORDS_DICT['data'])
         string2 = random.choice(WORDS_DICT['data'])
-        datenow = time.strftime("%Y%m%d%H%M%S")
+        date_now = time.strftime("%Y%m%d%H%M%S")
         profile_name = "{}-{}_{}".format(date_now, string1, string2)
 
         return profile_name
     except Exception as e:
-        return False
+        return e
 
 hash_profile_names = "profile_names"
 def add_profile_name(profile_name,msg_addr,REDIS_CLIENT):
