@@ -160,7 +160,7 @@ if __name__ == '__main__':
                     redis_client.publish('services_status', 'MOD_OPENVPN:generating a new openvpn profile')
                     # Obtain IP address for client. If this cannot be done,
                     # exit and do not continue the process.
-                    CLIENT_IP=openvpn_obtain_client_ip_address(NETWORK_CIDR)
+                    CLIENT_IP=openvpn_obtain_client_ip_address(NETWORK_CIDR,redis_client)
                     if CLIENT_IP==False:
                         account_status=False
                         redis_client.publish('services_status','mod_openvpn: no IP addresses available. Process failed.')
@@ -196,7 +196,7 @@ if __name__ == '__main__':
                             account_status=False
                             redis_client.publish('services_status','mod_openvpn: profile names did not match. Process failed.')
                             redis_client.publish('provision_openvpn','profile_creation_failed')
-                            logging.info('mod_openvpn: failed to create new openvpn profile, profile names did not match.')
+                            logging.info('mod_openvpn: failed to create new openvpn profile, profile names did not match. Received {}, Obtained {}'.format(msg_account_name,CLIENT_NAME))
                     if account_status==False:
                         #TODO: write profile in the previous provisioning queue
                         logging.info('mod_openvpn: failed to create new openvpn profile.')
