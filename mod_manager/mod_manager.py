@@ -116,23 +116,24 @@ def provision_account(new_request,REDIS_CLIENT):
     if not acc_profile_name:
         # Request is stored back in the provisioning queue.
         # Return error.
-        pass
+        return False
+    logging.info("Profile name generated: {}".format(acc_profile_name))
 
     ## Store the mapping of profile_name:msg_addr to quickly know how to reach
     ## the user when the reports are finished, or a contact is needed.
-    prov_status = add_profile_name(acc_profile_name,p_msg_addr)
+    prov_status = add_profile_name(acc_profile_name,p_msg_addr,REDIS_CLIENT)
     if not prov_status:
         # Request is stored back in the previous queue
         # Return error
-        pass
+        return False
 
     ## Store the mapping of msg_addr:profile_name to check for user usage limit.
     ## There will be a maximum number of accounts 
-    prov_status = add_identity(p_msg_addr)
+    prov_status = add_identity(p_msg_addr,REDIS_CLIENT)
     if not prov_status:
         # Request is stored back in the previous queue
         # Return error
-        pass
+        return False
 
     ## Create a folder to store all files associated with the profile_name.
     ## The specific folder is specified in the configuration file.
@@ -140,14 +141,14 @@ def provision_account(new_request,REDIS_CLIENT):
     if not prov_status:
         # Request is stored back in the previous queue
         # Return error
-        pass
+        return False
 
     ## Update identity table with new profile
-    prov_status = upd_identity_profiles(p_msg_addr,acc_profile_name)
+    prov_status = upd_identity_profiles(p_msg_addr,acc_profile_name,REDIS_CLIENT)
     if not prov_status:
         # Request is stored back in the previous queue
         # Return error
-        pass
+        return False
 
     ## Store profile name to the next queue: prov_generate_vpn
     prov_status = add_prov_generate_vpn(acc_profile_name,REDIS_CLIENT)
@@ -160,7 +161,7 @@ def provision_account(new_request,REDIS_CLIENT):
     # Wait for message from mod_openvpn that the generation is done
     # This wait is from a pub/sub channel dedicate for this step
     # Wait for message from mod_openvpn that the generation is done
-    openvpn_subscriber = redis_create_subscriber(redis_client)
+    openvpn_subscriber = redis_create_subscriber(REDIS_CLIENT)
     redis_subscribe_to_channel(openvpn_subscriber,'provision_openvpn')
     item=openvpn_subscriber.listen()
     if item['type'] == 'message':
@@ -169,10 +170,10 @@ def provision_account(new_request,REDIS_CLIENT):
             pass
         if item['data'] == 'profile_creation_failed':
             #Bad. Roll back or try again.
-            pass
+            return False
 
     ## Retrieve from this process the client IP assigned to the profile_name.
-    acc_profile_ip = get_ip_for_profile(acc_profile_name)
+    acc_profile_ip = get_ip_for_profile(acc_profile_name,REDIS_CLIENT)
 
     # Step 4: Start traffic capture. Store PID.
 

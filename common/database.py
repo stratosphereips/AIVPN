@@ -59,10 +59,10 @@ def redis_subscribe_to_channel(subscriber,CHANNEL):
 identity_template = json.dumps({'total_profiles':0,'profiles':[],'gpg':''})
 hash_account_identities = "account_identities"
 
-def add_identity(msg_addr):
+def add_identity(msg_addr,REDIS_CLIENT):
     """ Stores the msg_addr in redis  """
 
-    status = hsetnx(hash_account_identities,msg_addr,identity_template)
+    status = REDIS_CLIENT.hsetnx(hash_account_identities,msg_addr,identity_template)
 
     # status==1 if HSETNX created a field in the hash set
     # status==0 if the identity exists and no operation is done.
@@ -88,7 +88,7 @@ def upd_identity_counter(msg_addr):
 
     status = hset(hash_account_identities,msg_addr,identity_value)
 
-def upd_identity_profiles(msg_addr,profile_name):
+def upd_identity_profiles(msg_addr,profile_name,REDIS_CLIENT):
     """ If identity exists, add a new profile for the identity """
     identity_value = json.dumps(hget(hash_account_identities,msg_addr))
     identity_object = json.loads(identity_value)
@@ -97,7 +97,9 @@ def upd_identity_profiles(msg_addr,profile_name):
 
     identity_value = json.dumps(identity_object)
 
-    status = hset(hash_account_identities,msg_addr,identity_value)
+    status = REDIS_CLIENT.hset(hash_account_identities,msg_addr,identity_value)
+
+    return status
 
 def upd_identity_gpg(msg_addr,gpg_key):
     """ If identity exists, add a new gpg key for the identity """
@@ -212,25 +214,25 @@ def openvpn_obtain_client_ip_address(NETWORK_CIDR):
 
 hash_profile_name_ip_address='profile_name_ip_address'
 
-def add_profile_ip_relationship(profile_name,ip_address):
+def add_profile_ip_relationship(profile_name,ip_address,REDIS_CLIENT):
     """ Adds a profile:ip to the list. """
     try:
-        hsetnx(hash_profile_name_ip_address,profile_name,ip_address)
+        REDIS_CLIENT.hsetnx(hash_profile_name_ip_address,profile_name,ip_address)
         return True
     except:
         return False
 
-def del_profile_ip_relationship(profile_name):
+def del_profile_ip_relationship(profile_name,REDIS_CLIENT):
     """ Adds a profile:ip to the list. """
     try:
-        hdel(hash_profile_name_ip_address,profile_name)
+        REDIS_CLIENT.hdel(hash_profile_name_ip_address,profile_name)
         return True
     except:
         return False
 
-def get_ip_for_profile(profile_name):
+def get_ip_for_profile(profile_name,REDIS_CLIENT):
     """ Returns the IP address for a given profile name. """
-    ip_address = hget(hash_profile_name_ip_address,profile_name)
+    ip_address = REDIS_CLIENT.hget(hash_profile_name_ip_address,profile_name)
     return ip_address
 
 # PROFILE HANDLING
@@ -253,10 +255,10 @@ def gen_profile_name():
         return False
 
 hash_profile_names = "profile_names"
-def add_profile_name(profile_name,msg_addr):
+def add_profile_name(profile_name,msg_addr,REDIS_CLIENT):
     """ Stores the profile_name:msg_addr in Redis  """
 
-    status = hsetnx(hash_profile_names,profile_name,msg_addr)
+    status = REDIS_CLIENT.hsetnx(hash_profile_names,profile_name,msg_addr)
 
     # status==1 if HSETNX created a field in the hash set
     # status==0 if the identity exists and no operation is done.
@@ -346,25 +348,25 @@ def get_prov_generate_vpn(REDIS_CLIENT):
 # This is the queue were new profiles are queued in wait for the traffic
 # capture to start.
 
-def add_prov_start_capture(profile_name):
+def add_prov_start_capture(profile_name,REDIS_CLIENT):
     """ Function to add an item to the prov_start_capture queue."""
 
     try:
         redis_set = "prov_start_capture"
         score = time.time()
 
-        zadd(redis_set,{profile_name:score},nx=True)
+        REDIS_CLIENT.zadd(redis_set,{profile_name:score},nx=True)
         return True
     except Exception as err:
         return err
 
-def get_prov_start_capture():
+def get_prov_start_capture(REDIS_CLIENT):
     """ Function to get the 'oldest' item (lowest score) from the
     prov_start_capture Redis SET. """
 
     try:
         redis_set = "prov_start_capture"
-        request = zpopmin(redis_set,1)
+        request = REDIS_CLIENT.zpopmin(redis_set,1)
         return profile_name
     except Exception as err:
         return err

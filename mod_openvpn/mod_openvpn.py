@@ -173,10 +173,10 @@ if __name__ == '__main__':
                         if msg_account_name == CLIENT_NAME:
                             result = generate_openvpn_profile(CLIENT_NAME)
                             if result:
-                                result=add_profile_ip_relationship(CLIENT_NAME,CLIENT_IP)
+                                result=add_profile_ip_relationship(CLIENT_NAME,CLIENT_IP,redis_client)
                                 if result:
                                     # Write profile in the next provisioning queue
-                                    result=add_prov_start_capture(CLIENT_NAME)
+                                    result=add_prov_start_capture(CLIENT_NAME,redis_client)
                                     if result:
                                         redis_client.publish('services_status','MOD_OPENVPN: new profile generated')
                                         redis_client.publish('provision_openvpn','profile_creation_successful')
