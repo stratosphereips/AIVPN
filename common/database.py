@@ -194,7 +194,7 @@ def openvpn_obtain_client_ip_address(NETWORK_CIDR):
     try:
         result=0
         maximum_attempts=len([str(ip) for ip in ipaddress.IPv4Network(NETWORK_CIDR)])
-        while result<maximum_attempts::
+        while result < maximum_attempts:
             IP_ADDRESS=random.choice([str(ip) for ip in ipaddress.IPv4Network(NETWORK_CIDR)])
             if exists_ip_address(IP_ADDRESS):
                 result+=1
