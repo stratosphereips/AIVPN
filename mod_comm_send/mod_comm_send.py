@@ -31,26 +31,21 @@ def send_ovpn_profile_via_email(msg_account_name,msg_address,IMAP_SERVER,IMAP_US
     except Exception as err:
         return err
 
-def send_expired_profile_msg_via_email(msg_account_name,msg_address,SMTP_HOST,SMPT_USER,SMTP_PASSWORD):
+def send_expired_profile_msg_via_email(msg_account_name,msg_address,SMTP_HOST,SMTP_USER,SMTP_PASSWORD):
     """ Function to send the message that profile expired to the user via email. """
     try:
         # Craft the email by hand
-        body = "Thank you for using our Emergency VPN service. Your OpenVPN \
-        profile has expired and it has been deactivated. You should receive a \
-        report in the next few days. This is an automated reply to your \
-        previous message. If you did not send it, someone might be trying to \
-        impersonate you. Contact our team immediately if you think that is the\
-        case. Stay safe, - Civilsphere (https://www.civilsphereproject.org)"
+        body = "Thank you for using our Emergency VPN service."
         headers = f"From: {SMTP_USER}\r\n"
         headers += f"To: {msg_address}\r\n"
-        headers += f"Subject: [CivilSphere Emergency VPN] Your VPN profile has expired\r\n"
+        headers += f"Subject: [CivilSphere Emergency VPN] Your VPN profile {msg_account_name} has expired\r\n"
         email_message = headers + "\r\n" + body  # Blank line needed between headers and body
 
         # Connect, authenticate, and send mail
         smtp_server = SMTP_SSL(SMTP_HOST, port=SMTP_SSL_PORT)
         smtp_server.set_debuglevel(1)  # Show SMTP server interactions
-        smtp_server.login(SMTP_USER, SMTP_PASS)
-        smtp_server.sendmail(SMPT_USER, msg_address, email_message)
+        smtp_server.login(SMTP_USER, SMTP_PASSWORD)
+        smtp_server.sendmail(SMTP_USER, msg_address, email_message)
 
         # Disconnect
         smtp_server.quit()
