@@ -6,28 +6,38 @@
 import sys
 import redis
 import logging
+import configparser
 from common.database import *
 
-if __name__ == '__main__':
-    REDIS_SERVER = 'aivpn_mod_redis'
-    CHANNEL = 'mod_comm_send_check'
-    LOG_FILE = '/logs/mod_comm_send.log'
+def read_configuration():
+    # Read configuration file
+    config = configparser.ConfigParser()
+    config.read('config/config.ini')
 
-    try:
-        logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s, MOD_CONN_SEND, %(message)s')
-    except:
-        sys.exit(-1)
+    REDIS_SERVER = config['REDIS']['REDIS_SERVER']
+    CHANNEL = config['REDIS']['REDIS_COMM_SEND_CHECK']
+    LOG_FILE = config['LOGS']['LOG_COMM_SEND']
+    IMAP_SERVER = config['IMAP']['SERVER']
+    IMAP_USERNAME = config['IMAP']['USERNAME']
+    IMAP_PASSWORD = config['IMAP']['PASSWORD']
+    return REDIS_SERVER,CHANNEL,LOG_FILE,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD
+
+if __name__ == '__main__':
+    # Read configuration
+    REDIS_SERVER,CHANNEL,LOG_FILE,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD = read_configuration()
+
+    logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s, MOD_CONN_SEND, %(message)s')
 
     # Connecting to the Redis database
     try:
-        db_publisher = redis_connect_to_db(REDIS_SERVER)
+        redis_client = redis_connect_to_db(REDIS_SERVER)
     except:
         logging.error("Unable to connect to the Redis database (",REDIS_SERVER,")")
         sys.exit(-1)
 
     # Creating a Redis subscriber
     try:
-        db_subscriber = redis_create_subscriber(db_publisher)
+        db_subscriber = redis_create_subscriber(redis_client)
     except:
         logging.error("Unable to create a Redis subscriber")
         sys.exit(-1)
@@ -48,16 +58,16 @@ if __name__ == '__main__':
                 logging.info(item['channel'])
                 logging.info(item['data'])
                 if item['data'] == 'report_status':
-                    db_publisher.publish('services_status', 'MOD_COMM_SEND:online')
+                    redis_client.publish('services_status', 'MOD_COMM_SEND:online')
                     logging.info('MOD_COMM_SEND:online')
 
-        db_publisher.publish('services_status', 'MOD_COMM_SEND:offline')
+        redis_client.publish('services_status', 'MOD_COMM_SEND:offline')
         logging.info("Terminating")
-        db_publisher.close()
+        redis_client.close()
         db_subscriber.close()
         sys.exit(0)
     except Exception as err:
-        db_publisher.close()
+        redis_client.close()
         db_subscriber.close()
         logging.info("Terminating via exception in main")
         logging.info(err)
