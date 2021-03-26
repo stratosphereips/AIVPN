@@ -53,6 +53,7 @@ def get_new_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD,loggin
 
             # Get the first email ID to process
             email_uid = id_list.pop(0)
+            logging.info(f"Processing email UID {email_uid}")
 
             # Fetch the email headers and body (RFC822) for the given email UID
             result, data = mail.uid('fetch', email_uid, '(RFC822)')
@@ -68,6 +69,7 @@ def get_new_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD,loggin
 
             # Parse email receiver
             email_to = re.search(r'[\w\.-]+@[\w\.-]+', msg['to']).group(0)
+            logging.info(f"Processing email receiver {email_to}")
 
             # Do not process messages where we are not the receivers
             if not email_to == IMAP_USERNAME:
@@ -77,8 +79,12 @@ def get_new_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD,loggin
             try:
                 email_subject = re.search(r'[VPN]+', msg['subject']).group(0)
             except:
-                email_subject = ""
+                try:
+                    email_subject = re.search(r'[vpn]+', msg['subject']).group(0)
+                except:
+                    email_subject = ""
 
+            logging.info(f"Processing email subject {email_subject}")
             # Parse email body and find matches for keyword VPN
             try:
                 # Extract email body in rich email
@@ -90,12 +96,16 @@ def get_new_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD,loggin
             try:
                 email_body = re.search(r'[VPN]+', email_body).group(0)
             except:
-                email_body = ""
+                try:
+                    email_body = re.search(r'[vpn]+', email_body).group(0)
+                except:
+                    email_body = ""
 
+            logging.info(f"Processing email body {email_body}")
 
             # We only parse messages that contain VPN in subject or body
             # These prints will be removed after we test everythig is good
-            if (email_subject == 'VPN' or email_body == 'VPN'):
+            if ('vpn' in email_subject.lower() or 'vpn' in email_body.lower()):
                 # Parse email date
                 email_date = msg['date']
 
@@ -108,23 +118,23 @@ def get_new_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD,loggin
                 # Notify manager of new request
                 redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
 
-                logging.debug("This email matches the keywords")
-                logging.debug('{:8}: {}'.format("email id",int(email_uid)))
-                logging.debug('{:8}: {}'.format("date",email_date))
-                logging.debug('{:8}: {}'.format("to",email_to))
-                logging.debug('{:8}: {}'.format("from",email_from))
-                logging.debug('{:8}: {}'.format("reply_to",msg['In-Reply-To']))
-                logging.debug('{:8}: {}'.format("subject",email_subject))
-                logging.debug('{:8}: {}'.format("body",email_body))
+                logging.info("This email matches the keywords")
+                logging.info('{:8}: {}'.format("email id",int(email_uid)))
+                logging.info('{:8}: {}'.format("date",email_date))
+                logging.info('{:8}: {}'.format("to",email_to))
+                logging.info('{:8}: {}'.format("from",email_from))
+                logging.info('{:8}: {}'.format("reply_to",msg['In-Reply-To']))
+                logging.info('{:8}: {}'.format("subject",email_subject))
+                logging.info('{:8}: {}'.format("body",email_body))
             else:
-                logging.debug("This email does not match the keywords")
-                logging.debug('{:8}: {}'.format("Email ID",email_uid))
-                logging.debug('{:8}: {}'.format("Date",email_date))
-                logging.debug('{:8}: {}'.format("To",email_to))
-                logging.debug('{:8}: {}'.format("From",email_from))
-                logging.debug('{:8}: {}'.format("reply_to",msg['In-Reply-To']))
-                logging.debug('{:8}: {}'.format("Subject",email_subject))
-                logging.debug('{:8}: {}'.format("Body",email_body))
+                logging.info("This email does not match the keywords")
+                logging.info('{:8}: {}'.format("Email ID",email_uid))
+                logging.info('{:8}: {}'.format("Date",email_date))
+                logging.info('{:8}: {}'.format("To",email_to))
+                logging.info('{:8}: {}'.format("From",email_from))
+                logging.info('{:8}: {}'.format("reply_to",msg['In-Reply-To']))
+                logging.info('{:8}: {}'.format("Subject",email_subject))
+                logging.info('{:8}: {}'.format("Body",email_body))
 
         # Close connection to server
         mail.expunge()
