@@ -22,6 +22,27 @@ def read_configuration():
     IMAP_PASSWORD = config['IMAP']['PASSWORD']
     return REDIS_SERVER,CHANNEL,LOG_FILE,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD
 
+def send_ovpn_profile_via_email(msg_account_name,msg_address,IMAP_SERVER,IMAP_USERNAME_IMAP_PASSWORD):
+    """ Function to send the openvpn profile file to the user via email. """
+    try:
+        # send here
+    except exception as err:
+        return err
+
+def send_expired_profile_msg_via_email(msg_account_name,msg_address,IMAP_SERVER,IMAP_USERNAME_IMAP_PASSWORD):
+    """ Function to send the message that profile expired to the user via email. """
+    try:
+        # send here
+    except exception as err:
+        return err
+
+def send_profile_report_via_email(msg_account_name,msg_address,IMAP_SERVER,IMAP_USERNAME_IMAP_PASSWORD):
+    """ Function to send the profile report to the user via email. """
+    try:
+        # send here
+    except exception as err:
+        return err
+
 if __name__ == '__main__':
     # Read configuration
     REDIS_SERVER,CHANNEL,LOG_FILE,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD = read_configuration()
@@ -56,19 +77,27 @@ if __name__ == '__main__':
         for item in db_subscriber.listen():
             if item['type'] == 'message':
                 logging.info("New message received in channel {}: {}".format(item['channel'],item['data']))
-                try:
-                    msg_account_name=item['data'].split(':')[1]
-                except:
-                    msg_account_name=""
                 if item['data'] == 'report_status':
                     redis_client.publish('services_status', 'MOD_COMM_SEND:online')
                     logging.info('MOD_COMM_SEND:online')
-                elif 'send_openvpn_profile_email' in item['data'] and not msg_account_name=="":
-                    logging.info('Sending OpenVPN profile to {}'.format(msg_account_name))
-                elif 'send_expire_profile_email' in item['data'] and not msg_account_name=="":
-                    logging.info('Sending expiration of profile to {}'.format(msg_account_name))
-                elif 'send_report_profile_email' in item['data'] and not msg_account_name=="":
-                    logging.info('Sending report on profile to {}'.format(msg_account_name))
+                elif 'send' in item['data']:
+                    # Obtain the profile name and address where to send
+                    msg_account_name=item['data'].split(':')[1]
+                    msg_address=get_profile_name_address(msg_account_name)
+
+                    # Different options of what to send
+                    if 'send_openvpn_profile_email' in item['data']:
+                        logging.info('Sending OpenVPN profile to {}'.format(msg_account_name))
+                        status = send_ovpn_profile_via_email(msg_account_name,msg_address,IMAP_SERVER,IMAP_USERNAME_IMAP_PASSWORD)
+                        continue
+                    if 'send_expire_profile_email' in item['data']:
+                        logging.info('Sending expiration of profile to {}'.format(msg_account_name))
+                        status = send_expired_profile_msg_via_email(msg_account_name,msg_address,IMAP_SERVER,IMAP_USERNAME_IMAP_PASSWORD)
+                        continue
+                    if 'send_report_profile_email' in item['data']:
+                        logging.info('Sending report on profile to {}'.format(msg_account_name))
+                        status = send_profile_report_via_email(msg_account_name,msg_address,IMAP_SERVER,IMAP_USERNAME_IMAP_PASSWORD)
+                        continue
 
         redis_client.publish('services_status', 'MOD_COMM_SEND:offline')
         logging.info("Terminating")
