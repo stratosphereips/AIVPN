@@ -173,15 +173,14 @@ def provision_account(new_request,REDIS_CLIENT):
                 #Bad. Roll back or try again.
                 return False
 
-    ## Retrieve from this process the client IP assigned to the profile_name.
-    acc_profile_ip = get_ip_for_profile(acc_profile_name,REDIS_CLIENT)
-    logging.info("Provisoning: IP for profile is {}".format(acc_profile_ip))
-
     # Step 4: Start traffic capture. Store PID.
 
     ## Get profile from the queue using profile_name as key
+    #get_prov_start_capture(REDIS_CLIENT)
 
-    ## Get IP address from list using profile_name as key
+    ## Retrieve from this process the client IP assigned to the profile_name.
+    acc_profile_ip = get_ip_for_profile(acc_profile_name,REDIS_CLIENT)
+    logging.info("Provisoning: IP for profile is {}".format(acc_profile_ip))
 
     ## Trigger start capturing for profile_name by mod_traffic_capture.
     ## Module will store a PID in Redis.
