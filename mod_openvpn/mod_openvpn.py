@@ -90,10 +90,9 @@ def get_openvpn_profile(CLIENT_NAME,PATH):
     This function returns the new generated client profile.
     """
     try:
-        os.system('/usr/local/bin/ovpn_getclient %s > %s/%s.ovpn' % CLIENT_NAME,PATH,CLIENT_NAME)
+        os.system('/usr/local/bin/ovpn_getclient %s > %s/%s/%s.ovpn' % (CLIENT_NAME,PATH,CLIENT_NAME,CLIENT_NAME))
     except Exception as e:
-        logging.error(e)
-        return False
+        logging.error("Error in mod_openvpn::get_openvpn_profile: {}".format(e))
 
 if __name__ == '__main__':
     # Read configuration file
@@ -120,16 +119,14 @@ if __name__ == '__main__':
     try:
         redis_client = redis_connect_to_db(REDIS_SERVER)
     except Exception as e:
-        logging.error("Unable to connect to the Redis database (",REDIS_SERVER,")")
-        logging.error(f"Error {e}")
+        logging.error("Unable to connect to the Redis database ({}): {}".format(REDIS_SERVER,e))
         sys.exit(-1)
 
     # Creating a Redis subscriber
     try:
         db_subscriber = redis_create_subscriber(redis_client)
     except Exception as e:
-        logging.error("Unable to create a Redis subscriber")
-        logging.error(f"Error {e}")
+        logging.error("Unable to create a Redis subscriber: {}".format(e))
         sys.exit(-1)
 
     # Subscribing to Redis channel
@@ -149,6 +146,7 @@ if __name__ == '__main__':
         # Checking for messages
         logging.info("Listening for messages")
         for item in db_subscriber.listen():
+            account_status=False
             if item['type'] == 'message':
                 logging.info(item['channel'])
                 logging.info(item['data'])
@@ -173,7 +171,7 @@ if __name__ == '__main__':
                         CLIENT_NAME = get_prov_generate_vpn(redis_client)
                         if msg_account_name == CLIENT_NAME:
                             result = generate_openvpn_profile(CLIENT_NAME)
-                            get_openvpn_profile(CLIENT_NAME,'/logs')
+                            get_openvpn_profile(CLIENT_NAME,PATH)
                             if result:
                                 result=add_profile_ip_relationship(CLIENT_NAME,CLIENT_IP,redis_client)
                                 if result:
@@ -183,9 +181,11 @@ if __name__ == '__main__':
                                         redis_client.publish('services_status','MOD_OPENVPN: new profile generated')
                                         redis_client.publish('provision_openvpn','profile_creation_successful')
                                         logging.info('MOD_OPENVPN: new openvpn profile generated')
+                                        account_status=True
                                     else:
                                         account_status=False
                                 else:
+                                    logging.info('error in add_profile_ip_relationship: {}'.format(result))
                                     account_status=False
                             else:
                                 account_status=False
