@@ -90,7 +90,7 @@ def provision_account(new_request,REDIS_CLIENT):
     p_msg_addr = new_request_object['msg_addr']
     p_msg_id = new_request_object['msg_id']
     p_msg_type = new_request_object['msg_type']
-    logging.info("Provisioning Step 0. Addr: {}, ID: {}, Type: {}".format(p_msg_addr,p_msg_id,p_msg_type))
+    logging.info("Provisioning: new account for {} (ID: {}, Type: {})".format(p_msg_addr,p_msg_id,p_msg_type))
 
     # Step 1: Can we provision this account? space, internet, PIDs, IPs, limits
     #         If we cannot, request is stored back in the provisioning queue.
@@ -108,7 +108,6 @@ def provision_account(new_request,REDIS_CLIENT):
 
     ## TODO: Check if we have enough IP addresses to provision new account.
 
-    logging.info("Provisioning Step 1 completed")
     # Step 2: Generate profile name. Store it. Create folder.
 
     ## Get an account name
@@ -117,7 +116,7 @@ def provision_account(new_request,REDIS_CLIENT):
         # Request is stored back in the provisioning queue.
         # Return error.
         return False
-    logging.info("Profile name generated: {}".format(acc_profile_name))
+    logging.info("Provisioning: profile name reserved {}".format(acc_profile_name))
 
     ## Store the mapping of profile_name:msg_addr to quickly know how to reach
     ## the user when the reports are finished, or a contact is needed.
@@ -127,43 +126,37 @@ def provision_account(new_request,REDIS_CLIENT):
         # Return error
         return False
 
-    logging.info("Mapping of profile_name:mst_addr was {}".format(prov_status))
+    logging.debug("Provisioning: Mapping of profile_name:mst_addr was {}".format(prov_status))
 
     ## Store the mapping of msg_addr:profile_name to check for user usage limit.
     ## There will be a maximum number of accounts 
     prov_status = add_identity(p_msg_addr,REDIS_CLIENT)
-    if prov_status:
-        logging.info("Identity added successfully")
-    else:
-        logging.info("Identity already exists in Redis")
+    logging.info("Provisioning: result of adding new identity was {}".format(prov_status))
 
     ## Create a folder to store all files associated with the profile_name.
     ## The specific folder is specified in the configuration file.
     prov_status = create_working_directory(acc_profile_name)
-    logging.info("Results of create_working_directory: {}".format(prov_status))
+    logging.info("Provisioning: creation of working directory was {}".format(prov_status))
     if not prov_status:
         # Request is stored back in the previous queue
-        # Return error
         return False
 
     ## Update identity table with new profile
     prov_status = upd_identity_profiles(p_msg_addr,acc_profile_name,REDIS_CLIENT)
-    if prov_status is True:
-        logging.info("upd_identity_profiles: success")
-    else:
+    logging.info("Provisioning: identity profile update was {}".format(prov_status))
+    if prov_status is not True:
         # Request is stored back in the previous queue
-        # Return error
         return False
 
     ## Store profile name to the next queue: prov_generate_vpn
     prov_status = add_prov_generate_vpn(acc_profile_name,REDIS_CLIENT)
-    logging.info("add_prov_generate_vpn for {}: {}".format(acc_profile_name,prov_status))
+    logging.info("Provisioning: add_prov_generate_vpn for {} was {}".format(acc_profile_name,prov_status))
 
     # Step 3: Generate VPN Profile. OpenVPN or alternative.
 
     ## Trigger generation of VPN profile using profile_name.
     prov_status = request_openvpn_profile(acc_profile_name,REDIS_CLIENT)
-    logging.info("request_openvpn_profile: {}".format(prov_status))
+    logging.info("Provisioning: request openvpn profile was {}".format(prov_status))
 
     # Wait for message from mod_openvpn that the generation is done
     # This wait is from a pub/sub channel dedicate for this step
@@ -172,18 +165,17 @@ def provision_account(new_request,REDIS_CLIENT):
     redis_subscribe_to_channel(openvpn_subscriber,'provision_openvpn')
     for item in openvpn_subscriber.listen():
         if item['type'] == 'message':
+            logging.info("Provisioning: {}".format(item['data']))
             if 'profile_creation_successful' in item['data']:
                 #Good. Continue.
-                logging.info("message from mod_openvpn: profile_creation_successful")
                 break
             if 'profile_creation_failed' in item['data']:
                 #Bad. Roll back or try again.
-                logging.info("message from mod_openvpn: profile_creation_failed")
                 return False
 
     ## Retrieve from this process the client IP assigned to the profile_name.
     acc_profile_ip = get_ip_for_profile(acc_profile_name,REDIS_CLIENT)
-    logging.info("get_ip_for_profile: {}".format(acc_profile_ip))
+    logging.info("Provisoning: IP for profile is {}".format(acc_profile_ip))
 
     # Step 4: Start traffic capture. Store PID.
 
