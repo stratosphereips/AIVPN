@@ -188,6 +188,9 @@ def provision_account(new_request,REDIS_CLIENT):
     ## Stores profile_name to the next queue: prov_send_profile
 
     # Step 5: Send profile or instruct manager to send profile.
+    REDIS_CLIENT.publish('mod_comm_send_check','send_openvpn_profile_email:'+acc_profile_name)
+    #REDIS_CLIENT.publish('mod_comm_send_check','send_expire_profile_email:'+acc_profile_name)
+    #REDIS_CLIENT.publish('mod_comm_send_check','send_report_profile_email:'+acc_profile_name)
 
     return True
 
