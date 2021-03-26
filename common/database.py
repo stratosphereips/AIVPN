@@ -283,17 +283,17 @@ def add_profile_name(profile_name,msg_addr,REDIS_CLIENT):
     except Exception as e:
         return e
 
-def get_profile_name(profile_name):
+def get_profile_name_address(profile_name,REDIS_CLIENT):
     """ Obtains a msg_addr given a profile_name """
 
-    msg_addr = hget(hash_profile_names,profile_name)
+    msg_addr = REDIS_CLIENT.hget(hash_profile_names,profile_name)
     return msg_addr
 
-def del_profile_name(profile_name):
+def del_profile_name(profile_name,REDIS_CLIENT):
     """ Deletes a profile_name from Redis """
 
     try:
-        hdel(hash_profile_names,profile_name)
+        REDIS_CLIENT.hdel(hash_profile_names,profile_name)
         return True
     except:
         return False
