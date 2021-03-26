@@ -8,6 +8,7 @@ import redis
 import logging
 import configparser
 from common.database import *
+from smtplib import SMTP_SSL, SMTP_SSL_PORT
 
 def read_configuration():
     # Read configuration file
@@ -22,25 +23,47 @@ def read_configuration():
     IMAP_PASSWORD = config['IMAP']['PASSWORD']
     return REDIS_SERVER,CHANNEL,LOG_FILE,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD
 
-def send_ovpn_profile_via_email(msg_account_name,msg_address,IMAP_SERVER,IMAP_USERNAME_IMAP_PASSWORD):
+def send_ovpn_profile_via_email(msg_account_name,msg_address,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
     """ Function to send the openvpn profile file to the user via email. """
     try:
         # send here
-    except exception as err:
+        return True
+    except Exception as err:
         return err
 
-def send_expired_profile_msg_via_email(msg_account_name,msg_address,IMAP_SERVER,IMAP_USERNAME_IMAP_PASSWORD):
+def send_expired_profile_msg_via_email(msg_account_name,msg_address,SMTP_HOST,SMPT_USER,SMTP_PASSWORD):
     """ Function to send the message that profile expired to the user via email. """
     try:
-        # send here
-    except exception as err:
+        # Craft the email by hand
+        body = "Thank you for using our Emergency VPN service. Your OpenVPN \
+        profile has expired and it has been deactivated. You should receive a \
+        report in the next few days. This is an automated reply to your \
+        previous message. If you did not send it, someone might be trying to \
+        impersonate you. Contact our team immediately if you think that is the\
+        case. Stay safe, - Civilsphere (https://www.civilsphereproject.org)"
+        headers = f"From: {SMTP_USER}\r\n"
+        headers += f"To: {msg_address}\r\n"
+        headers += f"Subject: [CivilSphere Emergency VPN] Your VPN profile has expired\r\n"
+        email_message = headers + "\r\n" + body  # Blank line needed between headers and body
+
+        # Connect, authenticate, and send mail
+        smtp_server = SMTP_SSL(SMTP_HOST, port=SMTP_SSL_PORT)
+        smtp_server.set_debuglevel(1)  # Show SMTP server interactions
+        smtp_server.login(SMTP_USER, SMTP_PASS)
+        smtp_server.sendmail(SMPT_USER, msg_address, email_message)
+
+        # Disconnect
+        smtp_server.quit()
+        return True
+    except Exception as err:
         return err
 
-def send_profile_report_via_email(msg_account_name,msg_address,IMAP_SERVER,IMAP_USERNAME_IMAP_PASSWORD):
+def send_profile_report_via_email(msg_account_name,msg_address,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
     """ Function to send the profile report to the user via email. """
     try:
         # send here
-    except exception as err:
+        return True
+    except Exception as err:
         return err
 
 if __name__ == '__main__':
@@ -52,22 +75,22 @@ if __name__ == '__main__':
     # Connecting to the Redis database
     try:
         redis_client = redis_connect_to_db(REDIS_SERVER)
-    except:
-        logging.error("Unable to connect to the Redis database (",REDIS_SERVER,")")
+    except Exception as err:
+        logging.error("Exception in __main__, unable to connect to Redis database (",REDIS_SERVER,")")
         sys.exit(-1)
 
     # Creating a Redis subscriber
     try:
         db_subscriber = redis_create_subscriber(redis_client)
-    except:
-        logging.error("Unable to create a Redis subscriber")
+    except Exception as err:
+        logging.error("Exception in __main__, unable to create a Redis subscriber {}".format(err))
         sys.exit(-1)
 
     # Subscribing to Redis channel
     try:
         redis_subscribe_to_channel(db_subscriber,CHANNEL)
-    except:
-        logging.error("Channel subscription failed")
+    except Exception as err:
+        logging.error("Exception in __main__, unable to subscribe to Redis channel {}".format(err))
         sys.exit(-1)
 
     try:
@@ -83,20 +106,35 @@ if __name__ == '__main__':
                 elif 'send' in item['data']:
                     # Obtain the profile name and address where to send
                     msg_account_name=item['data'].split(':')[1]
-                    msg_address=get_profile_name_address(msg_account_name)
+                    msg_address=get_profile_name_address(msg_account_name,redis_client)
 
                     # Different options of what to send
                     if 'send_openvpn_profile_email' in item['data']:
-                        logging.info('Sending OpenVPN profile to {}'.format(msg_account_name))
-                        status = send_ovpn_profile_via_email(msg_account_name,msg_address,IMAP_SERVER,IMAP_USERNAME_IMAP_PASSWORD)
+                        logging.info('Sending OpenVPN profile to {} ({})'.format(msg_account_name,msg_address))
+                        if send_ovpn_profile_via_email(msg_account_name,msg_address,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
+                            redis_client.publish('services_status', 'MOD_COMM_SEND:openvpn profile sent successfully')
+                            logging.info('openvpn profile sent successfully')
+                        else:
+                            redis_client.publish('services_status', 'MOD_COMM_SEND:failed to send openvpn profile')
+                            logging.info('failed to send openvpn profile')
                         continue
                     if 'send_expire_profile_email' in item['data']:
-                        logging.info('Sending expiration of profile to {}'.format(msg_account_name))
-                        status = send_expired_profile_msg_via_email(msg_account_name,msg_address,IMAP_SERVER,IMAP_USERNAME_IMAP_PASSWORD)
+                        logging.info('Sending expiration of profile to {} ({})'.format(msg_account_name,msg_address))
+                        if send_expired_profile_msg_via_email(msg_account_name,msg_address,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
+                            redis_client.publish('services_status', 'MOD_COMM_SEND:openvpn expiration sent successfully')
+                            logging.info('openvpn expiration sent successfully')
+                        else:
+                            redis_client.publish('services_status', 'MOD_COMM_SEND:failed to send profile expiration message')
+                            logging.info('failed to send profile expiration message')
                         continue
                     if 'send_report_profile_email' in item['data']:
-                        logging.info('Sending report on profile to {}'.format(msg_account_name))
-                        status = send_profile_report_via_email(msg_account_name,msg_address,IMAP_SERVER,IMAP_USERNAME_IMAP_PASSWORD)
+                        logging.info('Sending report on profile to {} ({})'.format(msg_account_name,msg_address))
+                        if send_profile_report_via_email(msg_account_name,msg_address,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
+                            redis_client.publish('services_status', 'MOD_COMM_SEND:profile report sent successfully')
+                            logging.info('profile report sent successfully')
+                        else:
+                            redis_client.publish('services_status', 'MOD_COMM_SEND:failed to send profile report')
+                            logging.info('failed to send profile report')
                         continue
 
         redis_client.publish('services_status', 'MOD_COMM_SEND:offline')
@@ -105,8 +143,7 @@ if __name__ == '__main__':
         db_subscriber.close()
         sys.exit(0)
     except Exception as err:
+        logging.info("Terminating via exception in __main__: {}".format(err))
         redis_client.close()
         db_subscriber.close()
-        logging.info("Terminating via exception in main")
-        logging.info(err)
         sys.exit(-1)
