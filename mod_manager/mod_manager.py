@@ -172,11 +172,11 @@ def provision_account(new_request,REDIS_CLIENT):
     redis_subscribe_to_channel(openvpn_subscriber,'provision_openvpn')
     for item in openvpn_subscriber.listen():
         if item['type'] == 'message':
-            if item['data'] == 'profile_creation_successful':
+            if 'profile_creation_successful' in item['data']:
                 #Good. Continue.
                 logging.info("message from mod_openvpn: profile_creation_successful")
                 break
-            if item['data'] == 'profile_creation_failed':
+            if 'profile_creation_failed' in item['data']:
                 #Bad. Roll back or try again.
                 logging.info("message from mod_openvpn: profile_creation_failed")
                 return False
