@@ -23,10 +23,24 @@ def read_configuration():
     IMAP_PASSWORD = config['IMAP']['PASSWORD']
     return REDIS_SERVER,CHANNEL,LOG_FILE,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD
 
-def send_ovpn_profile_via_email(msg_account_name,msg_address,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
+def send_ovpn_profile_via_email(msg_account_name,msg_address,SMTP_HOST,SMTP_USER,SMTP_PASSWORD):
     """ Function to send the openvpn profile file to the user via email. """
     try:
-        # send here
+        # Craft the email by hand
+        body = "Please find attached your new Emergency VPN profile."
+        headers = f"From: {SMTP_USER}\r\n"
+        headers += f"To: {msg_address}\r\n"
+        headers += f"Subject: [Civilsphere Emergency VPN] New profile: {msg_account_name}\r\n"
+        email_message = headers + "\r\n" + body  # Blank line needed between headers and body
+
+        # Connect, authenticate, and send mail
+        smtp_server = SMTP_SSL(SMTP_HOST, port=SMTP_SSL_PORT)
+        smtp_server.set_debuglevel(1)  # Show SMTP server interactions
+        smtp_server.login(SMTP_USER, SMTP_PASSWORD)
+        smtp_server.sendmail(SMTP_USER, msg_address, email_message)
+
+        # Disconnect
+        smtp_server.quit()
         return True
     except Exception as err:
         return err
@@ -53,10 +67,24 @@ def send_expired_profile_msg_via_email(msg_account_name,msg_address,SMTP_HOST,SM
     except Exception as err:
         return err
 
-def send_profile_report_via_email(msg_account_name,msg_address,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
+def send_profile_report_via_email(msg_account_name,msg_address,SMTP_HOST,SMTP_USER,SMTP_PASSWORD):
     """ Function to send the profile report to the user via email. """
     try:
-        # send here
+        # Craft the email by hand
+        body = "Thank you for using our Emergency VPN service.\r\nFind attached the report"
+        headers = f"From: {SMTP_USER}\r\n"
+        headers += f"To: {msg_address}\r\n"
+        headers += f"Subject: [CivilSphere Emergency VPN] Report for {msg_account_name}\r\n"
+        email_message = headers + "\r\n" + body  # Blank line needed between headers and body
+
+        # Connect, authenticate, and send mail
+        smtp_server = SMTP_SSL(SMTP_HOST, port=SMTP_SSL_PORT)
+        smtp_server.set_debuglevel(1)  # Show SMTP server interactions
+        smtp_server.login(SMTP_USER, SMTP_PASSWORD)
+        smtp_server.sendmail(SMTP_USER, msg_address, email_message)
+
+        # Disconnect
+        smtp_server.quit()
         return True
     except Exception as err:
         return err
