@@ -19,20 +19,23 @@ if __name__ == '__main__':
 
     try:
         logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s, MOD_TRAFFIC_CAPTURE, %(message)s')
-    except:
+    except Exception as err:
+        logging.info("Exception in __main__: {}".format(err))
         sys.exit(-1)
 
     try:
         from common.swarm_modules import *
         REDIS_SERVER=aivpn_mod_redis
-    except:
+    except Exception as err:
+        logging.info("Exception in __main__: {}".format(err))
         logging.info("Cannot retrieve redis IP from manager")
 
     # Connecting to the Redis database
     try:
         db_publisher = redis_connect_to_db(REDIS_SERVER)
         logging.info("Connection to redis successful.")
-    except:
+    except Exception as err:
+        logging.info("Exception in __main__: {}".format(err))
         logging.error("Unable to connect to the Redis database (",REDIS_SERVER,")")
         sys.exit(-1)
 
@@ -40,7 +43,8 @@ if __name__ == '__main__':
     try:
         db_subscriber = redis_create_subscriber(db_publisher)
         logging.info("Redis subscriber created.")
-    except:
+    except Exception as err:
+        logging.info("Exception in __main__: {}".format(err))
         logging.error("Unable to create a Redis subscriber")
         sys.exit(-1)
 
@@ -48,7 +52,8 @@ if __name__ == '__main__':
     try:
         redis_subscribe_to_channel(db_subscriber,CHANNEL)
         logging.info("Subscribed to channel: {}".format(CHANNEL))
-    except:
+    except Exception as err:
+        logging.info("Exception in __main__: {}".format(err))
         logging.error("Channel subscription failed")
         sys.exit(-1)
 
@@ -58,8 +63,7 @@ if __name__ == '__main__':
         for item in db_subscriber.listen():
             logging.info(item)
             if item['type'] == 'message':
-                logging.info(item['channel'])
-                logging.info(item['data'])
+                logging.info("New message received in channel {}: {}".format(item['channel'],item['data']))
                 if item['data'] == 'report_status':
                     db_publisher.publish('services_status', 'MOD_TRAFFIC_CAPTURE:online')
                     logging.info('MOD_TRAFFIC_CAPTURE:online')
@@ -69,9 +73,8 @@ if __name__ == '__main__':
         db_publisher.close()
         db_subscriber.close()
         sys.exit(0)
-    except Exception as e:
-        logging.info(e)
-        logging.info("Terminating via exception in main")
+    except Exception as err:
+        logging.info("Exception in __main__: {}".format(err))
         db_publisher.close()
         db_subscriber.close()
         sys.exit(-1)
