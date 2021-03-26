@@ -183,8 +183,7 @@ if __name__ == '__main__':
         # Checking for messages
         for item in db_subscriber.listen():
             if item['type'] == 'message':
-                logging.info(item['channel'])
-                logging.info(item['data'])
+                logging.info("New message received in channel {}: {}".format(item['channel'],item['data']))
                 if item['data'] == 'report_status':
                     if get_new_requests(redis_client, IMAP_SERVER, IMAP_USERNAME, IMAP_PASSWORD,logging):
                         redis_client.publish('services_status', 'MOD_COMM_RECV:online')
