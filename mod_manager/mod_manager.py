@@ -149,8 +149,8 @@ def provision_account(new_request,REDIS_CLIENT):
         return False
 
     ## Store profile name to the next queue: prov_generate_vpn
-    prov_status = add_prov_generate_vpn(acc_profile_name,REDIS_CLIENT)
-    logging.info("Provisioning: add_prov_generate_vpn for {} was {}".format(acc_profile_name,prov_status))
+    #prov_status = add_prov_generate_vpn(acc_profile_name,REDIS_CLIENT)
+    #logging.info("Provisioning: add_prov_generate_vpn for {} was {}".format(acc_profile_name,prov_status))
 
     # Step 3: Generate VPN Profile. OpenVPN or alternative.
 
