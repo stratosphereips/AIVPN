@@ -9,6 +9,9 @@ import logging
 import configparser
 from common.database import *
 from smtplib import SMTP_SSL, SMTP_SSL_PORT
+from email.mime.multipart import MIMEMultipart, MIMEBase
+from email.mime.text import MIMEText
+from email.encoders import encode_base64
 
 def read_configuration():
     # Read configuration file
@@ -21,23 +24,36 @@ def read_configuration():
     IMAP_SERVER = config['IMAP']['SERVER']
     IMAP_USERNAME = config['IMAP']['USERNAME']
     IMAP_PASSWORD = config['IMAP']['PASSWORD']
-    return REDIS_SERVER,CHANNEL,LOG_FILE,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD
+    PATH = config['STORAGE']['PATH']
+    return REDIS_SERVER,CHANNEL,LOG_FILE,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD,PATH
 
-def send_ovpn_profile_via_email(msg_account_name,msg_address,SMTP_HOST,SMTP_USER,SMTP_PASSWORD):
+def send_ovpn_profile_via_email(msg_account_name,msg_address,SMTP_HOST,SMTP_USER,SMTP_PASSWORD,PATH):
     """ Function to send the openvpn profile file to the user via email. """
     try:
-        # Craft the email by hand
-        body = "Please find attached your new Emergency VPN profile."
-        headers = f"From: {SMTP_USER}\r\n"
-        headers += f"To: {msg_address}\r\n"
-        headers += f"Subject: [Civilsphere Emergency VPN] New profile: {msg_account_name}\r\n"
-        email_message = headers + "\r\n" + body  # Blank line needed between headers and body
+        # Create multipart MIME email
+        email_message = MIMEMultipart()
+        email_message.add_header('To', msg_address)
+        email_message.add_header('From', SMTP_USER)
+        email_message.add_header('Subject', f"[Civilsphere Emergency VPN] New profile: {msg_account_name}\r\n")
+
+        # Create text and HTML bodies for email
+        text_part = MIMEText('Please find attached your new Emergency VPN profile.', 'plain')
+
+        # Create file attachment
+        attachment = MIMEBase("application", "octet-stream")
+        attachment.set_payload(open(f"{PATH}/{msg_account_name}/{msg_account_name}.ovpn", "rb").read())
+        encode_base64(attachment)
+        attachment.add_header("Content-Disposition", f"attachment; filename={msg_account_name}.ovpn")
+
+        # Attach all the parts to the Multipart MIME email
+        email_message.attach(text_part)
+        email_message.attach(attachment)
 
         # Connect, authenticate, and send mail
         smtp_server = SMTP_SSL(SMTP_HOST, port=SMTP_SSL_PORT)
         smtp_server.set_debuglevel(1)  # Show SMTP server interactions
         smtp_server.login(SMTP_USER, SMTP_PASSWORD)
-        smtp_server.sendmail(SMTP_USER, msg_address, email_message)
+        smtp_server.sendmail(SMTP_USER, msg_address, email_message.as_bytes())
 
         # Disconnect
         smtp_server.quit()
@@ -91,7 +107,7 @@ def send_profile_report_via_email(msg_account_name,msg_address,SMTP_HOST,SMTP_US
 
 if __name__ == '__main__':
     # Read configuration
-    REDIS_SERVER,CHANNEL,LOG_FILE,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD = read_configuration()
+    REDIS_SERVER,CHANNEL,LOG_FILE,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD,PATH = read_configuration()
 
     logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s, MOD_COMM_SEND, %(message)s')
 
@@ -134,7 +150,7 @@ if __name__ == '__main__':
                     # Different options of what to send
                     if 'send_openvpn_profile_email' in item['data']:
                         logging.info('Sending OpenVPN profile to {} ({})'.format(msg_account_name,msg_address))
-                        if send_ovpn_profile_via_email(msg_account_name,msg_address,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
+                        if send_ovpn_profile_via_email(msg_account_name,msg_address,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD,PATH):
                             redis_client.publish('services_status', 'MOD_COMM_SEND:openvpn profile sent successfully')
                             logging.info('openvpn profile sent successfully')
                         else:
