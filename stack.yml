@@ -98,6 +98,8 @@ services:
         networks:
             network: {}
     mod_traffic_capture:
+        cap_add:
+            - NET_ADMIN
         image: aivpn_mod_traffic_capture:latest
         volumes:
             - ./logs:/logs/
@@ -110,7 +112,7 @@ services:
             update_config:
                 delay: 120s
         networks:
-            hostnet: {}
+            network: {}
 volumes:
     mod_manager:
     mod_report:
