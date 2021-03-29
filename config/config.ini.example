@@ -6,7 +6,7 @@ REDIS_REPORT_CHECK = mod_report_check
 REDIS_TRAFFIC_CAPTURE_CHECK = mod_traffic_capture_check
 REDIS_OPENVPN_CHECK = mod_openvpn_check
 REDIS_MANAGER_CHECK = services_status
-REDIS_MODULES = ['mod_comm_recv_check','mod_comm_send_check','mod_report_check','mod_traffic_capture_check','mod_openvpn_check']
+REDIS_MODULES = ["mod_comm_recv_check","mod_comm_send_check","mod_report_check","mod_traffic_capture_check","mod_openvpn_check"]
 
 [LOGS]
 LOG_COMM_RECV = /logs/mod_comm_recv.log

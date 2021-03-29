@@ -10,8 +10,22 @@ import redis
 import socket
 import logging
 import threading
+import configparser
 from common.database import *
 from common.storage import *
+
+def read_configuration():
+    # Read configuration file
+    config = configparser.ConfigParser()
+    config.read('config/config.ini')
+
+    REDIS_SERVER = config['REDIS']['REDIS_SERVER']
+    CHANNEL = config['REDIS']['REDIS_MANAGER_CHECK']
+    LOG_FILE = config['LOGS']['LOG_MANAGER']
+    PATH = config['STORAGE']['PATH']
+    SWARM_CONF_FILE = config['STORAGE']['SWARM_CONF_FILE']
+    MOD_CHANNELS = json.loads(config['REDIS']['REDIS_MODULES'])
+    return REDIS_SERVER,CHANNEL,LOG_FILE,PATH,SWARM_CONF_FILE,MOD_CHANNELS
 
 def create_swarm_hosts_configuration_file(SWARM_CONF_FILE):
     MODULES = ['aivpn_mod_redis']
@@ -195,18 +209,14 @@ def provision_account(new_request,REDIS_CLIENT):
     return True
 
 if __name__ == '__main__':
-    REDIS_SERVER = 'aivpn_mod_redis'
-    MOD_CHANNELS = ['mod_comm_recv_check','mod_comm_send_check','mod_report_check','mod_traffic_capture_check','mod_openvpn_check']
-    CHANNEL = 'services_status'
-    LOG_FILE = '/logs/mod_manager.log'
-    SWARM_CONF_FILE = '/code/common/swarm_modules.py'
-
+    REDIS_SERVER,CHANNEL,LOG_FILE,PATH,SWARM_CONF_FILE,MOD_CHANNELS = read_configuration()
     try:
         logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s, MOD_MANAGER, %(message)s')
     except Exception as e:
         logging.info(e)
         sys.exit(-1)
 
+    logging.info(f"MOD_CHANNELS: {MOD_CHANNELS}")
     while not ( create_swarm_hosts_configuration_file(SWARM_CONF_FILE) ):
         logging.info("Unable to create Swarm hosts configuration file.")
         logging.info("Trying again")
