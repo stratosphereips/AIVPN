@@ -90,7 +90,6 @@ services:
             - ./data:/data/
             - ./config:/code/config/:ro
             - ./common:/code/common/:ro
-            - .certs:/certs
         deploy:
             restart_policy:
                 condition: on-failure
