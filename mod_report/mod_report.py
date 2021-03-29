@@ -8,35 +8,42 @@ import redis
 import logging
 from common.database import *
 
-if __name__ == '__main__':
-    REDIS_SERVER = 'aivpn_mod_redis'
-    CHANNEL = 'mod_report_check'
-    LOG_FILE = '/logs/mod_report.log'
+def read_configuration():
+    #Read configuration
+    config = configparser.ConfigParser()
+    config.read('config/config.ini')
 
-    try:
-        logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s, MOD_REPORT, %(message)s')
-    except:
-        sys.exit(-1)
+    REDIS_SERVER = config['REDIS']['REDIS_SERVER']
+    CHANNEL = config['REDIS']['REDIS_REPORT_CHECK']
+    LOG_FILE = config['LOGS']['LOG_REPORT']
+    PATH = config['STORAGE']['PATH']
+
+    return REDIS_SERVER,CHANNEL,LOG_FILE,PATH
+if __name__ == '__main__':
+    # Read configuration file
+    REDIS_SERVER,CHANNEL,LOG_FILE,PATH = read_configuration()
+
+    logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s, MOD_REPORT, %(message)s')
 
     # Connecting to the Redis database
     try:
-        db_publisher = redis_connect_to_db(REDIS_SERVER)
-    except:
-        logging.error("Unable to connect to the Redis database (",REDIS_SERVER,")")
+        redis_client = redis_connect_to_db(REDIS_SERVER)
+    except Exception as err:
+        logging.error(f'Unable to connect to the Redis database ({REDIS_SERVER}): {err}')
         sys.exit(-1)
 
     # Creating a Redis subscriber
     try:
-        db_subscriber = redis_create_subscriber(db_publisher)
-    except:
-        logging.error("Unable to create a Redis subscriber")
+        db_subscriber = redis_create_subscriber(redis_client)
+    except Exception as err:
+        logging.error(f'Unable to create a Redis subscriber: {err}')
         sys.exit(-1)
 
     # Subscribing to Redis channel
     try:
         redis_subscribe_to_channel(db_subscriber,CHANNEL)
-    except:
-        logging.error("Channel subscription failed")
+    except Exception as err:
+        logging.error(f'Channel subscription failed: {err}')
         sys.exit(-1)
 
     try:
@@ -45,20 +52,18 @@ if __name__ == '__main__':
         # Checking for messages
         for item in db_subscriber.listen():
             if item['type'] == 'message':
-                logging.info(item['channel'])
-                logging.info(item['data'])
+                logging.info("New message received in channel {}: {}".format(item['channel'],item['data']))
                 if item['data'] == 'report_status':
-                    db_publisher.publish('services_status', 'MOD_REPORT:online')
+                    redis_client.publish('services_status', 'MOD_REPORT:online')
                     logging.info('MOD_REPORT:online')
 
-        db_publisher.publish('services_status', 'MOD_REPORT:offline')
+        redis_client.publish('services_status', 'MOD_REPORT:offline')
         logging.info("Terminating")
-        db_publisher.close()
         db_subscriber.close()
+        redis_client.close()
         sys.exit(0)
     except Exception as err:
-        db_publisher.close()
+        logging.info(f'Terminating via exception in __main__: {err}')
         db_subscriber.close()
-        logging.info("Terminating via exception in main")
-        logging.info(err)
+        redis_client.close()
         sys.exit(-1)
