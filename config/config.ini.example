@@ -28,5 +28,5 @@ SWARM_CONF_FILE = /code/common/swarm_modules.py
 [OPENVPN]
 SERVER_PUBLIC_URL = udp://example-server.com
 PKI_ADDRESS = vpn.example-server.com
-CERTIFICATES = /data/certs
+CERTIFICATES = /data/.certs
 NETWORK_CIDR = 192.168.0.0/24
