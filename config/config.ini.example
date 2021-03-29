@@ -26,4 +26,4 @@ PATH = /data
 [OPENVPN]
 SERVER_PUBLIC_URL = udp://example-server.com
 PKI_ADDRESS = vpn.example-server.com
-PATH = /data
+CERTIFICATES = /data/certs
