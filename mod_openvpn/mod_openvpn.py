@@ -94,7 +94,7 @@ def get_openvpn_profile(CLIENT_NAME,PATH):
     except Exception as e:
         logging.error("Error in mod_openvpn::get_openvpn_profile: {}".format(e))
 
-if __name__ == '__main__':
+def read_configuration():
     # Read configuration file
     config = configparser.ConfigParser()
     config.read('config/config.ini')
@@ -105,8 +105,14 @@ if __name__ == '__main__':
     SERVER_PUBLIC_URL = config['OPENVPN']['SERVER_PUBLIC_URL']
     PKI_ADDRESS = config['OPENVPN']['PKI_ADDRESS']
     CERTIFICATES = config['OPENVPN']['CERTIFICATES']
-    NETWORK_CIDR = '192.168.0.0/24'
+    NETWORK_CIDR = config['OPENVPN']['NETWORK_CIDR']
     PATH = config['OPENVPN']['PATH']
+
+    return REDIS_SERVER,CHANNEL,LOG_FILE,SERVER_PUBLIC_URL,PKI_ADDRESS,CERTIFICATES,NETWORK_CIDR,PATH
+
+if __name__ == '__main__':
+    # Read configuration
+    REDIS_SERVER,CHANNEL,LOG_FILE,SERVER_PUBLIC_URL,PKI_ADDRESS,CERTIFICATES,NETWORK_CIDR,PATH = read_configuration()
 
     try:
         #TODO: Fix encoding error.
