@@ -48,8 +48,7 @@ def redis_channel_monitoring(CHANNEL,db_subscriber,redis_client):
             # Checking for messages
             for item in db_subscriber.listen():
                 if item['type'] == 'message':
-                    logging.info(item['channel'])
-                    logging.info(item['data'])
+                    logging.info("New message received in channel {}: {}".format(item['channel'],item['data']))
                     if item['data'] == 'MOD_COMM_RECV:NEW_REQUEST':
                         try:
                             new_request = get_item_provisioning_queue(redis_client)
