@@ -3,6 +3,8 @@
 echo "Stopping the AI VPN service"
 docker stack rm aivpn
 
+echo "Waiting for the AI VPN service to stop"
+sleep 20
 echo "Cleaning up"
 docker rmi aivpn_mod_comm_recv
 docker rmi aivpn_mod_comm_send
