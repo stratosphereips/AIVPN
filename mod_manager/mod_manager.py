@@ -57,11 +57,11 @@ def redis_channel_monitoring(CHANNEL,db_subscriber,redis_client):
                             logging.info('Provisioning result: {}'.format(result))
                         except Exception as e:
                             logging.info(e)
-        except:
-            logging.info("Error in loop in thread services_status_monitor")
+        except Exception as err:
+            logging.info(f'Error in loop in thread services_status_monitor: {err}')
             db_subscriber = redis_create_subscriber(redis_client)
             redis_subscribe_to_channel(db_subscriber,CHANNEL)
-            time.sleep(10)
+            time.sleep(2)
             pass
 
 def thread_redis_channel_status_check(MOD_CHANNELS,redis_client):
