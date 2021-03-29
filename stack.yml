@@ -16,6 +16,7 @@ services:
         image: aivpn_mod_manager:latest
         volumes:
             - ./logs:/logs/
+            - ./data:/data/
             - ./config:/code/config/:ro
             - ./common:/code/common/
         deploy:
@@ -42,6 +43,7 @@ services:
         image: aivpn_mod_comm_send:latest
         volumes:
             - ./logs:/logs/
+            - ./data:/data/
             - ./config:/code/config/:ro
             - ./common:/code/common/:ro
         deploy:
@@ -54,6 +56,7 @@ services:
     mod_report:
         image: aivpn_mod_report:latest
         volumes:
+            - ./data:/data/
             - ./logs:/logs/
             - ./common:/code/common/:ro
         deploy:
@@ -66,6 +69,8 @@ services:
     mod_slips:
         image: alpine
         volumes:
+            - ./data:/data/
+            - ./logs:/logs/
             - ./mod_slips:/opt/dataset
         stdin_open: true
         tty: true
@@ -82,6 +87,7 @@ services:
         image: aivpn_mod_openvpn:latest
         volumes:
             - ./logs:/logs/
+            - ./data:/data/
             - ./config:/code/config/:ro
             - ./common:/code/common/:ro
             - .certs:/certs
@@ -103,9 +109,9 @@ services:
         image: aivpn_mod_traffic_capture:latest
         volumes:
             - ./logs:/logs/
+            - ./data:/data/
             - ./config:/code/config/:ro
             - ./common:/code/common/:ro
-            - ./mod_traffic_capture:/data/
         deploy:
             restart_policy:
                 condition: on-failure
