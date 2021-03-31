@@ -6,12 +6,7 @@ docker stack rm aivpn
 echo "Waiting for the AI VPN service to stop"
 sleep 20
 echo "Cleaning up"
-docker rmi aivpn_mod_comm_recv
-docker rmi aivpn_mod_comm_send
-docker rmi aivpn_mod_manager
-docker rmi aivpn_mod_openvpn
-docker rmi aivpn_mod_report
-docker rmi aivpn_mod_traffic_capture
+docker rmi -f $(docker images -f "dangling=true" -q)
 echo "" > logs/mod_openvpn.log
 echo "" > logs/mod_comm_recv.log
 echo "" > logs/mod_comm_send.log
