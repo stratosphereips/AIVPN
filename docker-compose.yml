@@ -22,6 +22,8 @@ services:
         deploy:
             restart_policy:
                 condition: on-failure
+        depends_on:
+            - mod_redis
     mod_comm_recv:
         image: aivpn_mod_comm_recv:latest
         volumes:
@@ -31,6 +33,9 @@ services:
         deploy:
             restart_policy:
                 condition: on-failure
+        depends_on:
+            - mod_redis
+            - mod_manager
     mod_comm_send:
         image: aivpn_mod_comm_send:latest
         volumes:
@@ -41,6 +46,9 @@ services:
         deploy:
             restart_policy:
                 condition: on-failure
+        depends_on:
+            - mod_redis
+            - mod_manager
     mod_report:
         image: aivpn_mod_report:latest
         volumes:
@@ -51,6 +59,9 @@ services:
         deploy:
             restart_policy:
                 condition: on-failure
+        depends_on:
+            - mod_redis
+            - mod_manager
     mod_slips:
         image: alpine
         volumes:
@@ -64,6 +75,9 @@ services:
         deploy:
             restart_policy:
                 condition: on-failure
+        depends_on:
+            - mod_redis
+            - mod_manager
     mod_openvpn:
         cap_add:
             - NET_ADMIN
@@ -79,6 +93,9 @@ services:
                 condition: on-failure
         ports:
           - "1194:1194"
+        depends_on:
+            - mod_redis
+            - mod_manager
     mod_traffic_capture:
         image: aivpn_mod_traffic_capture:latest
         volumes:
@@ -89,6 +106,9 @@ services:
         deploy:
             restart_policy:
                 condition: on-failure
+        depends_on:
+            - mod_redis
+            - mod_manager
 volumes:
     mod_manager:
     mod_report:
