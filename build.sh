@@ -1,10 +1,5 @@
 #!/bin/bash
 
-echo "Stopping the AI VPN service"
-docker stack rm aivpn
-
-echo "Waiting for the AI VPN service to stop"
-sleep 20
 echo "Cleaning up"
 docker rmi -f $(docker images -f "dangling=true" -q)
 echo "" > logs/mod_openvpn.log
@@ -40,6 +35,3 @@ docker build -t aivpn_mod_traffic_capture:latest .
 cd ..
 
 echo "Finished building modules"
-
-echo "Deploying the services Stack"
-docker stack deploy aivpn -c stack.yml
