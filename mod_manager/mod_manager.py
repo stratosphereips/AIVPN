@@ -216,11 +216,11 @@ if __name__ == '__main__':
         sys.exit(-1)
 
     logging.info(f"MOD_CHANNELS: {MOD_CHANNELS}")
-    while not ( create_swarm_hosts_configuration_file(SWARM_CONF_FILE) ):
-        logging.info("Unable to create Swarm hosts configuration file.")
-        logging.info("Trying again")
-        time.sleep(1)
-    logging.info("Swarm hosts configuration file created successfully.")
+    #while not ( create_swarm_hosts_configuration_file(SWARM_CONF_FILE) ):
+    #    logging.info("Unable to create Swarm hosts configuration file.")
+    #    logging.info("Trying again")
+    #    time.sleep(1)
+    #logging.info("Swarm hosts configuration file created successfully.")
 
     # Connecting to the Redis database
     try:
