@@ -10,8 +10,6 @@ services:
         deploy:
             restart_policy:
                 condition: on-failure
-        ports:
-          - "6379:6379"
     mod_manager:
         image: aivpn_mod_manager:latest
         volumes:
@@ -79,20 +77,19 @@ services:
             - mod_redis
             - mod_manager
     mod_openvpn:
-        cap_add:
-            - NET_ADMIN
-            - SYS_ADMIN
+        privileged: true
         image: aivpn_mod_openvpn:latest
         volumes:
             - ./logs:/logs/
             - ./data:/data/
+            - ./data/conf:/etc/openvpn
             - ./config:/code/config/:ro
             - ./common:/code/common/:ro
         deploy:
             restart_policy:
                 condition: on-failure
         ports:
-          - "1194:1194"
+          - "1194:1194/udp"
         depends_on:
             - mod_redis
             - mod_manager
