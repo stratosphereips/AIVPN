@@ -47,8 +47,6 @@ def configure_openvpn_server(SERVER_PUBLIC_URL,PKI_ADDRESS):
             os.environ['EASYRSA']='/usr/share/easy-rsa'
             os.environ['EASYRSA_CRL_DAYS']='3650'
             os.environ['EASYRSA_PKI']='/etc/openvpn/pki'
-            #PROCESS = '/usr/sbin/openvpn --config /etc/openvpn/openvpn.conf --client-config-dir /etc/openvpn/ccd --crl-verify /etc/openvpn/pki/crl.pem'
-            #subprocess.Popen(["/usr/sbin/openvpn","--config","/etc/openvpn/openvpn.conf","--client-config-dir","/etc/openvpn/ccd","--crl-verify","/etc/openvpn/pki/crl.pem"])
             logging.info('Invoking the ovpn_run script to start the service')
             subprocess.Popen(["/usr/local/bin/ovpn_run"])
             return True
