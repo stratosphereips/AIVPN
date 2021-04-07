@@ -1,5 +1,5 @@
 [REDIS]
-REDIS_SERVER = aivpn_mod_redis
+REDIS_SERVER = aivpn_mod_redis_1
 REDIS_COMM_RECV_CHECK = mod_comm_recv_check
 REDIS_COMM_SEND_CHECK = mod_comm_send_check
 REDIS_REPORT_CHECK = mod_report_check
@@ -29,4 +29,4 @@ SWARM_CONF_FILE = /code/common/swarm_modules.py
 SERVER_PUBLIC_URL = udp://example-server.com
 PKI_ADDRESS = vpn.example-server.com
 CERTIFICATES = /data/.certs
-NETWORK_CIDR = 192.168.0.0/24
+NETWORK_CIDR = 192.168.255.0/24
