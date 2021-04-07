@@ -15,13 +15,9 @@ to install Docker and Docker Compose in the host machine.
 To install Docker we recommend following the installation steps instructed in:
 https://docs.docker.com/engine/install/ubuntu/
 
-The following installation steps were tested in a Digital Ocean instance
-running Ubuntu 20.04 (LTS) x64 with 1GB of RAM.
-
-Install the following packages from the apt repositories::
+To install Docker Compose install the following packages from the apt repositories::
 
     $ sudo apt update
-    $ sudo apt install docker.io
     $ sudo apt install docker-compose
 
 After the installation is successful, check the services are installed::
