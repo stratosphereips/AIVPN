@@ -12,6 +12,7 @@ import os
 import sys
 import logging
 import configparser
+import ipaddress
 from common.database import *
 import subprocess
 
@@ -79,6 +80,29 @@ def get_openvpn_profile(CLIENT_NAME,PATH):
         os.system('/usr/local/bin/ovpn_getclient %s > %s/%s/%s.ovpn' % (CLIENT_NAME,PATH,CLIENT_NAME,CLIENT_NAME))
     except Exception as e:
         logging.info("Error in mod_openvpn::get_openvpn_profile: {}".format(e))
+
+def set_profile_static_ip(CLIENT_NAME,CLIENT_IP):
+    """
+    This function creates sets an static IP for the client profile by creating
+    a file in the ccd/ directory with the IP set for the client.
+    """
+    try:
+        # The IP configuration is stored in a file with the same name as the
+        # OpenVPN client profile name in the client configuration directory.
+        PATH = '/etc/openvpn/ccd/'
+        FILE = PATH+CLIENT_NAME
+
+        # The file should contain two IP addresses. The lower and upper limit
+        # for the DHCP assignation. A difference of one between low and upper
+        # limit forces the OpenVPN to assign static IPs to each client.
+        CLIENT_IP_MAX = str(ipaddress.ip_address(CLIENT_IP)+1)
+        CONFIGURATION = f'ifconfig-push {CLIENT_IP} {CLIENT_IP_MAX}'
+        with open(FILE,'w') as writer:
+            writer.write(CONFIGURATION)
+        return True
+    except Exception as err:
+        logging.info(f'Exception in set_profile_static_ip: {err}')
+        return False
 
 def read_configuration():
     # Read configuration file
