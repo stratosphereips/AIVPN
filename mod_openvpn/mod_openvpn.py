@@ -182,6 +182,8 @@ if __name__ == '__main__':
                         if result:
                             # Write the new profile to disk
                             get_openvpn_profile(CLIENT_NAME,PATH)
+                            # Write the static IP address client configuration
+                            set_profile_static_ip(CLIENT_NAME,CLIENT_IP)
                             # Store client:ip relationship for the traffic capture
                             result = add_profile_ip_relationship(CLIENT_NAME,CLIENT_IP,redis_client)
                             if result:
