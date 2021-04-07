@@ -13,17 +13,20 @@ Compose to manage the multi-container application. The first step is therefore
 to install Docker and Docker Compose in the host machine.
 
 To install Docker we recommend following the installation steps instructed in:
-https://docs.docker.com/engine/install/ubuntu/
+https://docs.docker.com/engine/install/
 
-To install Docker Compose install the following packages from the apt repositories::
-
-    $ sudo apt update
-    $ sudo apt install docker-compose
+To install Docker Compose we recommend following the installation steps as
+instructed in: https://docs.docker.com/compose/install/
 
 After the installation is successful, check the services are installed::
 
     $ sudo docker --version
     $ sudo docker-compose --version
+
+The AI VPN was developed for:
+
+    * Docker version 20.10.5
+    * docker-compose version 1.25.0
 
 -----------------------------------
 Installing the AI VPN from Source
@@ -48,4 +51,3 @@ Each module plays a specific role in the application:
     * mod_report: module responsible for reporting the threats found to users.
 
 The next section will cover the configurations needed to run the AI VPN.
-
