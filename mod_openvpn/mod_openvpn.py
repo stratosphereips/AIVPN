@@ -10,6 +10,7 @@
 
 import os
 import sys
+import time
 import logging
 import configparser
 import ipaddress
@@ -80,6 +81,30 @@ def get_openvpn_profile(CLIENT_NAME,PATH):
         os.system('/usr/local/bin/ovpn_getclient %s > %s/%s/%s.ovpn' % (CLIENT_NAME,PATH,CLIENT_NAME,CLIENT_NAME))
     except Exception as e:
         logging.info("Error in mod_openvpn::get_openvpn_profile: {}".format(e))
+
+def start_traffic_capture(CLIENT_NAME,CLIENT_IP,PATH):
+    """
+    This function starts a tcpdump process to capture the traffic and store the
+    pcap for a given client and IP.
+    """
+    try:
+        # Number used to differentiate pcaps if there's more than one
+        NUMBER=str(time.monotonic()).split('.')[1]
+
+        # Create the tcpdump file name
+        PCAP_NAME=f'{PATH}/{CLIENT_NAME}/{CLIENT_NAME}_{CLIENT_IP}_{NUMBER}.pcap'
+
+        # Start the subprocess
+        process = subprocess.Popen(["tcpdump","-n","-s0","-i","tun0","host",CLIENT_IP,"-U","-w",PCAP_NAME])
+
+        # Get the PID
+        PID = process.pid
+
+        # Return the PID
+        return PID
+    except Exception as err:
+        logging.info(f'Error in mod_openvpn::start_traffic_capture: {err}')
+        return False
 
 def set_profile_static_ip(CLIENT_NAME,CLIENT_IP):
     """
@@ -187,9 +212,14 @@ if __name__ == '__main__':
                             # Store client:ip relationship for the traffic capture
                             result = add_profile_ip_relationship(CLIENT_NAME,CLIENT_IP,redis_client)
                             if result:
-                                redis_client.publish('services_status','mod_openvpn:profile_creation_successful')
-                                redis_client.publish('provision_openvpn','profile_creation_successful')
-                                logging.info('profile_creation_successful')
+                                PID = start_traffic_capture(CLIENT_NAME,CLIENT_IP,PATH)
+                                if not PID == False:
+                                    logging.info(f'Tcpdump started successfully (PID:{PID})')
+                                    redis_client.publish('services_status','mod_openvpn:profile_creation_successful')
+                                    redis_client.publish('provision_openvpn','profile_creation_successful')
+                                    logging.info('profile_creation_successful')
+                                else:
+                                    account_error_message="profile_creation_failed:cannot start tcpdump"
                             else:
                                 account_error_message="profile_creation_failed:cannot add profile_ip relationship to redis"
                         else:
