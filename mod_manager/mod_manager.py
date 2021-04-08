@@ -27,21 +27,6 @@ def read_configuration():
     MOD_CHANNELS = json.loads(config['REDIS']['REDIS_MODULES'])
     return REDIS_SERVER,CHANNEL,LOG_FILE,PATH,SWARM_CONF_FILE,MOD_CHANNELS
 
-def create_swarm_hosts_configuration_file(SWARM_CONF_FILE):
-    MODULES = ['aivpn_mod_redis']
-    try:
-        f = open(SWARM_CONF_FILE, 'w')
-        for mod in MODULES:
-            try:
-                f.write(mod+'=\''+socket.gethostbyname(mod)+'\'\n')
-            except:
-                f.close()
-                return False
-        f.close()
-        return True
-    except Exception as err:
-        return False
-
 def redis_channel_monitoring(CHANNEL,db_subscriber,redis_client):
     while True:
         try:
@@ -214,13 +199,6 @@ if __name__ == '__main__':
     except Exception as e:
         logging.info(e)
         sys.exit(-1)
-
-    logging.info(f"MOD_CHANNELS: {MOD_CHANNELS}")
-    #while not ( create_swarm_hosts_configuration_file(SWARM_CONF_FILE) ):
-    #    logging.info("Unable to create Swarm hosts configuration file.")
-    #    logging.info("Trying again")
-    #    time.sleep(1)
-    #logging.info("Swarm hosts configuration file created successfully.")
 
     # Connecting to the Redis database
     try:
