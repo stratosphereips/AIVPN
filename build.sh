@@ -5,7 +5,6 @@ docker rmi -f $(docker images -f "dangling=true" -q)
 echo "" > logs/mod_openvpn.log
 echo "" > logs/mod_comm_recv.log
 echo "" > logs/mod_comm_send.log
-echo "" > logs/mod_traffic_capture.log
 echo "" > logs/mod_report.log
 echo "" > logs/mod_manager.log
 
@@ -28,10 +27,6 @@ cd ..
 
 cd mod_report
 docker build -t aivpn_mod_report:latest .
-cd ..
-
-cd mod_traffic_capture
-docker build -t aivpn_mod_traffic_capture:latest .
 cd ..
 
 echo "Finished building modules"
