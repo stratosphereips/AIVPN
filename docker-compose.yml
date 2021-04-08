@@ -93,19 +93,6 @@ services:
         depends_on:
             - mod_redis
             - mod_manager
-    mod_traffic_capture:
-        image: aivpn_mod_traffic_capture:latest
-        volumes:
-            - ./logs:/logs/
-            - ./data:/data/
-            - ./config:/code/config/:ro
-            - ./common:/code/common/:ro
-        deploy:
-            restart_policy:
-                condition: on-failure
-        depends_on:
-            - mod_redis
-            - mod_manager
 volumes:
     mod_manager:
     mod_report:
@@ -114,4 +101,3 @@ volumes:
     mod_redis:
     mod_comm_send:
     mod_comm_recv:
-    mod_traffic_capture:
