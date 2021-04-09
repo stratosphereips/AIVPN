@@ -61,7 +61,7 @@ def send_ovpn_profile_via_email(msg_account_name,msg_address,SMTP_HOST,SMTP_USER
     except Exception as err:
         return err
 
-def send_max_account_limit_reached_via_email(msg_account_name,msg_address,SMTP_HOST,SMTP_USER,SMTP_PASSWORD):
+def send_max_account_limit_reached_via_email(msg_address,SMTP_HOST,SMTP_USER,SMTP_PASSWORD):
     """ Function to send the message that the user requested too many profiles. """
     try:
         # Craft the email by hand
@@ -214,7 +214,7 @@ if __name__ == '__main__':
                     msg_address=item['data'].split(':')[1]
                     if 'error_limit_reached' in item['data']:
                         logging.info(f'Sending max limit reached to {msg_address}')
-                        if send_max_account_limit_reached_via_email(msg_address,SMTP_HOST,SMTP_USER,SMTP_PASSWORD):
+                        if send_max_account_limit_reached_via_email(msg_address,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
                             redis_client.publish('services_status', 'MOD_COMM_SEND:message limit reached sent successfully')
                             logging.info('limit reached message sent successfully')
                         else:
