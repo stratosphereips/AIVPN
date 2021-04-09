@@ -83,6 +83,29 @@ def send_max_account_limit_reached_via_email(msg_address,SMTP_HOST,SMTP_USER,SMT
     except Exception as err:
         return err
 
+
+def send_max_capacity_reached_via_email(msg_address,SMTP_HOST,SMTP_USER,SMTP_PASSWORD):
+    """ Function to send the message that the service is at full capacity. """
+    try:
+        # Craft the email by hand
+        body = "Our service is at full capacity. Please try again in some days."
+        headers = f"From: {SMTP_USER}\r\n"
+        headers += f"To: {msg_address}\r\n"
+        headers += f"Subject: [CivilSphere Emergency VPN] Our Service Capacity is Full\r\n"
+        email_message = headers + "\r\n" + body  # Blank line needed between headers and body
+
+        # Connect, authenticate, and send mail
+        smtp_server = SMTP_SSL(SMTP_HOST, port=SMTP_SSL_PORT)
+        smtp_server.set_debuglevel(1)  # Show SMTP server interactions
+        smtp_server.login(SMTP_USER, SMTP_PASSWORD)
+        smtp_server.sendmail(SMTP_USER, msg_address, email_message)
+
+        # Disconnect
+        smtp_server.quit()
+        return True
+    except Exception as err:
+        return err
+
 def send_expired_profile_msg_via_email(msg_account_name,msg_address,SMTP_HOST,SMTP_USER,SMTP_PASSWORD):
     """ Function to send the message that profile expired to the user via email. """
     try:
@@ -220,6 +243,16 @@ if __name__ == '__main__':
                         else:
                             redis_client.publish('services_status', 'MOD_COMM_SEND:failed to send message that limit was reached.')
                             logging.info('failed to send message that limit was reached.')
+                        continue
+                    if 'error_max_capacity' in item['data']:
+                        logging.info(f'Sending max capacity reached to {msg_address}')
+                        if send_max_capacity_reached_via_email(msg_address,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
+                            redis_client.publish('services_status', 'MOD_COMM_SEND:message capacity reached sent successfully')
+                            logging.info('capacity reached message sent successfully')
+                        else:
+                            redis_client.publish('services_status','MOD_COMM_SEND:failed to send message that maximum capacity was reached.')
+                            logging.info('failed to send message that maximum capacity was reached.')
+                        continue
 
         redis_client.publish('services_status', 'MOD_COMM_SEND:offline')
         logging.info("Terminating")
