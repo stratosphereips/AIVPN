@@ -94,6 +94,7 @@ def provision_account(new_request,REDIS_CLIENT):
     ## TODO: Check if we have enough IP addresses to provision new account.
     if not openvpn_free_ip_address_space(REDIS_CLIENT):
         # Send message to user notifying the AI VPN is at full capacity.
+        logging.info(f'Provisioning: not enough IP addresses available to provision {p_msg_addr}')
         REDIS_CLIENT.publish('mod_comm_send_check','error_max_capacity:'+p_msg_addr)
         return False
 
