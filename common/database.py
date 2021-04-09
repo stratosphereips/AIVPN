@@ -167,7 +167,7 @@ def get_active_profile_counter(msg_addr,REDIS_CLIENT):
     counter_active_profiles = REDIS_CLIENT.hget(hash_active_profiles,msg_addr)
     if counter_active_profiles is None:
         counter_active_profiles=0
-    return counter_active_profiles
+    return int(counter_active_profiles)
 
 
 def del_active_profile_counter(msg_addr):
