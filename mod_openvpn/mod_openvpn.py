@@ -202,6 +202,7 @@ if __name__ == '__main__':
                     if not CLIENT_IP==False:
                         # Parse the name obtained in the request
                         CLIENT_NAME=item['data'].split(':')[1]
+                        redis_client.publish('services_status',f'MOD_OPENVPN: assigning IP ({CLIENT_IP}) to client ({CLIENT_NAME})')
                         # Generate the openVPN profile for the client
                         result = generate_openvpn_profile(CLIENT_NAME)
                         if result:
