@@ -8,6 +8,7 @@ import time
 import json
 import random
 import ipaddress
+import configparser
 
 
 # REDIS COMMON
@@ -218,6 +219,19 @@ def openvpn_obtain_client_ip_address(NETWORK_CIDR,REDIS_CLIENT):
                 return IP_ADDRESS
         return False
     except:
+        return False
+
+def openvpn_free_ip_address_space(REDIS_CLIENT):
+    """ Returns True if there are free IPs to allocate. """
+
+    config = configparser.ConfigParser()
+    config.read('config/config.ini')
+    NETWORK_CIDR = config['OPENVPN']['NETWORK_CIDR']
+    maximum_addresses=len([str(ip) for ip in ipaddress.IPv4Network(NETWORK_CIDR)])
+    used_addresses=REDIS_CLIENT.hlen(hash_openvpn_blocked_ip_addresses)
+    if used_addresses < maximum_addresses:
+        return True
+    else:
         return False
 
 # PROFILE_NAME:IP_ADDRESS RELATIONSHIP
