@@ -234,7 +234,7 @@ def add_profile_ip_relationship(profile_name,ip_address,REDIS_CLIENT):
         return False
 
 def del_profile_ip_relationship(profile_name,REDIS_CLIENT):
-    """ Adds a profile:ip to the list. """
+    """ Deletes a profile:ip from the list. """
     try:
         REDIS_CLIENT.hdel(hash_profile_name_ip_address,profile_name)
         return True
@@ -245,6 +245,58 @@ def get_ip_for_profile(profile_name,REDIS_CLIENT):
     """ Returns the IP address for a given profile name. """
     ip_address = REDIS_CLIENT.hget(hash_profile_name_ip_address,profile_name)
     return ip_address
+
+# PID:PROFILE_NAME RELATIONSHIP
+## We want to quickly know which profile_name was associated with a defunct PID.
+hash_pid_profile_name='pid_profile_name'
+
+def add_pid_profile_name_relationship(pid,profile_name,REDIS_CLIENT):
+    """ Adds a pid:profile_name to the list. """
+    try:
+        REDIS_CLIENT.hsetnx(hash_pid_profile_name,pid,profile_name)
+        return True
+    except:
+        return False
+def del_pid_profile_name_relationship(pid,REDIS_CLIENT):
+    """ Deletes a pid from the list. """
+    try:
+        REDIS_CLIENT.hdel(hash_pid_profile_name,pid)
+        return True
+    except:
+        return False
+def get_pid_profile_name_relationship(pid,REDIS_CLIENT):
+    """ Returns a profile_name from a given PID. """
+    try:
+        profile_name=REDIS_CLIENT.hget(hash_pid_profile_name,pid)
+        return profile_name
+    except:
+        return False
+
+# PROFILE_NAME:PID RELATIONSHIP
+## We want to stop the PID when de-provisioning a profile_name.
+hash_profile_name_pid='profile_name_pid'
+
+def add_profile_name_pid_relationship(profile_name,pid,REDIS_CLIENT):
+    """ Adds a profile_name:pid to the list. """
+    try:
+        REDIS_CLIENT.hsetnx(hash_profile_name_pid,profile_name,pid)
+        return True
+    except:
+        return False
+def del_profile_name_pid_relationship(profile_name,REDIS_CLIENT):
+    """ Deletes a profile_name from the list. """
+    try:
+        REDIS_CLIENT.hdel(hash_profile_name_pid,profile_name)
+        return True
+    except:
+        return False
+def get_profile_name_pid_relationship(profile_name,REDIS_CLIENT):
+    """ Returns a pid from a given profile_name. """
+    try:
+        PID = REDIS_CLIENT.hget(hash_profile_name_pid,profile_name)
+        return PID
+    except:
+        return False
 
 # PROFILE HANDLING
 ## The PROFILE_HANDLING are a series of functions associated with the
