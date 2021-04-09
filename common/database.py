@@ -362,31 +362,3 @@ def get_prov_generate_vpn(REDIS_CLIENT):
         return profile_name[0][0]
     except Exception as err:
         return err
-
-# PROVISIONING START CAPTURE
-# name: prov_start_capture
-# This is the queue were new profiles are queued in wait for the traffic
-# capture to start.
-
-def add_prov_start_capture(profile_name,REDIS_CLIENT):
-    """ Function to add an item to the prov_start_capture queue."""
-
-    try:
-        redis_set = "prov_start_capture"
-        score = time.time()
-
-        REDIS_CLIENT.zadd(redis_set,{profile_name:score},nx=True)
-        return True
-    except Exception as err:
-        return err
-
-def get_prov_start_capture(REDIS_CLIENT):
-    """ Function to get the 'oldest' item (lowest score) from the
-    prov_start_capture Redis SET. """
-
-    try:
-        redis_set = "prov_start_capture"
-        request = REDIS_CLIENT.zpopmin(redis_set,1)
-        return profile_name
-    except Exception as err:
-        return err
