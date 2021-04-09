@@ -85,7 +85,8 @@ def provision_account(new_request,REDIS_CLIENT):
     if get_active_profile_counter(p_msg_addr,REDIS_CLIENT) > ACTIVE_ACCOUNT_LIMIT:
         # New message sent to user saying the number of simultaneous accounts
         # has been reached. Try again later.
-        pass
+        REDIS_CLIENT.publish('mod_comm_send_check','error_limit_reached:'+p_msg_addr)
+        return False
 
     ## TODO: Check if we have enough storage to provision the new account.
 
