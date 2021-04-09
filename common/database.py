@@ -217,7 +217,7 @@ def openvpn_obtain_client_ip_address(REDIS_CLIENT):
         config.read('config/config.ini')
         NETWORK_CIDR = config['OPENVPN']['NETWORK_CIDR']
 
-        maximum_attempts=openvpn_free_ip_address_space(REDIS_CLIENT)
+        maximum_attempts=len([str(ip) for ip in ipaddress.IPv4Network(NETWORK_CIDR)])
         while result < maximum_attempts:
             IP_ADDRESS=random.choice([str(ip) for ip in ipaddress.IPv4Network(NETWORK_CIDR)])
             if exists_ip_address(IP_ADDRESS,REDIS_CLIENT):
