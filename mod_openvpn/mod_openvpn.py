@@ -198,24 +198,19 @@ if __name__ == '__main__':
                     redis_client.publish('services_status', 'MOD_OPENVPN:processing a new OpenVPN profile')
 
                     # Obtaining an IP address for client is a must to move forward.
-                    CLIENT_IP=openvpn_obtain_client_ip_address(NETWORK_CIDR,redis_client)
+                    CLIENT_IP=openvpn_obtain_client_ip_address(redis_client)
                     if not CLIENT_IP==False:
                         # Parse the name obtained in the request
                         CLIENT_NAME=item['data'].split(':')[1]
                         redis_client.publish('services_status',f'MOD_OPENVPN: assigning IP ({CLIENT_IP}) to client ({CLIENT_NAME})')
                         # Generate the openVPN profile for the client
-                        result = generate_openvpn_profile(CLIENT_NAME)
-                        if result:
+                        if generate_openvpn_profile(CLIENT_NAME):
                             # Write the new profile to disk
                             get_openvpn_profile(CLIENT_NAME,PATH)
                             # Write the static IP address client configuration
                             set_profile_static_ip(CLIENT_NAME,CLIENT_IP)
                             # Store client:ip relationship for the traffic capture
-                            result = add_profile_ip_relationship(CLIENT_NAME,CLIENT_IP,redis_client)
-                            # Add IP to list of blocked IP addresses in Redis
-                            # to avoid conflicts.
-                            result = add_ip_address(CLIENT_IP,redis_client)
-                            if result:
+                            if add_profile_ip_relationship(CLIENT_NAME,CLIENT_IP,redis_client):
                                 PID = start_traffic_capture(CLIENT_NAME,CLIENT_IP,PATH)
                                 if not PID == False:
                                     logging.info(f'Tcpdump started successfully (PID:{PID})')
