@@ -82,9 +82,10 @@ def provision_account(new_request,REDIS_CLIENT):
     ## TODO: read limit from configuration file
     ACTIVE_ACCOUNT_LIMIT=2
 
-    if get_active_profile_counter(p_msg_addr,REDIS_CLIENT) > ACTIVE_ACCOUNT_LIMIT:
-        # New message sent to user saying the number of simultaneous accounts
-        # has been reached. Try again later.
+    acc_active_profiles = get_active_profile_counter(p_msg_addr,REDIS_CLIENT)
+    logging.info(f'Provisioning: number of active profiles for {p_msg_addr}: {acc_active_profiles}')
+    if acc_active_profiles > ACTIVE_ACCOUNT_LIMIT:
+        # Send message to user notifying limit has been reached.
         REDIS_CLIENT.publish('mod_comm_send_check','error_limit_reached:'+p_msg_addr)
         return False
 
@@ -157,6 +158,8 @@ def provision_account(new_request,REDIS_CLIENT):
     # Step 5: Send profile or instruct manager to send profile.
     REDIS_CLIENT.publish('mod_comm_send_check','send_openvpn_profile_email:'+acc_profile_name)
 
+    # Increase the profile counter for the address
+    add_active_profile_counter(p_msg_addr,REDIS_CLIENT)
     openvpn_subscriber.close()
     return True
 
