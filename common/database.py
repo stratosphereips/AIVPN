@@ -137,27 +137,27 @@ def del_identity(msg_addr):
 ## request unlimited number of accounts. This is a DDoS protection.
 hash_active_profiles = "active_profiles"
 
-def add_active_profile_counter(msg_addr):
+def add_active_profile_counter(msg_addr,REDIS_CLIENT):
     """ Increases the counter of active profiles for a given identity by one. """
 
     try:
         # Create a new entry if there is not one. Initalize at 0.
-        hsetnx(hash_active_profiles,msg_addr,0)
+        REDIS_CLIENT.hsetnx(hash_active_profiles,msg_addr,0)
 
-        hincrby(hash_active_profiles,msg_addr,1) 
+        REDIS_CLIENT.hincrby(hash_active_profiles,msg_addr,1)
 
         return True
     except:
         return False
 
-def subs_active_profile_counter(msg_addr):
+def subs_active_profile_counter(msg_addr,REDIS_CLIENT):
     """ Decreases the counter of active profiles for a given identity by one. """
 
     try:
         # Get current value, if above zero substract one.
-        counter_active_profiles = hget(hash_active_profiles,msg_addr)
+        counter_active_profiles = REDIS_CLIENT.hget(hash_active_profiles,msg_addr)
         if counter_active_profiles > 0:
-            hincrby(hash_active_profiles,msg_addr,-1) 
+            REDIS_CLIENT.hincrby(hash_active_profiles,msg_addr,-1)
         return True
     except:
         return False
