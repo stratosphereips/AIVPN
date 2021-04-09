@@ -80,7 +80,7 @@ def provision_account(new_request,REDIS_CLIENT):
 
     ## Check msg_addr hasn't reached the maximum limit of active profiles
     ## TODO: read limit from configuration file
-    ACTIVE_ACCOUNT_LIMIT=2
+    ACTIVE_ACCOUNT_LIMIT=300
 
     acc_active_profiles = get_active_profile_counter(p_msg_addr,REDIS_CLIENT)
     logging.info(f'Provisioning: number of active profiles for {p_msg_addr}: {acc_active_profiles}')
@@ -92,7 +92,9 @@ def provision_account(new_request,REDIS_CLIENT):
     ## TODO: Check if we have enough storage to provision the new account.
 
     ## TODO: Check if we have enough IP addresses to provision new account.
-    if not openvpn_free_ip_address_space(REDIS_CLIENT):
+    available_ips=openvpn_free_ip_address_space(REDIS_CLIENT)
+    logging.info(f'Provisioning: number of available IPs: {available_ips}')
+    if available_ips<1:
         # Send message to user notifying the AI VPN is at full capacity.
         logging.info(f'Provisioning: not enough IP addresses available to provision {p_msg_addr}')
         REDIS_CLIENT.publish('mod_comm_send_check','error_max_capacity:'+p_msg_addr)
@@ -164,6 +166,7 @@ def provision_account(new_request,REDIS_CLIENT):
 
     # Increase the profile counter for the address
     add_active_profile_counter(p_msg_addr,REDIS_CLIENT)
+    upd_identity_counter(p_msg_addr,REDIS_CLIENT)
     openvpn_subscriber.close()
     return True
 
