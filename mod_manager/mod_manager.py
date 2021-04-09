@@ -96,8 +96,8 @@ def provision_account(new_request,REDIS_CLIENT):
     logging.info(f'Provisioning: number of available IPs: {available_ips}')
     if available_ips<1:
         # Send message to user notifying the AI VPN is at full capacity.
-        logging.info(f'Provisioning: not enough IP addresses available to provision {p_msg_addr}')
-        REDIS_CLIENT.publish('mod_comm_send_check','error_max_capacity:'+p_msg_addr)
+        logging.info(f'provisioning: not enough ip addresses available to provision {p_msg_addr}')
+        redis_client.publish('mod_comm_send_check','error_max_capacity:'+p_msg_addr)
         return False
 
     # Step 2: Generate profile name. Store it. Create folder.
@@ -158,7 +158,15 @@ def provision_account(new_request,REDIS_CLIENT):
                 #Good. Continue.
                 break
             if 'profile_creation_failed' in item['data']:
-                #Bad. Roll back or try again.
+                # Send message to user notifying the AI VPN is at full capacity.
+                message=item['data']
+                logging.info(f'provisioning: {message}')
+                if 'no available IP' in message:
+                    redis_client.publish('mod_comm_send_check','error_max_capacity:'+p_msg_addr)
+                else:
+                    #Bad. Roll back or try again.
+                    #TODO
+                    logging.info(f'rolling back')
                 return False
 
     # Step 5: Send profile or instruct manager to send profile.
