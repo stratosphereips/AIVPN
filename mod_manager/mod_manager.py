@@ -92,9 +92,12 @@ def provision_account(new_request,REDIS_CLIENT):
     ## TODO: Check if we have enough storage to provision the new account.
 
     ## TODO: Check if we have enough IP addresses to provision new account.
+    if not openvpn_free_ip_address_space(REDIS_CLIENT):
+        # Send message to user notifying the AI VPN is at full capacity.
+        REDIS_CLIENT.publish('mod_comm_send_check','error_max_capacity:'+p_msg_addr)
+        return False
 
     # Step 2: Generate profile name. Store it. Create folder.
-
     ## Get an account name
     acc_profile_name = gen_profile_name()
     if not acc_profile_name:
