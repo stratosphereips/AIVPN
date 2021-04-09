@@ -334,31 +334,3 @@ def get_item_provisioning_queue(REDIS_CLIENT):
         return request[0]
     except Exception as err:
         return err
-
-# PROVISIONING GENERATE VPN QUEUE
-# name: prov_generate_vpn
-# This is the queue were new profiles are queued in wait for a VPN profile.
-
-def add_prov_generate_vpn(profile_name,REDIS_CLIENT):
-    """ Function to add an item to the prov_generate_vpn queue."""
-
-    try:
-        redis_set = "prov_generate_vpn"
-        score = time.time()
-        value={profile_name:score}
-
-        status = REDIS_CLIENT.zadd(redis_set,value,nx=True)
-        return status
-    except Exception as err:
-        return err
-
-def get_prov_generate_vpn(REDIS_CLIENT):
-    """ Function to get the 'oldest' item (lowest score) from the
-    prov_generate_vpn Redis SET. """
-
-    try:
-        redis_set = "prov_generate_vpn"
-        profile_name = REDIS_CLIENT.zpopmin(redis_set,1)
-        return profile_name[0][0]
-    except Exception as err:
-        return err
