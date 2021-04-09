@@ -209,9 +209,12 @@ if __name__ == '__main__':
                             redis_client.publish('services_status', 'MOD_COMM_SEND:failed to send profile report')
                             logging.info('failed to send profile report')
                         continue
-                    if 'send_limit_reached' in item['data']:
+                elif 'error' in item['data']:
+                    # Obtain the address where to send the error message
+                    msg_address=item['data'].split(':')[1]
+                    if 'error_limit_reached' in item['data']:
                         logging.info(f'Sending max limit reached to {msg_address}')
-                        if send_max_account_limit_reached_via_email(msg_account_name,msg_address,SMTP_HOST,SMTP_USER,SMTP_PASSWORD):
+                        if send_max_account_limit_reached_via_email(msg_address,SMTP_HOST,SMTP_USER,SMTP_PASSWORD):
                             redis_client.publish('services_status', 'MOD_COMM_SEND:message limit reached sent successfully')
                             logging.info('limit reached message sent successfully')
                         else:
