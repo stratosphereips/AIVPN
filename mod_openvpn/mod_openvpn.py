@@ -215,6 +215,8 @@ if __name__ == '__main__':
                                 PID = start_traffic_capture(CLIENT_NAME,CLIENT_IP,PATH)
                                 if not PID == False:
                                     logging.info(f'Tcpdump started successfully (PID:{PID})')
+                                    result = add_pid_profile_name_relationship(PID,CLIENT_NAME,redis_client)
+                                    result = add_profile_name_pid_relationship(CLIENT_NAME,PID,redis_client)
                                     redis_client.publish('services_status','mod_openvpn:profile_creation_successful')
                                     redis_client.publish('provision_openvpn','profile_creation_successful')
                                     logging.info('profile_creation_successful')
