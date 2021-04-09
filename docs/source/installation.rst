@@ -46,7 +46,6 @@ Each module plays a specific role in the application:
     * mod_openvpn: module provides the OpenVPN service.
     * mod_comm_recv: module capable of receiving VPN requests from users.
     * mod_comm_send: module responsible for sending data and files to users.
-    * mod_traffic_capture: module to capture the network traffic of the users.
     * mod_slips: module that runs the Stratosphere IPS for threat detection.
     * mod_report: module responsible for reporting the threats found to users.
 
