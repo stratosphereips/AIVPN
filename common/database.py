@@ -61,8 +61,8 @@ def add_identity(msg_addr,REDIS_CLIENT):
         # status==1 if HSETNX created a field in the hash set
         # status==0 if the identity exists and no operation is done.
         return status
-    except Exception as e:
-        return e
+    except Exception as err:
+        return err
 
 def exists_identity(msg_addr,REDIS_CLIENT):
     """ Checks if the msg_addr in redis exists """
@@ -73,24 +73,23 @@ def exists_identity(msg_addr,REDIS_CLIENT):
 
         # Returns a boolean indicating if key exists within hash name
         return status
-    except Exception as e:
-        return e
+    except Exception as err:
+        return err
 
-def upd_identity_counter(msg_addr):
+def upd_identity_counter(msg_addr,REDIS_CLIENT):
     """ Updates counter if the msg_addr in redis exists  by 1. """
     try:
-        identity_value = json.dumps(REDIS_CLIENT.hget(hash_account_identities,msg_addr))
-        identity_object = json.loads(identity_value)
+        identity_object = json.loads(REDIS_CLIENT.hget(hash_account_identities,msg_addr))
 
-        identity_object['total_profiles'] = identity_object['total_profiles'] + 1
+        identity_object['total_profiles'] = int(identity_object['total_profiles'])+ 1
 
         identity_value = json.dumps(identity_object)
 
-        status = hset(hash_account_identities,msg_addr,identity_value)
+        status = REDIS_CLIENT.hset(hash_account_identities,msg_addr,identity_value)
 
         return status
-    except Exception as e:
-        return e
+    except Exception as err:
+        return err
 
 def upd_identity_profiles(msg_addr,profile_name,REDIS_CLIENT):
     """ If identity exists, add a new profile for the identity """
@@ -106,14 +105,13 @@ def upd_identity_profiles(msg_addr,profile_name,REDIS_CLIENT):
         status = REDIS_CLIENT.hset(hash_account_identities,msg_addr,identity_value)
 
         return True
-    except Exception as e:
-        return e
+    except Exception as err:
+        return err
 
 def upd_identity_gpg(msg_addr,gpg_key,REDIS_CLIENT):
     """ If identity exists, add a new gpg key for the identity """
     try:
-        identity_value = json.dumps(REDIS_CLIENT.hget(hash_account_identities,msg_addr))
-        identity_object = json.loads(identity_value)
+        identity_object = json.loads(REDIS_CLIENT.hget(hash_account_identities,msg_addr))
 
         identity_object['gpg'] = gpg_key
 
@@ -121,16 +119,16 @@ def upd_identity_gpg(msg_addr,gpg_key,REDIS_CLIENT):
 
         status = REDIS_CLIENT.hset(hash_account_identities,msg_addr,identity_value)
         return status
-    except Exception as e:
-        return e
+    except Exception as err:
+        return err
 
-def del_identity(msg_addr):
+def del_identity(msg_addr,REDIS_CLIENT):
     """ Deletes the msg_addr in redis """
     try:
-        hdel(hash_account_identities,msg_addr)
+        REDIS_CLIENT.hdel(hash_account_identities,msg_addr)
         return True
-    except:
-        return False
+    except Exception as err:
+        return err
 
 # ACTIVE PROFILE HASH
 ## We want to quickly consult the number of active profiles in a given identity
@@ -148,36 +146,39 @@ def add_active_profile_counter(msg_addr,REDIS_CLIENT):
         REDIS_CLIENT.hincrby(hash_active_profiles,msg_addr,1)
 
         return True
-    except:
-        return False
+    except Exception as err:
+        return err
 
 def subs_active_profile_counter(msg_addr,REDIS_CLIENT):
     """ Decreases the counter of active profiles for a given identity by one. """
 
     try:
         # Get current value, if above zero substract one.
-        counter_active_profiles = REDIS_CLIENT.hget(hash_active_profiles,msg_addr)
+        counter_active_profiles = int(REDIS_CLIENT.hget(hash_active_profiles,msg_addr))
         if counter_active_profiles > 0:
             REDIS_CLIENT.hincrby(hash_active_profiles,msg_addr,-1)
         return True
-    except:
-        return False
+    except Exception as err:
+        return err
 
 def get_active_profile_counter(msg_addr,REDIS_CLIENT):
     """ Returns the counter of active profiles for a given identity. """
-    counter_active_profiles = REDIS_CLIENT.hget(hash_active_profiles,msg_addr)
-    if counter_active_profiles is None:
-        counter_active_profiles=0
-    return int(counter_active_profiles)
+    try:
+        counter_active_profiles = REDIS_CLIENT.hget(hash_active_profiles,msg_addr)
+        if counter_active_profiles is None:
+            counter_active_profiles=0
+        return int(counter_active_profiles)
+    except Exception as err:
+        return err
 
 
-def del_active_profile_counter(msg_addr):
+def del_active_profile_counter(msg_addr,REDIS_CLIENT):
     """ Deletes the counter of active profiles for a given identity. """
     try:
-        hdel(hash_active_profiles,msg_addr)
+        REDIS_CLIENT.hdel(hash_active_profiles,msg_addr)
         return True
-    except:
-        return False
+    except Exception as err:
+        return err
 
 # OPEN VPN IP ADDRESS SPACE HANDLING
 ## We want to quickly check if an IP address is in use
@@ -186,30 +187,37 @@ hash_openvpn_blocked_ip_addresses = "mod_openvpn_blocked_ip_addresses"
 def add_ip_address(ip_address,REDIS_CLIENT):
     """ Adds a new IP address to the blocked IP addresses hash table. """
     try:
-        REDIS_CLIENT.hsetnx(hash_openvpn_blocked_ip_addresses,ip_address)
+        REDIS_CLIENT.hsetnx(hash_openvpn_blocked_ip_addresses,ip_address,0)
         return True
-    except:
-        return False
+    except Exception as err:
+        return err
 
 def exists_ip_address(ip_address,REDIS_CLIENT):
     """ Checks if a given IP address exists in the blocked IP addresses hash table. """
 
-    status = REDIS_CLIENT.hexists(hash_openvpn_blocked_ip_addresses,ip_address)
-    return status
+    try:
+        status = REDIS_CLIENT.hexists(hash_openvpn_blocked_ip_addresses,ip_address)
+        return status
+    except Exception as err:
+        return err
 
 def del_ip_address(ip_address,REDIS_CLIENT):
     """ Deletes an IP address from the blocked IP addresses hash table. """
     try:
         REDIS_CLIENT.hdel(hash_openvpn_blocked_ip_addresses,ip_address)
         return True
-    except:
-        return False
+    except Exception as err:
+        return err
 
-def openvpn_obtain_client_ip_address(NETWORK_CIDR,REDIS_CLIENT):
+def openvpn_obtain_client_ip_address(REDIS_CLIENT):
     """ Obtains a valid IP address for an OpenVPN  client """
     try:
         result=0
-        maximum_attempts=len([str(ip) for ip in ipaddress.IPv4Network(NETWORK_CIDR)])
+        config = configparser.ConfigParser()
+        config.read('config/config.ini')
+        NETWORK_CIDR = config['OPENVPN']['NETWORK_CIDR']
+
+        maximum_attempts=openvpn_free_ip_address_space(REDIS_CLIENT)
         while result < maximum_attempts:
             IP_ADDRESS=random.choice([str(ip) for ip in ipaddress.IPv4Network(NETWORK_CIDR)])
             if exists_ip_address(IP_ADDRESS,REDIS_CLIENT):
@@ -218,21 +226,22 @@ def openvpn_obtain_client_ip_address(NETWORK_CIDR,REDIS_CLIENT):
                 add_ip_address(IP_ADDRESS,REDIS_CLIENT)
                 return IP_ADDRESS
         return False
-    except:
-        return False
+    except Exception as err:
+        return err
 
 def openvpn_free_ip_address_space(REDIS_CLIENT):
     """ Returns True if there are free IPs to allocate. """
 
-    config = configparser.ConfigParser()
-    config.read('config/config.ini')
-    NETWORK_CIDR = config['OPENVPN']['NETWORK_CIDR']
-    maximum_addresses=len([str(ip) for ip in ipaddress.IPv4Network(NETWORK_CIDR)])
-    used_addresses=REDIS_CLIENT.hlen(hash_openvpn_blocked_ip_addresses)
-    if used_addresses < maximum_addresses:
-        return True
-    else:
-        return False
+    try:
+        config = configparser.ConfigParser()
+        config.read('config/config.ini')
+        NETWORK_CIDR = config['OPENVPN']['NETWORK_CIDR']
+        maximum_addresses=len([str(ip) for ip in ipaddress.IPv4Network(NETWORK_CIDR)])
+        used_addresses=REDIS_CLIENT.hlen(hash_openvpn_blocked_ip_addresses)
+        free_addresses=maximum_addresses-used_addresses
+        return free_addresses
+    except Exception as err:
+        return err
 
 # PROFILE_NAME:IP_ADDRESS RELATIONSHIP
 ## We want to quickly obtain the IP from a profile name
@@ -244,21 +253,24 @@ def add_profile_ip_relationship(profile_name,ip_address,REDIS_CLIENT):
     try:
         REDIS_CLIENT.hsetnx(hash_profile_name_ip_address,profile_name,ip_address)
         return True
-    except:
-        return False
+    except Exception as err:
+        return err
 
 def del_profile_ip_relationship(profile_name,REDIS_CLIENT):
     """ Deletes a profile:ip from the list. """
     try:
         REDIS_CLIENT.hdel(hash_profile_name_ip_address,profile_name)
         return True
-    except:
-        return False
+    except Exception as err:
+        return err
 
 def get_ip_for_profile(profile_name,REDIS_CLIENT):
     """ Returns the IP address for a given profile name. """
-    ip_address = REDIS_CLIENT.hget(hash_profile_name_ip_address,profile_name)
-    return ip_address
+    try:
+        ip_address = REDIS_CLIENT.hget(hash_profile_name_ip_address,profile_name)
+        return ip_address
+    except Exception as err:
+        return err
 
 # PID:PROFILE_NAME RELATIONSHIP
 ## We want to quickly know which profile_name was associated with a defunct PID.
@@ -269,22 +281,24 @@ def add_pid_profile_name_relationship(pid,profile_name,REDIS_CLIENT):
     try:
         REDIS_CLIENT.hsetnx(hash_pid_profile_name,pid,profile_name)
         return True
-    except:
-        return False
+    except Exception as err:
+        return err
+
 def del_pid_profile_name_relationship(pid,REDIS_CLIENT):
     """ Deletes a pid from the list. """
     try:
         REDIS_CLIENT.hdel(hash_pid_profile_name,pid)
         return True
-    except:
-        return False
+    except Exception as err:
+        return err
+
 def get_pid_profile_name_relationship(pid,REDIS_CLIENT):
     """ Returns a profile_name from a given PID. """
     try:
         profile_name=REDIS_CLIENT.hget(hash_pid_profile_name,pid)
         return profile_name
-    except:
-        return False
+    except Exception as err:
+        return err
 
 # PROFILE_NAME:PID RELATIONSHIP
 ## We want to stop the PID when de-provisioning a profile_name.
@@ -295,22 +309,24 @@ def add_profile_name_pid_relationship(profile_name,pid,REDIS_CLIENT):
     try:
         REDIS_CLIENT.hsetnx(hash_profile_name_pid,profile_name,pid)
         return True
-    except:
-        return False
+    except Exception as err:
+        return err
+
 def del_profile_name_pid_relationship(profile_name,REDIS_CLIENT):
     """ Deletes a profile_name from the list. """
     try:
         REDIS_CLIENT.hdel(hash_profile_name_pid,profile_name)
         return True
-    except:
-        return False
+    except Exception as err:
+        return err
+
 def get_profile_name_pid_relationship(profile_name,REDIS_CLIENT):
     """ Returns a pid from a given profile_name. """
     try:
         PID = REDIS_CLIENT.hget(hash_profile_name_pid,profile_name)
         return PID
-    except:
-        return False
+    except Exception as err:
+        return err
 
 # PROFILE HANDLING
 ## The PROFILE_HANDLING are a series of functions associated with the
@@ -333,8 +349,8 @@ def gen_profile_name():
         profile_name = "{}-{}_{}".format(date_now, string1, string2)
 
         return profile_name
-    except Exception as e:
-        return e
+    except Exception as err:
+        return err
 
 hash_profile_names = "profile_names"
 def add_profile_name(profile_name,msg_addr,REDIS_CLIENT):
@@ -346,14 +362,17 @@ def add_profile_name(profile_name,msg_addr,REDIS_CLIENT):
         # status==1 if HSETNX created a field in the hash set
         # status==0 if the identity exists and no operation is done.
         return status
-    except Exception as e:
-        return e
+    except Exception as err:
+        return err
 
 def get_profile_name_address(profile_name,REDIS_CLIENT):
     """ Obtains a msg_addr given a profile_name """
 
-    msg_addr = REDIS_CLIENT.hget(hash_profile_names,profile_name)
-    return msg_addr
+    try:
+        msg_addr = REDIS_CLIENT.hget(hash_profile_names,profile_name)
+        return msg_addr
+    except Exception as err:
+        return err
 
 def del_profile_name(profile_name,REDIS_CLIENT):
     """ Deletes a profile_name from Redis """
@@ -361,8 +380,8 @@ def del_profile_name(profile_name,REDIS_CLIENT):
     try:
         REDIS_CLIENT.hdel(hash_profile_names,profile_name)
         return True
-    except:
-        return False
+    except Exception as err:
+        return err
 
 # PROVISIONING QUEUE
 ## The provisioning queue is where new requests are queued before being handled.
