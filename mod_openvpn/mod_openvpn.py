@@ -212,6 +212,9 @@ if __name__ == '__main__':
                             set_profile_static_ip(CLIENT_NAME,CLIENT_IP)
                             # Store client:ip relationship for the traffic capture
                             result = add_profile_ip_relationship(CLIENT_NAME,CLIENT_IP,redis_client)
+                            # Add IP to list of blocked IP addresses in Redis
+                            # to avoid conflicts.
+                            result = add_ip_address(CLIENT_IP,REDIS_CLIENT)
                             if result:
                                 PID = start_traffic_capture(CLIENT_NAME,CLIENT_IP,PATH)
                                 if not PID == False:
