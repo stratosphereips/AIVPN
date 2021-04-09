@@ -218,17 +218,17 @@ if __name__ == '__main__':
                                     logging.info(f'Tcpdump started successfully (PID:{PID})')
                                     result = add_pid_profile_name_relationship(PID,CLIENT_NAME,redis_client)
                                     result = add_profile_name_pid_relationship(CLIENT_NAME,PID,redis_client)
-                                    redis_client.publish('services_status','mod_openvpn:profile_creation_successful')
+                                    redis_client.publish('services_status','MOD_OPENVPN:profile_creation_successful')
                                     redis_client.publish('provision_openvpn','profile_creation_successful')
                                     logging.info('profile_creation_successful')
                                 else:
-                                    account_error_message="profile_creation_failed:cannot start tcpdump"
+                                    account_error_message="MOD_OPENVPN: profile_creation_failed:cannot start tcpdump"
                             else:
-                                account_error_message="profile_creation_failed:cannot add profile_ip relationship to redis"
+                                account_error_message="MOD_OPENVPN: profile_creation_failed:cannot add profile_ip relationship to redis"
                         else:
-                            account_error_message="profile_creation_failed:failed to create a new profile"
+                            account_error_message="MOD_OPENVPN: profile_creation_failed:failed to create a new profile"
                     else:
-                        account_error_message="profile_creation_failed:no available IP addresses found"
+                        account_error_message="MOD_OPENVPN: profile_creation_failed:no available IP addresses found"
 
                     # Notify once if there is an error message
                     if account_error_message:
