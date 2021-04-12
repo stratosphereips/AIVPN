@@ -481,3 +481,47 @@ def del_active_profile(profile_name,REDIS_CLIENT):
     except Exception as err:
         return err
 
+# EXPIRED PROFILES
+## structure that keeps a history of expired profiles along with their creation
+## and expiration times. Value:
+expired_profiles_template = json.dumps({"creation_time":"","expiration_time":"","deletion_time":""})
+
+hash_expired_profiles='expired_profiles'
+def add_expired_profile(profile_name,creation_time,REDIS_CLIENT):
+    """ Function to add a profile into the list of expired profiles. """
+    try:
+        expiration_time=time.time()
+        expiration_object = json.loads(expired_profiles_template)
+        expiration_object['creation_time']=creation_time
+        expiration_object['expiration_time']=expiration_time
+        expiration_value=json.dumps(expiration_object)
+        status = REDIS_CLIENT.hset(hash_expired_profiles,profile_name,expiration_value)
+
+        return status
+    except Exception as err:
+        return err
+
+def del_expired_profile(profile_name,REDIS_CLIENT):
+    """ Function to delete a profile from the list of expired profiles. """
+    try:
+        REDIS_CLIENT.hdel(hash_expired_profiles,profile_name)
+        return True
+    except Exception as err:
+        return err
+
+def get_expired_profile_information(profile_name,creation_time,REDIS_CLIENT):
+    """ Function to get a profile creation and expiration times from the list of expired profiles. """
+    try:
+        expiration_data = REDIS_CLIENT.hget(hash_expired_profiles,profile_name)
+        return expiration_data
+    except Exception as err:
+        return err
+
+def is_expired(profile_name,REDIS_CLIENT):
+    """ Checks if the profile_name was expired. """
+    try:
+        status = REDIS_CLIENT.hexists(hash_expired_profiles,profile_name)
+        # Returns a boolean indicating if key exists within hash name
+        return status
+    except Exception as err:
+        return err
