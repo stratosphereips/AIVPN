@@ -134,16 +134,16 @@ def del_identity(msg_addr,REDIS_CLIENT):
 ## We want to quickly consult the number of active profiles in a given identity
 ## to check that it a certain limit has been reached or not. Users cannot
 ## request unlimited number of accounts. This is a DDoS protection.
-hash_active_profiles = "active_profiles"
+hash_number_active_profiles_per_account = "number_active_profiles_per_account"
 
 def add_active_profile_counter(msg_addr,REDIS_CLIENT):
     """ Increases the counter of active profiles for a given identity by one. """
 
     try:
         # Create a new entry if there is not one. Initalize at 0.
-        REDIS_CLIENT.hsetnx(hash_active_profiles,msg_addr,0)
+        REDIS_CLIENT.hsetnx(hash_number_active_profiles_per_account,msg_addr,0)
 
-        REDIS_CLIENT.hincrby(hash_active_profiles,msg_addr,1)
+        REDIS_CLIENT.hincrby(hash_number_active_profiles_per_account,msg_addr,1)
 
         return True
     except Exception as err:
@@ -154,9 +154,9 @@ def subs_active_profile_counter(msg_addr,REDIS_CLIENT):
 
     try:
         # Get current value, if above zero substract one.
-        counter_active_profiles = int(REDIS_CLIENT.hget(hash_active_profiles,msg_addr))
+        counter_active_profiles = int(REDIS_CLIENT.hget(hash_number_active_profiles_per_account,msg_addr))
         if counter_active_profiles > 0:
-            REDIS_CLIENT.hincrby(hash_active_profiles,msg_addr,-1)
+            REDIS_CLIENT.hincrby(hash_number_active_profiles_per_account,msg_addr,-1)
         return True
     except Exception as err:
         return err
@@ -164,7 +164,7 @@ def subs_active_profile_counter(msg_addr,REDIS_CLIENT):
 def get_active_profile_counter(msg_addr,REDIS_CLIENT):
     """ Returns the counter of active profiles for a given identity. """
     try:
-        counter_active_profiles = REDIS_CLIENT.hget(hash_active_profiles,msg_addr)
+        counter_active_profiles = REDIS_CLIENT.hget(hash_number_active_profiles_per_account,msg_addr)
         if counter_active_profiles is None:
             counter_active_profiles=0
         return int(counter_active_profiles)
@@ -175,7 +175,7 @@ def get_active_profile_counter(msg_addr,REDIS_CLIENT):
 def del_active_profile_counter(msg_addr,REDIS_CLIENT):
     """ Deletes the counter of active profiles for a given identity. """
     try:
-        REDIS_CLIENT.hdel(hash_active_profiles,msg_addr)
+        REDIS_CLIENT.hdel(hash_number_active_profiles_per_account,msg_addr)
         return True
     except Exception as err:
         return err
@@ -209,7 +209,7 @@ def del_ip_address(ip_address,REDIS_CLIENT):
     except Exception as err:
         return err
 
-def openvpn_obtain_client_ip_address(REDIS_CLIENT):
+def get_openvpn_client_ip_address(REDIS_CLIENT):
     """ Obtains a valid IP address for an OpenVPN  client """
     try:
         result=0
@@ -229,7 +229,7 @@ def openvpn_obtain_client_ip_address(REDIS_CLIENT):
     except Exception as err:
         return err
 
-def openvpn_free_ip_address_space(REDIS_CLIENT):
+def get_openvpn_free_ip_address_space(REDIS_CLIENT):
     """ Returns True if there are free IPs to allocate. """
 
     try:
