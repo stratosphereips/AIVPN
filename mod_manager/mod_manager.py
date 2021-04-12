@@ -249,6 +249,7 @@ def deprovision_account(profile_name,REDIS_CLIENT):
         # Add profile to expired_profiles 
         add_expired_profile(profile_name,creation_time,REDIS_CLIENT)
 
+        # Notify user that the profile has expired
         return True
     except Exception as err
         return err
