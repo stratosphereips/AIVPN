@@ -419,3 +419,43 @@ def get_item_provisioning_queue(REDIS_CLIENT):
         return request[0]
     except Exception as err:
         return err
+
+# ACTIVE PROFILES
+## After the provisioning of profiles is completed, the active profiles are
+## stored in the Redis hash table of 'active_profiles'. The profiles remain in
+## this data structure unil the account is deprovisioned.
+
+hash_active_profiles='active_profiles'
+def add_active_profile(profile_name,REDIS_CLIENT):
+    """ Adds a new active profile to the hash table. """
+    try:
+        REDIS_CLIENT.hsetnx(hash_active_profiles,profile_name,0)
+        return True
+    except Exception as err:
+        return err
+
+def get_active_profiles(REDIS_CLIENT):
+    """ Retrieve all the active profiles """
+
+    try:
+        list_of_active_profiles = REDIS_CLIENT.hkeys(hash_active_profiles)
+        return list_of_active_profiles
+    except Exception as err:
+        return err
+
+def exists_active_profile(profile_name,REDIS_CLIENT):
+    """ Checks if a given profile name exists in the active profiles. """
+
+    try:
+        status = REDIS_CLIENT.hexists(hash_active_profiles,profile_name)
+        return status
+    except Exception as err:
+        return err
+
+def del_active_profile(profile_name,REDIS_CLIENT):
+    """ Deletes a profile name from the active profiles. """
+    try:
+        REDIS_CLIENT.hdel(hash_active_profiles,profile_name)
+        return True
+    except Exception as err:
+        return err
