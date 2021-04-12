@@ -444,6 +444,14 @@ def get_active_profiles_keys(REDIS_CLIENT):
     except Exception as err:
         return err
 
+def get_active_profile_creation_time(profile_name,REDIS_CLIENT):
+    """ Retrive the creation time (value) of a given profile name. """
+    try:
+        creation_time = REDIS_CLIENT.hget(hash_Active_profiles,profile_name)
+        return creation_time
+    except Exception as err:
+        return err
+
 def get_active_profiles_to_expire(EXPIRATION_THRESHOLD,REDIS_CLIENT):
     """ Find and return all accounts ready to expire given the Expiration_Threshold. """
 
@@ -472,3 +480,4 @@ def del_active_profile(profile_name,REDIS_CLIENT):
         return True
     except Exception as err:
         return err
+
