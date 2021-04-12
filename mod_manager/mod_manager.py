@@ -216,7 +216,7 @@ def deprovision_account(profile_name,REDIS_CLIENT):
         # Send mod_openvpn message to deprovision an account
         message = f'revoke_profile:{profile_name}:{acc_active_pid}'
         REDIS_CLIENT.publish('mod_openvpn_check',message)
-        logging.info("Provisioning: requested mod_openvpn a new profile.")
+        logging.info("Deprovisioning: requested mod_openvpn to revoke profile.")
 
         # Wait for message from mod_openvpn that the account was revoked.
         # Wait in a dedicated pub/sub channel: deprovision_openvpn
