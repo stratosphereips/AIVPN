@@ -212,6 +212,7 @@ def deprovision_account(profile_name,REDIS_CLIENT):
         acc_msg_addr = get_profile_name_address(profile_name,REDIS_CLIENT)
         acc_active_pid = get_profile_name_pid_relationship(profile_name,REDIS_CLIENT)
         acc_ip_addr = get_ip_for_profile(profile_name,REDIS_CLIENT)
+        acc_creation_time = get_active_profile_creation_time(profile_name,REDIS_CLIENT)
 
         # Send mod_openvpn message to deprovision an account
         message = f'revoke_profile:{profile_name}:{acc_active_pid}'
@@ -246,6 +247,7 @@ def deprovision_account(profile_name,REDIS_CLIENT):
         status = subs_active_profile_counter(acc_msg_addr,REDIS_CLIENT)
 
         # Add profile to expired_profiles 
+        add_expired_profile(profile_name,creation_time,REDIS_CLIENT)
 
         return True
     except Exception as err
