@@ -106,6 +106,14 @@ def start_traffic_capture(CLIENT_NAME,CLIENT_IP,PATH):
         logging.info(f'Error in mod_openvpn::start_traffic_capture: {err}')
         return False
 
+def stop_traffic_capture(PID):
+    """ This function stops a given traffic capture by PID. """
+    try:
+        os.kill(PID,9)
+        return True
+    except Exception as err:
+        return err
+
 def set_profile_static_ip(CLIENT_NAME,CLIENT_IP):
     """
     This function creates sets an static IP for the client profile by creating
