@@ -78,65 +78,57 @@ def provision_account(new_request,REDIS_CLIENT):
     # Step 1: Can we provision this account? space, internet, PIDs, IPs, limits
     #         If we cannot, request is stored back in the provisioning queue.
 
-    ## Check msg_addr hasn't reached the maximum limit of active profiles
     ## TODO: read limit from configuration file
     ACTIVE_ACCOUNT_LIMIT=300
 
-    acc_active_profiles = get_active_profile_counter(p_msg_addr,REDIS_CLIENT)
-    logging.info(f'Provisioning: number of active profiles for {p_msg_addr}: {acc_active_profiles}')
-    if acc_active_profiles > ACTIVE_ACCOUNT_LIMIT:
-        # Send message to user notifying limit has been reached.
+    ## Check msg_addr hasn't reached the maximum limit of active profiles
+    acc_number_active_profiles = get_active_profile_counter(p_msg_addr,REDIS_CLIENT)
+    logging.info(f'Provisioning: number of active profiles for {p_msg_addr}: {acc_number_active_profiles}')
+    if acc_number_active_profiles > ACTIVE_ACCOUNT_LIMIT:
+        # Send message to user notifying limit has been reached. Discard request.
+        logging.info(f'Provisioning: user exceeded the number of active profiles.')
         REDIS_CLIENT.publish('mod_comm_send_check','error_limit_reached:'+p_msg_addr)
         return False
 
     ## TODO: Check if we have enough storage to provision the new account.
 
-    ## TODO: Check if we have enough IP addresses to provision new account.
-    available_ips=openvpn_free_ip_address_space(REDIS_CLIENT)
+    ## Check if we have enough IP addresses to provision new account.
+    available_ips=get_openvpn_free_ip_address_space(REDIS_CLIENT)
     logging.info(f'Provisioning: number of available IPs: {available_ips}')
     if available_ips<1:
-        # Send message to user notifying the AI VPN is at full capacity.
-        logging.info(f'provisioning: not enough ip addresses available to provision {p_msg_addr}')
+        # Send message notifying the AI VPN is at full capacity. Discard request.
+        logging.info(f'Provisioning: not enough ip addresses available to provision {p_msg_addr}')
         redis_client.publish('mod_comm_send_check','error_max_capacity:'+p_msg_addr)
         return False
 
     # Step 2: Generate profile name. Store it. Create folder.
     ## Get an account name
     acc_profile_name = gen_profile_name()
+    logging.info("Provisioning: profile name reserved {}".format(acc_profile_name))
     if not acc_profile_name:
         # Request is stored back in the provisioning queue.
-        # Return error.
+        add_item_provisioning_queue(REDIS_CLIENT,p_msg_id,p_msg_type,p_msg_addr)
+        logging.info(f'Provisioning: unable to provision, rolling back.')
         return False
-    logging.info("Provisioning: profile name reserved {}".format(acc_profile_name))
 
     ## Store the mapping of profile_name:msg_addr to quickly know how to reach
     ## the user when the reports are finished, or a contact is needed.
     prov_status = add_profile_name(acc_profile_name,p_msg_addr,REDIS_CLIENT)
-    if not prov_status:
-        # Request is stored back in the previous queue
-        # Return error
-        return False
-
     logging.debug("Provisioning: Mapping of profile_name:mst_addr was {}".format(prov_status))
-
-    ## Store the mapping of msg_addr:profile_name to check for user usage limit.
-    ## There will be a maximum number of accounts 
-    prov_status = add_identity(p_msg_addr,REDIS_CLIENT)
-    logging.info("Provisioning: result of adding new identity was {}".format(prov_status))
+    if not prov_status:
+        # Request is stored back in the provisioning queue.
+        add_item_provisioning_queue(REDIS_CLIENT,p_msg_id,p_msg_type,p_msg_addr)
+        logging.info(f'Provisioning: unable to provision, rolling back.')
+        return False
 
     ## Create a folder to store all files associated with the profile_name.
     ## The specific folder is specified in the configuration file.
     prov_status = create_working_directory(acc_profile_name)
     logging.info("Provisioning: creation of working directory was {}".format(prov_status))
     if not prov_status:
-        # Request is stored back in the previous queue
-        return False
-
-    ## Update identity table with new profile
-    prov_status = upd_identity_profiles(p_msg_addr,acc_profile_name,REDIS_CLIENT)
-    logging.info("Provisioning: identity profile update was {}".format(prov_status))
-    if prov_status is not True:
-        # Request is stored back in the previous queue
+        # Request is stored back in the provisioning queue.
+        add_item_provisioning_queue(REDIS_CLIENT,p_msg_id,p_msg_type,p_msg_addr)
+        logging.info(f'Provisioning: unable to provision, rolling back.')
         return False
 
     # Step 3-4: Generate VPN Profile. OpenVPN or alternative.
@@ -164,17 +156,35 @@ def provision_account(new_request,REDIS_CLIENT):
                 if 'no available IP' in message:
                     redis_client.publish('mod_comm_send_check','error_max_capacity:'+p_msg_addr)
                 else:
-                    #Bad. Roll back or try again.
-                    #TODO
-                    logging.info(f'rolling back')
+                    # Request is stored back in the provisioning queue.
+                    add_item_provisioning_queue(REDIS_CLIENT,p_msg_id,p_msg_type,p_msg_addr)
+                    logging.info(f'Provisioning: unable to provision, rolling back.')
                 return False
 
     # Step 5: Send profile or instruct manager to send profile.
     REDIS_CLIENT.publish('mod_comm_send_check','send_openvpn_profile_email:'+acc_profile_name)
 
-    # Increase the profile counter for the address
-    add_active_profile_counter(p_msg_addr,REDIS_CLIENT)
-    upd_identity_counter(p_msg_addr,REDIS_CLIENT)
+    # Step 6: Provisioning successful, update Redis with account information.
+    # If there's an error, these structures are not updated.
+
+    ## Create identity for the account address.
+    prov_status = add_identity(p_msg_addr,REDIS_CLIENT)
+    logging.info("Provisioning: result of adding new identity was {}".format(prov_status))
+
+    ## Update identity: add profile_name to account identity.
+    prov_status = upd_identity_profiles(p_msg_addr,acc_profile_name,REDIS_CLIENT)
+    logging.info("Provisioning: identity profile update was {}".format(prov_status))
+
+    ## Update identity: increase identity counter by one.
+    prov_status = upd_identity_counter(p_msg_addr,REDIS_CLIENT)
+
+    # Increase the profile counter for the account address
+    prov_status = add_active_profile_counter(p_msg_addr,REDIS_CLIENT)
+
+    # Add the profile to the list of AIVPN active profiles
+    prov_status = add_active_profile(acc_profile_name,REDIS_CLIENT)
+
+    # Close the redis subscriber we created
     openvpn_subscriber.close()
     return True
 
