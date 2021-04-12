@@ -429,17 +429,30 @@ hash_active_profiles='active_profiles'
 def add_active_profile(profile_name,REDIS_CLIENT):
     """ Adds a new active profile to the hash table. """
     try:
-        REDIS_CLIENT.hsetnx(hash_active_profiles,profile_name,0)
+        creation_time=time.time()
+        REDIS_CLIENT.hsetnx(hash_active_profiles,profile_name,creation_time)
         return True
     except Exception as err:
         return err
 
-def get_active_profiles(REDIS_CLIENT):
+def get_active_profiles_keys(REDIS_CLIENT):
     """ Retrieve all the active profiles """
 
     try:
         list_of_active_profiles = REDIS_CLIENT.hkeys(hash_active_profiles)
         return list_of_active_profiles
+    except Exception as err:
+        return err
+
+def get_active_profiles_to_expire(EXPIRATION_THRESHOLD,REDIS_CLIENT):
+    """ Find and return all accounts ready to expire given the Expiration_Threshold. """
+
+    try:
+        current_time = time.time()
+        all_active_profiles = REDIS_CLIENT.hgetall(hash_active_profiles)
+        result = {key for (key, value) in all_active_profiles.items() if ((current_time-float(value))/3600) > EXPIRATION_THRESHOLD}
+        # Expected output: {'20210412115031-neck_spooky', '20210309125031-neck_dog'}
+        return result
     except Exception as err:
         return err
 
