@@ -208,17 +208,45 @@ def deprovision_account(profile_name,REDIS_CLIENT):
     including revoking the VPN profile and stopping the traffic captures.
     """
     try:
+        # Get account information
+        acc_msg_addr = get_profile_name_address(profile_name,REDIS_CLIENT)
+        acc_active_pid = get_profile_name_pid_relationship(profile_name,REDIS_CLIENT)
+        acc_ip_addr = get_ip_for_profile(profile_name,REDIS_CLIENT)
+
         # Send mod_openvpn message to deprovision an account
+        message = f'revoke_profile:{profile_name}:{acc_active_pid}'
+        REDIS_CLIENT.publish('mod_openvpn_check',message)
+        logging.info("Provisioning: requested mod_openvpn a new profile.")
+
+        # Wait for message from mod_openvpn that the account was revoked.
+        # Wait in a dedicated pub/sub channel: deprovision_openvpn
+        openvpn_subscriber = redis_create_subscriber(REDIS_CLIENT)
+        redis_subscribe_to_channel(openvpn_subscriber,'deprovision_openvpn')
+        for item in openvpn_subscriber.listen():
+            if item['type'] == 'message':
+                logging.info("Deprovisioning: {}".format(item['data']))
+                if 'profile_revocation_successful' in item['data']:
+                    # Good. Continue.
+                    break
+                if 'profile_revocation_failed' in item['data']:
+                    # Bad. Try again.
+                    return False
 
         # Remove profile from the list of active profiles
+        status = del_active_profile(profile_name,REDIS_CLIENT)
 
         # Remove IP from list of OpenVPN blocked IPs
+        status = del_ip_address(acc_ip_addr,REDIS_CLIENT)
 
         # Remove PID<->Profile_Name relationships
+        status = del_pid_profile_name_relationship(acc_active_pid,REDIS_CLIENT)
+        status = del_profile_name_pid_relationship(profile_name,REDIS_CLIENT)
 
         # Decrease the active profile counter for the user
+        status = subs_active_profile_counter(acc_msg_addr,REDIS_CLIENT)
 
         # Add profile to expired_profiles 
+
         return True
     except Exception as err
         return err
