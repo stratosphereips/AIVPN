@@ -252,6 +252,32 @@ if __name__ == '__main__':
                         logging.info(account_error_message)
                         redis_client.publish('services_status',account_error_message)
                         redis_client.publish('provision_openvpn',account_error_message)
+                elif 'revoke_profile' in item['data']:
+                    account_error_message=""
+                    # Parse CLIENT_NAME and PID from message
+                    CLIENT_NAME=item['data'].split(':')[1]
+                    CLIENT_PID=item['data'].split(':')[2]
+                    logging.info(f'Revoking profile {CLIENT_NAME} and stopping traffic capture ({CLIENT_PID})')
+
+                    # Revoke VPN profile
+                    if revoke_openvpn_profile(CLIENT_NAME):
+                        # Stop the traffic capture by PID
+                        if stop_traffic_capture(PID):
+                            # Account revoked successfully
+                            redis_client.publish('services_status','MOD_OPENVPN: profile_revocation_successful')
+                            redis_client.publish('deprovision_openvpn','profile_revocation_successful')
+                            logging.info('profile_revocation_successful')
+                        else:
+                            account_error_message='Unable to stop the traffic capture.'
+                    else:
+                        account_error_message='Unable to revoke the VPN profile.'
+
+                    # Notify once if there is an error message
+                    if account_error_message:
+                        logging.info(account_error_message)
+                        redis_client.publish('services_status',account_error_message)
+                        redis_client.publish('deprovision_openvpn',account_error_message)
+
         redis_client.publish('services_status', 'MOD_OPENVPN:offline')
         logging.info("Terminating")
         redis_client.close()
