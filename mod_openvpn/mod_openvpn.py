@@ -60,6 +60,17 @@ def configure_openvpn_server(SERVER_PUBLIC_URL,PKI_ADDRESS):
         logging.info(e)
         return False
 
+def revoke_openvpn_profile(CLIENT_NAME):
+    """
+    This function revokes a given profile.
+    """
+    try:
+        COMMAND='/usr/local/bin/ovpn_revokeclient'
+        subprocess.run([COMMAND,CLIENT_NAME], stdout=subprocess.PIPE, text=True, input="yes")
+        return True
+    except Exception as err:
+        return err
+
 def generate_openvpn_profile(CLIENT_NAME):
 
     """
