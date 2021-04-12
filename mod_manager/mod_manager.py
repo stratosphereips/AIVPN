@@ -201,12 +201,24 @@ def process_expired_accounts(REDIS_CLIENT,EXPIRATION_THRESHOLD):
         return True
     except Exception as err:
         return err
+
 def deprovision_account(profile_name,REDIS_CLIENT):
     """
     This function handles all the necessary steps to deprovision an account,
     including revoking the VPN profile and stopping the traffic captures.
     """
     try:
+        # Send mod_openvpn message to deprovision an account
+
+        # Remove profile from the list of active profiles
+
+        # Remove IP from list of OpenVPN blocked IPs
+
+        # Remove PID<->Profile_Name relationships
+
+        # Decrease the active profile counter for the user
+
+        # Add profile to expired_profiles 
         return True
     except Exception as err
         return err
