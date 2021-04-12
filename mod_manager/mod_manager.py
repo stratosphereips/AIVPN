@@ -188,6 +188,29 @@ def provision_account(new_request,REDIS_CLIENT):
     openvpn_subscriber.close()
     return True
 
+def process_expired_accounts(REDIS_CLIENT,EXPIRATION_THRESHOLD):
+    """ Checks for new accounts to expire, and deprovisions them. """
+    try:
+        # Get a list of active profiles to expire
+        to_expire_profiles = get_active_profiles_to_expire(EXPIRATION_THRESHOLD,REDIS_CLIENT)
+        logging.info(f'Processing {len(to_expire_profiles} expired accounts.')
+
+        if to_expire_profiles:
+            for profile_name in to_expire_profiles:
+                deprovision_account(profile_name,REDIS_CLIENT)
+        return True
+    except Exception as err:
+        return err
+def deprovision_account(profile_name,REDIS_CLIENT):
+    """
+    This function handles all the necessary steps to deprovision an account,
+    including revoking the VPN profile and stopping the traffic captures.
+    """
+    try:
+        return True
+    except Exception as err
+        return err
+
 if __name__ == '__main__':
     REDIS_SERVER,CHANNEL,LOG_FILE,PATH,SWARM_CONF_FILE,MOD_CHANNELS = read_configuration()
     try:
