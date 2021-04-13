@@ -458,7 +458,7 @@ def get_active_profiles_to_expire(EXPIRATION_THRESHOLD,REDIS_CLIENT):
     try:
         current_time = time.time()
         all_active_profiles = REDIS_CLIENT.hgetall(hash_active_profiles)
-        result = {key for (key, value) in all_active_profiles.items() if ((current_time-float(value))/3600) > EXPIRATION_THRESHOLD}
+        result = {key for (key, value) in all_active_profiles.items() if ((current_time-float(value))/3600) > float(EXPIRATION_THRESHOLD)}
         # Expected output: {'20210412115031-neck_spooky', '20210309125031-neck_dog'}
         return result
     except Exception as err:
