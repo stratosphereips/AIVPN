@@ -252,6 +252,7 @@ def deprovision_account(profile_name,REDIS_CLIENT):
         add_expired_profile(profile_name,creation_time,REDIS_CLIENT)
 
         # Notify user that the profile has expired
+        REDIS_CLIENT.publish('mod_comm_send_check','send_expire_profile_email:'+acc_profile_name)
         return True
     except Exception as err
         return err
