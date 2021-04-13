@@ -10,6 +10,7 @@ import redis
 import socket
 import logging
 import threading
+import timerthread
 import configparser
 from common.database import *
 from common.storage import *
@@ -297,24 +298,28 @@ if __name__ == '__main__':
         services_status_check.start()
         logging.info("services_status_check thread started")
 
+        # Starting timerthread to check for expired accounts
+        expiration_timer = timerthread.Scheduler('recur', 60, process_expired_accounts, args=(REDIS_CLIENT,EXPIRATION_THRESHOLD,))
+        expiration_timer.start()
+        logging.info("expiration_timer scheduler started")
+
         # This function checks for incoming messages
         logging.info("Starting the services_status_monitor")
         while True:
             try:
                 redis_channel_monitoring(CHANNEL,db_subscriber,redis_client)
-            except Exception as e:
-                logging.info("services_status_monitor restarting due to exception")
-                logging.info(e)
-                pass
+            except Exception as err:
+                logging.info(f'services_status_monitor restarting due to exception: {err}')
 
         redis_client.publish('services_status', 'MOD_MANAGER:offline')
         logging.info("Terminating")
-        redis_client.close()
+        expiration_timer.cancel()
         db_subscriber.close()
+        redis_client.close()
         sys.exit(0)
     except Exception as err:
-        redis_client.close()
+        logging.info(f'Terminating via exception in __main__: {err}')
+        expiration_timer.cancel()
         db_subscriber.close()
-        logging.info("Terminating via exception in main")
-        logging.info(err)
+        redis_client.close()
         sys.exit(-1)
