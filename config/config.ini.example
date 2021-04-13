@@ -28,3 +28,6 @@ SERVER_PUBLIC_URL = udp://example-server.com
 PKI_ADDRESS = vpn.example-server.com
 CERTIFICATES = /data/.certs
 NETWORK_CIDR = 192.168.255.0/24
+
+[AIVPN]
+EXPIRATION_THRESHOLD = 72
