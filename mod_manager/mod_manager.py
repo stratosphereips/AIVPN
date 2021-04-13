@@ -195,7 +195,7 @@ def process_expired_accounts(REDIS_CLIENT,EXPIRATION_THRESHOLD):
     try:
         # Get a list of active profiles to expire
         to_expire_profiles = get_active_profiles_to_expire(EXPIRATION_THRESHOLD,REDIS_CLIENT)
-        logging.info(f'Processing {len(to_expire_profiles} expired accounts.')
+        logging.info(f'Processing {len(to_expire_profiles)} expired accounts.')
 
         if to_expire_profiles:
             for profile_name in to_expire_profiles:
