@@ -106,7 +106,7 @@ def start_traffic_capture(CLIENT_NAME,CLIENT_IP,PATH):
         PCAP_NAME=f'{PATH}/{CLIENT_NAME}/{CLIENT_NAME}_{CLIENT_IP}_{NUMBER}.pcap'
 
         # Start the subprocess
-        process = subprocess.Popen(["tcpdump","-n","-s0","-i","tun0","host",CLIENT_IP,"-U","-w",PCAP_NAME])
+        process = subprocess.Popen(["tcpdump","-n","-s0","-i","tun0","host",CLIENT_IP,"-U","-w",PCAP_NAME],close_fds=True)
 
         # Get the PID
         PID = process.pid
