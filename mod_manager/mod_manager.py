@@ -53,18 +53,14 @@ def redis_channel_monitoring(CHANNEL,db_subscriber,redis_client):
 
 def thread_redis_channel_status_check(MOD_CHANNELS,redis_client):
     """ """
-    while True:
-        try:
-            logging.info("Sending report status message to: {}".format(MOD_CHANNELS))
-            # send status check to every channel
-            for channel in MOD_CHANNELS:
-                logging.info("Sending report status message to: {}".format(channel))
-                redis_client.publish(channel, 'report_status')
-            time.sleep(60)
-        except:
-            logging.info("Error in loop in thread services_status_check")
-            time.sleep(10)
-            pass
+    try:
+        logging.info("Sending report status message to: {}".format(MOD_CHANNELS))
+        # send status check to every channel
+        for channel in MOD_CHANNELS:
+            logging.info("Sending report status message to: {}".format(channel))
+            redis_client.publish(channel,'report_status')
+    except Exception as err:
+        logging.info(f'Error in loop in thread services_status_check: {err}')
 
 def provision_account(new_request,REDIS_CLIENT):
     """ This function handles the steps needed to provision a new account."""
@@ -195,13 +191,14 @@ def process_expired_accounts(REDIS_CLIENT,EXPIRATION_THRESHOLD):
     try:
         # Get a list of active profiles to expire
         to_expire_profiles = get_active_profiles_to_expire(EXPIRATION_THRESHOLD,REDIS_CLIENT)
-        logging.info(f'Processing {len(to_expire_profiles)} expired accounts.')
-
+        logging.info(f'Expired accounts to process: {len(to_expire_profiles)}')
         if to_expire_profiles:
             for profile_name in to_expire_profiles:
-                deprovision_account(profile_name,REDIS_CLIENT)
+                status = deprovision_account(profile_name,REDIS_CLIENT)
+                logging.info(f'The result of deprovision {profile_name} was {status}')
         return True
     except Exception as err:
+        logging.info(f'Exception in process_expired_accounts: {err}')
         return err
 
 def deprovision_account(profile_name,REDIS_CLIENT):
@@ -210,7 +207,10 @@ def deprovision_account(profile_name,REDIS_CLIENT):
     including revoking the VPN profile and stopping the traffic captures.
     """
     try:
+        logging.info(f'Deprovisioning: starting deprovisioning for {profile_name}')
+
         # Get account information
+        logging.info('Deprovisioning: retrieving account information')
         acc_msg_addr = get_profile_name_address(profile_name,REDIS_CLIENT)
         acc_active_pid = get_profile_name_pid_relationship(profile_name,REDIS_CLIENT)
         acc_ip_addr = get_ip_for_profile(profile_name,REDIS_CLIENT)
@@ -249,12 +249,12 @@ def deprovision_account(profile_name,REDIS_CLIENT):
         status = subs_active_profile_counter(acc_msg_addr,REDIS_CLIENT)
 
         # Add profile to expired_profiles 
-        add_expired_profile(profile_name,creation_time,REDIS_CLIENT)
+        add_expired_profile(profile_name,acc_creation_time,REDIS_CLIENT)
 
         # Notify user that the profile has expired
         REDIS_CLIENT.publish('mod_comm_send_check','send_expire_profile_email:'+acc_profile_name)
         return True
-    except Exception as err
+    except Exception as err:
         return err
 
 if __name__ == '__main__':
@@ -284,9 +284,8 @@ if __name__ == '__main__':
     # Subscribing to Redis channel
     try:
         redis_subscribe_to_channel(db_subscriber,CHANNEL)
-    except Exception as e:
-        logging.info("Channel subscription failed")
-        logging.info(e)
+    except Exception as err:
+        logging.info(f'Channel subscription failed: {err}')
         sys.exit(-1)
 
     # Main manager module logic starts here
@@ -295,13 +294,14 @@ if __name__ == '__main__':
         redis_client.publish('services_status','MOD_MANAGER:online')
 
         # This thread sends status checks messages to modules
-        services_status_check = threading.Thread(target=thread_redis_channel_status_check,args=(MOD_CHANNELS,redis_client,))
+        services_status_check = timerthread.Scheduler('recur', 60, thread_redis_channel_status_check, args=(MOD_CHANNELS,redis_client,))
         services_status_check.start()
         logging.info("services_status_check thread started")
 
         # Starting timerthread to check for expired accounts
-        expiration_timer = timerthread.Scheduler('recur', 60, process_expired_accounts, args=(REDIS_CLIENT,EXPIRATION_THRESHOLD,))
-        expiration_timer.start()
+        expiration_timer = timerthread.Scheduler('recur', 60, process_expired_accounts, args=(redis_client,EXPIRATION_THRESHOLD,))
+        expiration_timer_start = timerthread.Scheduler('delay', 60, expiration_timer.start, args=())
+        expiration_timer_start.start()
         logging.info("expiration_timer scheduler started")
 
         # This function checks for incoming messages
@@ -315,12 +315,14 @@ if __name__ == '__main__':
         redis_client.publish('services_status', 'MOD_MANAGER:offline')
         logging.info("Terminating")
         expiration_timer.cancel()
+        expiration_timer_start.cancel()
         db_subscriber.close()
         redis_client.close()
         sys.exit(0)
     except Exception as err:
         logging.info(f'Terminating via exception in __main__: {err}')
         expiration_timer.cancel()
+        expiration_timer_start.cancel()
         db_subscriber.close()
         redis_client.close()
         sys.exit(-1)
