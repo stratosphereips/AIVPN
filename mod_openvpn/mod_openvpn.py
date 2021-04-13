@@ -117,10 +117,10 @@ def start_traffic_capture(CLIENT_NAME,CLIENT_IP,PATH):
         logging.info(f'Error in mod_openvpn::start_traffic_capture: {err}')
         return False
 
-def stop_traffic_capture(PID):
+def stop_traffic_capture(CLIENT_PID):
     """ This function stops a given traffic capture by PID. """
     try:
-        os.kill(PID,9)
+        os.kill(CLIENT_PID,9)
         return True
     except Exception as err:
         return err
@@ -256,13 +256,15 @@ if __name__ == '__main__':
                     account_error_message=""
                     # Parse CLIENT_NAME and PID from message
                     CLIENT_NAME=item['data'].split(':')[1]
-                    CLIENT_PID=item['data'].split(':')[2]
+                    CLIENT_PID=int(item['data'].split(':')[2])
                     logging.info(f'Revoking profile {CLIENT_NAME} and stopping traffic capture ({CLIENT_PID})')
 
                     # Revoke VPN profile
                     if revoke_openvpn_profile(CLIENT_NAME):
                         # Stop the traffic capture by PID
-                        if stop_traffic_capture(PID):
+                        status = stop_traffic_capture(CLIENT_PID)
+                        logging.info(f'Result of stopping the traffic capture was {status}')
+                        if status:
                             # Account revoked successfully
                             redis_client.publish('services_status','MOD_OPENVPN: profile_revocation_successful')
                             redis_client.publish('deprovision_openvpn','profile_revocation_successful')
