@@ -25,7 +25,8 @@ def read_configuration():
     PATH = config['STORAGE']['PATH']
     SWARM_CONF_FILE = config['STORAGE']['SWARM_CONF_FILE']
     MOD_CHANNELS = json.loads(config['REDIS']['REDIS_MODULES'])
-    return REDIS_SERVER,CHANNEL,LOG_FILE,PATH,SWARM_CONF_FILE,MOD_CHANNELS
+    EXPIRATION_THRESHOLD = config['AIVPN']['EXPIRATION_THRESHOLD']
+    return REDIS_SERVER,CHANNEL,LOG_FILE,PATH,SWARM_CONF_FILE,MOD_CHANNELS,EXPIRATION_THRESHOLD
 
 def redis_channel_monitoring(CHANNEL,db_subscriber,redis_client):
     while True:
@@ -255,7 +256,7 @@ def deprovision_account(profile_name,REDIS_CLIENT):
         return err
 
 if __name__ == '__main__':
-    REDIS_SERVER,CHANNEL,LOG_FILE,PATH,SWARM_CONF_FILE,MOD_CHANNELS = read_configuration()
+    REDIS_SERVER,CHANNEL,LOG_FILE,PATH,SWARM_CONF_FILE,MOD_CHANNELS,EXPIRATION_THRESHOLD = read_configuration()
     try:
         logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s, MOD_MANAGER, %(message)s')
     except Exception as e:
