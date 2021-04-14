@@ -501,6 +501,19 @@ def add_expired_profile(profile_name,creation_time,REDIS_CLIENT):
     except Exception as err:
         return err
 
+def upd_reported_time_to_expired_profile(profile_name,REDIS_CLIENT):
+    """ Function to add a profile into the list of expired profiles. """
+    try:
+        report_time=time.time()
+        expiration_object = json.loads(expired_profiles_template)
+        expiration_object['reported_time']=report_time
+        expiration_value=json.dumps(expiration_object)
+        status = REDIS_CLIENT.hset(hash_expired_profiles,profile_name,expiration_value)
+
+        return status
+    except Exception as err:
+        return err
+
 def del_expired_profile(profile_name,REDIS_CLIENT):
     """ Function to delete a profile from the list of expired profiles. """
     try:
