@@ -484,7 +484,7 @@ def del_active_profile(profile_name,REDIS_CLIENT):
 # EXPIRED PROFILES
 ## structure that keeps a history of expired profiles along with their creation
 ## and expiration times. Value:
-expired_profiles_template = json.dumps({"creation_time":"","expiration_time":"","deletion_time":""})
+expired_profiles_template = json.dumps({"creation_time":"","expiration_time":"","reported_time":"","deletion_time":""})
 
 hash_expired_profiles='expired_profiles'
 def add_expired_profile(profile_name,creation_time,REDIS_CLIENT):
@@ -523,5 +523,35 @@ def is_expired(profile_name,REDIS_CLIENT):
         status = REDIS_CLIENT.hexists(hash_expired_profiles,profile_name)
         # Returns a boolean indicating if key exists within hash name
         return status
+    except Exception as err:
+        return err
+
+# PROFILES TO REPORT
+# Redis hash that keeps a list of profiles to report. Once reported, the report
+# time is added to the expired_profiles information and the profile name is
+# removed from here.
+hash_profiles_to_report="profiles_to_report"
+
+def add_profile_to_report(profile_name,REDIS_CLIENT):
+    """ Adds a profile to the reports hash table. """
+    try:
+        REDIS_CLIENT.hsetnx(hash_profiles_to_report,profile_name,0)
+        return True
+    except Exception as err:
+        return err
+
+def exists_profile_to_report(profile_name,REDIS_CLIENT):
+    """ Checks if a profile is in the reports hash table. """
+    try:
+        status = REDIS_CLIENT.hexists(hash_profiles_to_report,profile_name)
+        return status
+    except Exception as err:
+        return err
+
+def del_profile_to_report(profile_name,REDIS_CLIENT):
+    """ Removes a profile from the reports hash table. """
+    try:
+        REDIS_CLIENT.hdel(hash_profiles_to_report,profile_name)
+        return True
     except Exception as err:
         return err
