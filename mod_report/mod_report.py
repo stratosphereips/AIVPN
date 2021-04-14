@@ -20,6 +20,7 @@ def read_configuration():
     PATH = config['STORAGE']['PATH']
 
     return REDIS_SERVER,CHANNEL,LOG_FILE,PATH
+
 if __name__ == '__main__':
     # Read configuration file
     REDIS_SERVER,CHANNEL,LOG_FILE,PATH = read_configuration()
@@ -57,6 +58,9 @@ if __name__ == '__main__':
                 if item['data'] == 'report_status':
                     redis_client.publish('services_status', 'MOD_REPORT:online')
                     logging.info('MOD_REPORT:online')
+                elif 'report_profile' in item['data']:
+                    profile_name = item['data'].split(':')[1]
+                    logging.info(f'Starting report on profile {profile_name}')
 
         redis_client.publish('services_status', 'MOD_REPORT:offline')
         logging.info("Terminating")
