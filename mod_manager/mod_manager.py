@@ -229,14 +229,11 @@ def deprovision_account(profile_name,REDIS_CLIENT):
             if item['type'] == 'message':
                 logging.info("Deprovisioning: {}".format(item['data']))
                 if 'profile_revocation_successful' in item['data']:
-                    # Good. Continue.
+                    # Revokation was successful. Continue deprovisioning.
                     break
                 if 'profile_revocation_failed' in item['data']:
                     # Bad. Try again.
                     return False
-
-        # Remove profile from the list of active profiles
-        status = del_active_profile(profile_name,REDIS_CLIENT)
 
         # Remove IP from list of OpenVPN blocked IPs
         status = del_ip_address(acc_ip_addr,REDIS_CLIENT)
@@ -248,11 +245,17 @@ def deprovision_account(profile_name,REDIS_CLIENT):
         # Decrease the active profile counter for the user
         status = subs_active_profile_counter(acc_msg_addr,REDIS_CLIENT)
 
+        # Notify user that the profile has expired
+        REDIS_CLIENT.publish('mod_comm_send_check','send_expire_profile_email:'+profile_name)
+
         # Add profile to expired_profiles 
         add_expired_profile(profile_name,acc_creation_time,REDIS_CLIENT)
 
-        # Notify user that the profile has expired
-        REDIS_CLIENT.publish('mod_comm_send_check','send_expire_profile_email:'+profile_name)
+        # Remove profile from the list of active profiles
+        status = del_active_profile(profile_name,REDIS_CLIENT)
+
+        # Close the redis subscriber we created.
+        openvpn_subscriber.close()
         return True
     except Exception as err:
         return err
