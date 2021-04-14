@@ -121,6 +121,7 @@ def stop_traffic_capture(CLIENT_PID):
     """ This function stops a given traffic capture by PID. """
     try:
         os.kill(CLIENT_PID,9)
+        os.wait()
         return True
     except Exception as err:
         return err
