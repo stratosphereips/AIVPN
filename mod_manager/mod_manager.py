@@ -195,6 +195,12 @@ def process_expired_accounts(REDIS_CLIENT,EXPIRATION_THRESHOLD):
         if to_expire_profiles:
             for profile_name in to_expire_profiles:
                 status = deprovision_account(profile_name,REDIS_CLIENT)
+                if status:
+                    # If deprovision was successful, add to queue to report.
+                    add_profile_to_report(profile_name,REDIS_CLIENT)
+                    # Notify mod_report of pending report
+                    message = f'report_profile:{profile_name}'
+                    REDIS_CLIENT.publish('mod_report_check',message)
                 logging.info(f'The result of deprovision {profile_name} was {status}')
         return True
     except Exception as err:
