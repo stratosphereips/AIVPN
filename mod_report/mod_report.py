@@ -3,7 +3,9 @@
 # See the file 'LICENSE' for copying permission.
 # Author: Veronica Valeros, vero.valeros@gmail.com, veronica.valeros@aic.fel.cvut.cz
 
+import os
 import sys
+import glob
 import redis
 import logging
 import configparser
@@ -20,6 +22,26 @@ def read_configuration():
     PATH = config['STORAGE']['PATH']
 
     return REDIS_SERVER,CHANNEL,LOG_FILE,PATH
+
+def process_profile_traffic(profile_name,PATH):
+    """ Function to process the traffic for a given profile. """
+    VALID_CAPTURE = False
+    try:
+        # Find all pcaps for the profile and process them
+        os.chdir(f'{PATH}/{profile_name}')
+        for capture_file in glob.glob("*.pcap"):
+            capture_size = os.stat(capture_file).st_size
+            logging.info(f'Processing capture {capture_file} ({capture_size} b)')
+            # If capture is empty, move to next pcap
+            if capture_size < 25:
+                continue
+            # Capture not empty, process it
+            VALID_CAPTURE=True
+
+        return VALID_CAPTURE
+    except Exception as err:
+        logging.info(f'Exception in process_profile_traffic: {err}')
+        sys.exit(-1)
 
 if __name__ == '__main__':
     # Read configuration file
@@ -61,7 +83,24 @@ if __name__ == '__main__':
                 elif 'report_profile' in item['data']:
                     profile_name = item['data'].split(':')[1]
                     logging.info(f'Starting report on profile {profile_name}')
-
+                    status = process_profile_traffic(profile_name,PATH)
+                    logging.info(f'Status of report on profile {profile_name}: {status}')
+                    if not status:
+                        logging.info('All associated captures were empty')
+                        message=f'send_empty_capture_email:{profile_name}'
+                        redis_client.publish('mod_comm_send_check',message)
+                        del_profile_to_report(profile_name,redis_client)
+                        upd_reported_time_to_expired_profile(profile_name,redis_client)
+                        continue
+                    if status:
+                        logging.info('Processing of associated captures completed')
+                        message=f'send_report_profile_email:{profile_name}'
+                        redis_client.publish('mod_comm_send_check',message)
+                        status=del_profile_to_report(profile_name,redis_client)
+                        logging.info(f'del_profile_to_report: {status}')
+                        status=upd_reported_time_to_expired_profile(profile_name,redis_client)
+                        logging.info(f'upd_reported_time_to_expired_profile: {status}')
+                        continue
         redis_client.publish('services_status', 'MOD_REPORT:offline')
         logging.info("Terminating")
         db_subscriber.close()
