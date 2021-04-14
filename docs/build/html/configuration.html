@@ -95,6 +95,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#setting-up-the-configuration-file">Setting up the Configuration File</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#setting-up-the-imap-configuration">Setting up the IMAP Configuration</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#setting-up-the-openvpn-configuration">Setting up the OPENVPN Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#setting-up-the-aivpn-configuration">Setting up the AIVPN Configuration</a></li>
 </ul>
 </li>
 </ul>
@@ -192,6 +193,8 @@ email account and not your personal account to run this service.</p></li>
 including packet captures, network logs, and incident reports.</p></li>
 <li><p>OPENVPN: this section gives the OpenVPN module the basic information
 needed to run the VPN service.</p></li>
+<li><p>AIVPN: this section provides application level configurations, including
+when profiles expire, maximum profiles per account, etc.</p></li>
 </ul>
 </div></blockquote>
 <div class="section" id="setting-up-the-configuration-file">
@@ -222,7 +225,7 @@ file with the appropriate values.</p>
 </div>
 <div class="section" id="setting-up-the-openvpn-configuration">
 <h3>Setting up the OPENVPN Configuration<a class="headerlink" href="#setting-up-the-openvpn-configuration" title="Permalink to this headline">¶</a></h3>
-<p>The final step is to replace the example values of the OPEN VPN service with
+<p>The next step is to replace the example values of the OPEN VPN service with
 the IP address or host of the host machine.</p>
 <p>Find the public IPv4 address of the host machine:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ curl -4 icanhazip.com
@@ -234,6 +237,22 @@ $ PKI_ADDRESS = x.x.x.x
 </pre></div>
 </div>
 <p>The next section will cover how to deploy the AI VPN using docker-compose.</p>
+</div>
+<div class="section" id="setting-up-the-aivpn-configuration">
+<h3>Setting up the AIVPN Configuration<a class="headerlink" href="#setting-up-the-aivpn-configuration" title="Permalink to this headline">¶</a></h3>
+<p>The AIVPN follows certain restrictions regarding for how long the VPN profiles
+remain active, how many active VPN profiles can a user have simultanously, and
+others.</p>
+<p>By default, the AIVPN will revoke issued VPN profiles every 72 hours. To extend
+or reduce this time, replace the value of the following parameter (in hours):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ EXPIRATION_THRESHOLD = X
+</pre></div>
+</div>
+<p>The AIVPN allows a maximum of 5 simultanous active VPN profiles per user. To
+increase or reduce this limit, replace the value of the following parameter:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ ACTIVE_ACCOUNT_LIMIT = X
+</pre></div>
+</div>
 </div>
 </div>
 </div>

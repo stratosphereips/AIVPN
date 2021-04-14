@@ -26,6 +26,8 @@ has five different sections:
       including packet captures, network logs, and incident reports.
     * OPENVPN: this section gives the OpenVPN module the basic information
       needed to run the VPN service.
+    * AIVPN: this section provides application level configurations, including
+      when profiles expire, maximum profiles per account, etc.
 
 Setting up the Configuration File
 -----------------------------------
@@ -62,7 +64,7 @@ file with the appropriate values.
 Setting up the OPENVPN Configuration
 ------------------------------------
 
-The final step is to replace the example values of the OPEN VPN service with
+The next step is to replace the example values of the OPEN VPN service with
 the IP address or host of the host machine.
 
 Find the public IPv4 address of the host machine::
@@ -75,3 +77,20 @@ Use this IP address to replace the placeholder in the configuration file::
     $ PKI_ADDRESS = x.x.x.x
 
 The next section will cover how to deploy the AI VPN using docker-compose.
+
+Setting up the AIVPN Configuration
+----------------------------------
+
+The AIVPN follows certain restrictions regarding for how long the VPN profiles
+remain active, how many active VPN profiles can a user have simultanously, and
+others.
+
+By default, the AIVPN will revoke issued VPN profiles every 72 hours. To extend
+or reduce this time, replace the value of the following parameter (in hours)::
+
+    $ EXPIRATION_THRESHOLD = X
+
+The AIVPN allows a maximum of 5 simultanous active VPN profiles per user. To
+increase or reduce this limit, replace the value of the following parameter::
+
+    $ ACTIVE_ACCOUNT_LIMIT = X
