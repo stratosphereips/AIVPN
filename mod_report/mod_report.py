@@ -40,9 +40,9 @@ def process_profile_traffic(profile_name,PATH):
                 continue
             # Capture not empty, process it
             VALID_CAPTURE=True
-            logging.info("Running the SimplePcapSummarizer")
+            logging.info("Running the Pcap Summarizer")
             with open(report_source,"wb") as output:
-                process = subprocess.Popen(["/code/SimplePcapSummarizer/spsummarizer.sh",capture_file],stdout=output)
+                process = subprocess.Popen(["/code/pcapsummarizer.sh",capture_file],stdout=output)
                 process.wait()
             logging.info("Running pandoc")
             args=["pandoc",report_source,"--pdf-engine=xelatex","-f","gfm","-V","linkcolor:blue","-V","geometry:a4paper","-V","geometry:top=2cm, bottom=1.5cm, left=2cm, right=2cm", "--metadata=author:Civilsphere Project","--metadata=lang:en-US","-o",report_build]
