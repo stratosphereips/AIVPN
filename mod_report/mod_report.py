@@ -45,7 +45,8 @@ def process_profile_traffic(profile_name,PATH):
                 process = subprocess.Popen(["/code/SimplePcapSummarizer/spsummarizer.sh",capture_file],stdout=output)
                 process.wait()
             logging.info("Running pandoc")
-            process = subprocess.Popen(["pandoc",report_source,"--pdf-engine=xelatex","-o",report_build])
+            args=["pandoc",report_source,"--pdf-engine=xelatex","-f","gfm","-V","linkcolor:blue","-V","geometry:a4paper","-V","geometry:top=2cm, bottom=1.5cm, left=2cm, right=2cm", "--metadata=author:Civilsphere Project","--metadata=lang:en-US","-o",report_build]
+            process = subprocess.Popen(args)
             process.wait()
             # Right now we generate a report for one capture.
             # TODO: Handle multiple captures
