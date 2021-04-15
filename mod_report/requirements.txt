@@ -1,4 +1,2 @@
 redis
-pyyaml
-ua-parser
 user-agents
