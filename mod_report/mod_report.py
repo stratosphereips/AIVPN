@@ -8,6 +8,7 @@ import sys
 import glob
 import redis
 import logging
+import subprocess
 import configparser
 from common.database import *
 
@@ -29,6 +30,8 @@ def process_profile_traffic(profile_name,PATH):
     try:
         # Find all pcaps for the profile and process them
         os.chdir(f'{PATH}/{profile_name}')
+        report_source=f'{profile_name}.md'
+        report_build=f'{profile_name}.pdf'
         for capture_file in glob.glob("*.pcap"):
             capture_size = os.stat(capture_file).st_size
             logging.info(f'Processing capture {capture_file} ({capture_size} b)')
@@ -37,7 +40,16 @@ def process_profile_traffic(profile_name,PATH):
                 continue
             # Capture not empty, process it
             VALID_CAPTURE=True
-
+            logging.info("Running the SimplePcapSummarizer")
+            with open(report_source,"wb") as output:
+                process = subprocess.Popen(["/code/SimplePcapSummarizer/spsummarizer.sh",capture_file],stdout=output)
+                process.wait()
+            logging.info("Running pandoc")
+            process = subprocess.Popen(["pandoc",report_source,"--pdf-engine=xelatex","-o",report_build])
+            process.wait()
+            # Right now we generate a report for one capture.
+            # TODO: Handle multiple captures
+            break
         return VALID_CAPTURE
     except Exception as err:
         logging.info(f'Exception in process_profile_traffic: {err}')
