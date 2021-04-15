@@ -1,7 +1,6 @@
 #!/bin/bash
 
 echo "Cleaning up"
-docker rmi -f $(docker images -f "dangling=true" -q)
 echo "" > logs/mod_openvpn.log
 echo "" > logs/mod_comm_recv.log
 echo "" > logs/mod_comm_send.log
@@ -18,15 +17,16 @@ docker build -t aivpn_mod_comm_send:latest .
 cd ..
 
 cd mod_manager
-docker build --no-cache -t aivpn_mod_manager:latest .
+docker build -t aivpn_mod_manager:latest .
 cd ..
 
 cd mod_openvpn
-docker build --no-cache -t aivpn_mod_openvpn:latest .
+docker build -t aivpn_mod_openvpn:latest .
 cd ..
 
 cd mod_report
 docker build -t aivpn_mod_report:latest .
 cd ..
 
+docker rmi -f $(docker images -f "dangling=true" -q)
 echo "Finished building modules"
