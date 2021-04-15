@@ -17,23 +17,7 @@ fi
 echo "# Civilsphere AI VPN Report"
 echo
 
-# Obtain size of the Pcap
-PCAP_SIZE=$(du -h $PCAP |cut -f1)
-
-# Obtain number of packets
-PCAP_PKTS=$(tcpdump -nn -r $PCAP 2>/dev/null | wc -l)
-
-# Timestamp first packet:
-T1=$(tcpdump -tt -nn -s0 -r $PCAP 2>/dev/null |head -n 1 | awk -F " IP" '{print $1}'|awk -F\. '{print $1}')
-
-# Timestamp last packet:
-T2=$(tcpdump -tt -nn -s0 -r $PCAP 2>/dev/null |tail -n 1 | awk -F " IP" '{print $1}'|awk -F\. '{print $1}')
-
-# Calculate PCAP Duration
-PCAP_DUR=$(( ( $T2 - $T1 ) / 3600 ))
-
-
-echo -e "## PCAP General Summary\n"
+echo "## PCAP General Summary"
 echo
 echo "\`\`\`"
 capinfos $PCAP 2>/dev/null  |grep "name:\|packets:\|size:\|duration:\|packet time\|SHA256"
@@ -43,7 +27,7 @@ echo
 echo "## Top Uploads"
 echo
 echo "| Origin | <-> | Destination | Download | Upload | Total Transferred |"
-echo "| | -------|:---:|-------- | -------:| -------:| -------: |"
+echo "| -------|:---:|-------- | -------:| -------:| -------: |"
 tshark -qzconv,ipv4 -r $PCAP  2>/dev/null |head -n 10 |grep -v "|\|IPv4\|Filter\|===" |awk '{print "| "$1" | <-> | "$3" | "$5" | "$7" | "$9" |"}'
 echo
 
