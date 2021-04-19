@@ -63,3 +63,6 @@ capinfos -TmQ $PCAP | python -c 'import csv, json, sys; print(json.dumps([dict(r
 
 # HTTP Request information in JSON format
 tshark -r $PCAP -Y http.request -T json -e http.host -e http.request.method -e http.request.uri -e http.user_agent -e http.request.version 2>/dev/null > $FILENAME".http"
+
+# DNS Requests information in JSON format
+tshark -r $PCAP -T json -Y dns -e dns.qry.name 2>/dev/null > $FILENAME".dns"
