@@ -68,4 +68,4 @@ tshark -r $PCAP -Y http.request -T json -e http.host -e http.request.method -e h
 tshark -r $PCAP -T json -Y dns -e dns.qry.name 2>/dev/null > $FILENAME".dns"
 
 # Top 10 Uploads JSON format
-tshark -qzconv,ipv4 -r $PCAP 2>/dev/null |grep -v "|\|IPv4\|Filter\|=" |sort -n -k 7 -r | head -n 10 | awk 'BEGIN{print "Source-Destination,Total Download, Total Upload, Total Transferred, Duration"}; {print $1" "$2" "$3","$5","$7","$9","$11}; END{}' | python -c 'import csv, json, sys; print(json.dumps([dict(r) for r in csv.DictReader(sys.stdin)]))' > $FILENAME".uploads"
+tshark -qzconv,ipv4 -r $PCAP 2>/dev/null |grep -v "|\|IPv4\|Filter\|=" |sort -n -k 7 -r | head -n 10 | awk 'BEGIN{print "Source-Destination,Total Download,Total Upload,Total Transferred,Duration"}; {print $1" "$2" "$3","$5","$7","$9","$11}; END{}' | python -c 'import csv, json, sys; print(json.dumps([dict(r) for r in csv.DictReader(sys.stdin)]))' > $FILENAME".uploads"
