@@ -81,6 +81,16 @@ def generate_profile_report(profile_name,PATH):
             report.write('```\n')
             report.write('\n')
 
+            # Generate Top Data Transfer
+            report.write('### Top Uploads (bytes)\n\n')
+            report.write('| Source-Destination | Total Download | Total Upload | Total Transferred | Total Duration |\n')
+            report.write('| ----|----:|----:| ----:| ----:|\n')
+            with open(f'{capture_name}.uploads','r') as file_source:
+                file_uploads = json.load(file_source)
+
+            for item in file_uploads:
+                report.write(f"|{item['Source-Destination']}|{item['Total Download']}|{item['Total Upload']}|{item['Total Transferred']}|{item['Duration']}|\n")
+
             # Generate the DNS information
             report.write('### Top 30 DNS Requests\n\n')
             with open(f'{capture_name}.dns','r') as file_source:
