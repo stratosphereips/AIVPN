@@ -44,15 +44,8 @@ def process_profile_traffic(profile_name,PATH):
             VALID_CAPTURE=True
             logging.info("Running the Pcap Summarizer")
             with open(report_source,"wb") as output:
-                process = subprocess.Popen(["/code/pcapsummarizer.sh",capture_file],stdout=output)
+                process = subprocess.Popen(["/code/pcapsummarizer.sh",capture_file])
                 process.wait()
-            logging.info("Running pandoc")
-            args=["pandoc",report_source,"--pdf-engine=xelatex","-f","gfm","-V","linkcolor:blue","-V","geometry:a4paper","-V","geometry:top=2cm, bottom=1.5cm, left=2cm, right=2cm", "--metadata=author:Civilsphere Project","--metadata=lang:en-US","-o",report_build]
-            process = subprocess.Popen(args)
-            process.wait()
-            # Right now we generate a report for one capture.
-            # TODO: Handle multiple captures
-            break
         return VALID_CAPTURE
     except Exception as err:
         logging.info(f'Exception in process_profile_traffic: {err}')
@@ -61,8 +54,8 @@ def process_profile_traffic(profile_name,PATH):
 def generate_profile_report(profile_name,PATH):
     """ Process all the outputs and assemble the report. """
     try:
-        report_source=f'{profile_name}_new.md'
-        report_build=f'{profile_name}_new.pdf'
+        report_source=f'{profile_name}.md'
+        report_build=f'{profile_name}.pdf'
         os.chdir(f'{PATH}/{profile_name}')
 
         # Open report file to generate
@@ -152,7 +145,8 @@ if __name__ == '__main__':
                     profile_name = item['data'].split(':')[1]
                     logging.info(f'Starting report on profile {profile_name}')
                     status = process_profile_traffic(profile_name,PATH)
-                    generate_profile_report(profile_name,PATH)
+                    logging.info(f'Status of the processing of profile {profile_name}: {status}')
+                    status = generate_profile_report(profile_name,PATH)
                     logging.info(f'Status of report on profile {profile_name}: {status}')
                     if not status:
                         logging.info('All associated captures were empty')
