@@ -6,11 +6,13 @@
 import os
 import sys
 import glob
+import json
 import redis
 import logging
 import subprocess
 import configparser
 from common.database import *
+from collections import Counter
 
 def read_configuration():
     #Read configuration
@@ -56,6 +58,59 @@ def process_profile_traffic(profile_name,PATH):
         logging.info(f'Exception in process_profile_traffic: {err}')
         sys.exit(-1)
 
+def generate_profile_report(profile_name,PATH):
+    """ Process all the outputs and assemble the report. """
+    try:
+        report_source=f'{profile_name}_new.md'
+        report_build=f'{profile_name}_new.pdf'
+        os.chdir(f'{PATH}/{profile_name}')
+
+        # Open report file to generate
+        report = open(report_source,'w')
+        report.write('# Emergency VPN Report\n')
+
+        # One section per pcap
+        for capture_file in glob.glob("*.pcap"):
+            capture_name = capture_file.split('.pcap')[0]
+            report.write(f'## Capture {capture_name} \n')
+
+            # Generate the capture information
+            report.write('### Capture Information\n\n')
+            with open(f'{capture_name}.capinfos','r') as file_source:
+                file_capinfos = json.load(file_source)
+            report.write('\n```\n')
+            report.write(f"File name: {file_capinfos[0]['File name']}\n")
+            report.write(f"Number of packets: {file_capinfos[0]['Number of packets']}\n")
+            report.write(f"File size (bytes): {file_capinfos[0]['File size (bytes)']}\n")
+            report.write(f"Start time: {file_capinfos[0]['Start time']}\n")
+            report.write(f"End time: {file_capinfos[0]['End time']}\n")
+            report.write(f"SHA256: {file_capinfos[0]['SHA256']}\n")
+            report.write('```\n')
+            report.write('\n')
+
+            # Generate the DNS information
+            report.write('### Top 30 DNS Requests\n\n')
+            with open(f'{capture_name}.dns','r') as file_source:
+                file_dns = json.load(file_source)
+
+            dns_queries = []
+            for qry in file_dns:
+                dns_queries.append(qry['_source']['layers']['dns.qry.name'][0])
+
+            dns_counter = Counter(dns_queries)
+            for qry in sorted(dns_counter.items(), key=lambda x: x[1], reverse=True)[:30]:
+                report.write(f'- {qry[1]} {qry[0]}\n')
+
+        report.close()
+        logging.info("Running pandoc")
+        args=["pandoc",report_source,"--pdf-engine=xelatex","-f","gfm","-V","linkcolor:blue","-V","geometry:a4paper","-V","geometry:top=2cm, bottom=1.5cm, left=2cm, right=2cm", "--metadata=author:Civilsphere Project","--metadata=lang:en-US","-o",report_build]
+        process = subprocess.Popen(args)
+        process.wait()
+        return True
+    except Exception as err:
+        logging.info(f'Exception in generate_profile_report: {err}')
+        return False
+
 if __name__ == '__main__':
     # Read configuration file
     REDIS_SERVER,CHANNEL,LOG_FILE,PATH = read_configuration()
@@ -97,6 +152,7 @@ if __name__ == '__main__':
                     profile_name = item['data'].split(':')[1]
                     logging.info(f'Starting report on profile {profile_name}')
                     status = process_profile_traffic(profile_name,PATH)
+                    generate_profile_report(profile_name,PATH)
                     logging.info(f'Status of report on profile {profile_name}: {status}')
                     if not status:
                         logging.info('All associated captures were empty')
