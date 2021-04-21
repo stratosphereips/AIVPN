@@ -18,22 +18,26 @@ def send_request_to_redis(msg_id, msg_addr, msg_type, logging, redis_client):
     This is the first step to get a new account provisioned.
     """
     try:
-        logging.debug("Sending a request to Redis: ({}) {} on {}".format(str(msg_id),msg_addr,msg_type))
+        logging.debug(f'Sending request to Redis: ({str(msg_id)}) {msg_addr} on {msg_type}')
         add_item_provisioning_queue(redis_client,msg_id,msg_type,msg_addr)
         return True
-    except Exception as e:
-        print(e)
+    except Exception as err:
+        logging.info(f'Exception in send_request_to_redis: {err}')
         return False
 
-def get_new_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD,logging):
+def get_new_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
+    """
+    This function connects to an email server and retrieves all new emails to
+    identify new VPN requests.
+    """
+
     email_requests = []
     msg_type = "email"
-
     try:
         # Connect to email
         mail = imaplib.IMAP4_SSL(IMAP_SERVER)
         mail.login(IMAP_USERNAME,IMAP_PASSWORD)
-        logging.info("Connected to account successful")
+        logging.debug("Connected to account successful")
 
         # Connect to Inbox. Readyonly option: False=marks msgs as read; True=keep messages as unread.
         mail.select("Inbox", readonly=False)
@@ -77,14 +81,11 @@ def get_new_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD,loggin
 
             # Parse subject and find matches for keyword VPN
             try:
-                email_subject = re.search(r'[VPN]+', msg['subject']).group(0)
+                email_subject = re.search(r'[VPN]+', msg['subject'],re.IGNORECASE).group(0)
             except:
-                try:
-                    email_subject = re.search(r'[vpn]+', msg['subject']).group(0)
-                except:
-                    email_subject = ""
+                email_subject = ""
+            logging.debug(f"Extracted email subject: {email_subject}")
 
-            logging.debug(f"Processing email subject {email_subject}")
             # Parse email body and find matches for keyword VPN
             try:
                 # Extract email body in rich email
@@ -94,17 +95,13 @@ def get_new_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD,loggin
                 email_body = msg.get_payload()
 
             try:
-                email_body = re.search(r'[VPN]+', email_body).group(0)
+                email_body = re.search(r'[VPN]+', email_body,re.IGNORECASE).group(0)
             except:
-                try:
-                    email_body = re.search(r'[vpn]+', email_body).group(0)
-                except:
-                    email_body = ""
-
-            logging.debug(f"Processing email body {email_body}")
+                email_body = ""
+            logging.debug(f"Extracted email body: {email_body}")
 
             # We only parse messages that contain VPN in subject or body
-            # These prints will be removed after we test everythig is good
+            # These prints will be removed after we test everything is good
             if ('vpn' in email_subject.lower() or 'vpn' in email_body.lower()):
                 # Parse email date
                 email_date = msg['date']
@@ -169,22 +166,22 @@ if __name__ == '__main__':
     # Connecting to the Redis database
     try:
         redis_client = redis_connect_to_db(REDIS_SERVER)
-    except:
-        logging.error("Unable to connect to the Redis database (",REDIS_SERVER,")")
+    except Exception as err:
+        logging.error(f'Unable to connect to the Redis {REDIS_SERVER}: {err}')
         sys.exit(-1)
 
     # Creating a Redis subscriber
     try:
         db_subscriber = redis_create_subscriber(redis_client)
-    except:
-        logging.error("Unable to create a Redis subscriber")
+    except Exception as err:
+        logging.error(f'Unable to create a Redis subscriber: {err}')
         sys.exit(-1)
 
     # Subscribing to Redis channel
     try:
         redis_subscribe_to_channel(db_subscriber,CHANNEL)
-    except:
-        logging.error("Channel subscription failed")
+    except Exception as err:
+        logging.error('Channel subscription failed: {err}')
         sys.exit(-1)
 
     try:
@@ -193,24 +190,23 @@ if __name__ == '__main__':
         # Checking for messages
         for item in db_subscriber.listen():
             if item['type'] == 'message':
-                logging.info("New message received in channel {}: {}".format(item['channel'],item['data']))
+                logging.info(f"New message received in channel {item['channel']}: {item['data']}")
                 if item['data'] == 'report_status':
-                    if get_new_requests(redis_client, IMAP_SERVER, IMAP_USERNAME, IMAP_PASSWORD,logging):
-                        redis_client.publish('services_status', 'MOD_COMM_RECV:online')
-                        logging.info('MOD_COMM_RECV:online')
+                    if get_new_requests(redis_client, IMAP_SERVER, IMAP_USERNAME, IMAP_PASSWORD):
+                        redis_client.publish('services_status','MOD_COMM_RECV:online')
+                        logging.info('Status Online')
                     else:
                         REDIS_SERVER,CHANNEL,LOG_FILE,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD = read_configuration()
-                        redis_client.publish('services_status', 'MOD_COMM_RECV:error_checking_requests')
-                        logging.info('MOD_COMM_RECV:error_checking_requests')
+                        redis_client.publish('services_status','MOD_COMM_RECV:error_checking_requests')
+                        logging.info('Error checking requests')
 
-        redis_client.publish('services_status', 'MOD_COMM_RECV:offline')
+        redis_client.publish('services_status','MOD_COMM_RECV:offline')
         logging.info("Terminating.")
-        redis_client.close()
         db_subscriber.close()
+        redis_client.close()
         sys.exit(0)
     except Exception as err:
-        redis_client.close()
+        logging.info(f'Terminating via exception in __main__: {err}')
         db_subscriber.close()
-        logging.info("Terminating via exception in main")
-        logging.info(err)
+        redis_client.close()
         sys.exit(-1)
