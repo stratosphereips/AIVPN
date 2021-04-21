@@ -169,7 +169,7 @@ if __name__ == '__main__':
                     elif 'send_report_profile_email' in item['data']:
                         status = send_mime_msg_via_email(msg_type,profile_name,msg_addr,config)
                     else:
-                        status = send_plain_message_via_email(msg_type,profile_name,msg_addr,config)
+                        status = send_plain_msg_via_email(msg_type,profile_name,msg_addr,config)
 
                     logging.info(f"{item['data']} status: {status}")
                     redis_client.publish('services_status',f"MOD_COMM_SEND:{item['data']}_{status}")
@@ -181,7 +181,7 @@ if __name__ == '__main__':
                     profile_name=""
 
                     logging.info(f"Sending {msg_type} to {msg_addr}")
-                    status = send_plain_message_via_email(msg_type,profile_name,msg_addr,config)
+                    status = send_plain_msg_via_email(msg_type,profile_name,msg_addr,config)
 
                     logging.info(f"Sending {msg_type} status: {status}")
                     redis_client.publish('services_status',f"MOD_COMM_SEND:{msg_type}_{status}")
