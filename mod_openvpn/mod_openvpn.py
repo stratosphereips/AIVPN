@@ -156,15 +156,13 @@ def read_configuration():
     LOG_FILE = config['LOGS']['LOG_OPENVPN']
     SERVER_PUBLIC_URL = config['OPENVPN']['SERVER_PUBLIC_URL']
     PKI_ADDRESS = config['OPENVPN']['PKI_ADDRESS']
-    CERTIFICATES = config['OPENVPN']['CERTIFICATES']
-    NETWORK_CIDR = config['OPENVPN']['NETWORK_CIDR']
     PATH = config['STORAGE']['PATH']
 
-    return REDIS_SERVER,CHANNEL,LOG_FILE,SERVER_PUBLIC_URL,PKI_ADDRESS,CERTIFICATES,NETWORK_CIDR,PATH
+    return REDIS_SERVER,CHANNEL,LOG_FILE,SERVER_PUBLIC_URL,PKI_ADDRESS,PATH
 
 if __name__ == '__main__':
     # Read configuration
-    REDIS_SERVER,CHANNEL,LOG_FILE,SERVER_PUBLIC_URL,PKI_ADDRESS,CERTIFICATES,NETWORK_CIDR,PATH = read_configuration()
+    REDIS_SERVER,CHANNEL,LOG_FILE,SERVER_PUBLIC_URL,PKI_ADDRESS,PATH = read_configuration()
 
     logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG,format='%(asctime)s, MOD_OPENVPN, %(message)s')
 
