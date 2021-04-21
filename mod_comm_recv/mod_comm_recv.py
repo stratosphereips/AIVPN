@@ -161,7 +161,7 @@ if __name__ == '__main__':
     REDIS_SERVER,CHANNEL,LOG_FILE,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD = read_configuration()
 
     # Initialize logging
-    logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.INFO,format='%(asctime)s, MOD_CONN_RECV, %(message)s')
+    logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.INFO,format='%(asctime)s, MOD_COMM_RECV, %(message)s')
 
     # Connecting to the Redis database
     try:
