@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
 # This file is part of the Civilsphere AI VPN
 # See the file 'LICENSE' for copying permission.
-# Author: Sebastian Garcia
-# - eldraco@gmail.com
-# - sebastian.garcia@agents.fel.cvut.cz
-# Author: Veronica Valeros
-# - vero.valeros@gmail.com
-# - veronica.valeros@aic.fel.cvut.cz
+# Author: Sebastian Garcia, eldraco@gmail.com, sebastian.garcia@agents.fel.cvut.cz
+# Author: Veronica Valeros, vero.valeros@gmail.com, veronica.valeros@aic.fel.cvut.cz
 
 import os
 import sys
@@ -33,14 +29,14 @@ def configure_openvpn_server(SERVER_PUBLIC_URL,PKI_ADDRESS):
                 COMMAND='/usr/local/bin/ovpn_genconfig -u '+SERVER_PUBLIC_URL
                 logging.info(COMMAND)
                 os.system(COMMAND)
-            except Exception as e:
-                logging.info(e)
+            except Exception as err:
+                logging.info(f'Exception generating OpenVPN configuration: {err}')
             try:
                 COMMAND='/usr/local/bin/ovpn_initpki nopass <<'+PKI_INPUT
                 logging.info(COMMAND)
                 os.system(COMMAND)
-            except Exception as e:
-                logging.info(e)
+            except Exception as err:
+                logging.info(f'Exception generating PKI: {err}')
 
         # Attempt to run the OpenVPN server
         try:
@@ -52,12 +48,12 @@ def configure_openvpn_server(SERVER_PUBLIC_URL,PKI_ADDRESS):
             logging.info('Invoking the ovpn_run script to start the service')
             subprocess.Popen(["/usr/local/bin/ovpn_run"])
             return True
-        except Exception as e:
-            logging.info(e)
+        except Exception as err:
+            logging.info(f'Exception attempting to run the OpenVPN server: {err}')
             return False
 
-    except Exception as e:
-        logging.info(e)
+    except Exception as err:
+        logging.info(f'Exception in configure_openvpn_server: {err}')
         return False
 
 def revoke_openvpn_profile(CLIENT_NAME):
@@ -69,6 +65,7 @@ def revoke_openvpn_profile(CLIENT_NAME):
         subprocess.run([COMMAND,CLIENT_NAME], stdout=subprocess.PIPE, text=True, input="yes")
         return True
     except Exception as err:
+        logging.info(f'Exception in revoke_openvpn_profile: {err}')
         return err
 
 def generate_openvpn_profile(CLIENT_NAME):
@@ -76,12 +73,11 @@ def generate_openvpn_profile(CLIENT_NAME):
     """
     This function generates a new profile for a client_name.
     """
-
     try:
         os.system('/usr/local/bin/easyrsa build-client-full %s nopass' % CLIENT_NAME)
         return True
-    except Exception as e:
-        logging.info(e)
+    except Exception as err:
+        logging.info(f'Exception in generate_openvpn_profile: {err}')
         return False
 
 def get_openvpn_profile(CLIENT_NAME,PATH):
@@ -90,8 +86,8 @@ def get_openvpn_profile(CLIENT_NAME,PATH):
     """
     try:
         os.system('/usr/local/bin/ovpn_getclient %s > %s/%s/%s.ovpn' % (CLIENT_NAME,PATH,CLIENT_NAME,CLIENT_NAME))
-    except Exception as e:
-        logging.info("Error in mod_openvpn::get_openvpn_profile: {}".format(e))
+    except Exception as err:
+        logging.info(f'Error in get_openvpn_profile: {err}')
 
 def start_traffic_capture(CLIENT_NAME,CLIENT_IP,PATH):
     """
@@ -114,7 +110,7 @@ def start_traffic_capture(CLIENT_NAME,CLIENT_IP,PATH):
         # Return the PID
         return PID
     except Exception as err:
-        logging.info(f'Error in mod_openvpn::start_traffic_capture: {err}')
+        logging.info(f'Error in start_traffic_capture: {err}')
         return False
 
 def stop_traffic_capture(CLIENT_PID):
@@ -124,6 +120,7 @@ def stop_traffic_capture(CLIENT_PID):
         os.wait()
         return True
     except Exception as err:
+        logging.info(f'Exception in stop_traffic_capture: {err}')
         return err
 
 def set_profile_static_ip(CLIENT_NAME,CLIENT_IP):
@@ -169,33 +166,28 @@ if __name__ == '__main__':
     # Read configuration
     REDIS_SERVER,CHANNEL,LOG_FILE,SERVER_PUBLIC_URL,PKI_ADDRESS,CERTIFICATES,NETWORK_CIDR,PATH = read_configuration()
 
-    try:
-        #TODO: Fix encoding error.
-        # logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s, MOD_OPENVPN, %(message)s')
-        logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG,format='%(asctime)s, MOD_OPENVPN, %(message)s')
-    except Exception:
-        sys.exit(-1)
+    logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG,format='%(asctime)s, MOD_OPENVPN, %(message)s')
 
     # Connecting to the Redis database
     try:
         redis_client = redis_connect_to_db(REDIS_SERVER)
-    except Exception as e:
-        logging.info("Unable to connect to the Redis database ({}): {}".format(REDIS_SERVER,e))
+    except Exception as err:
+        logging.info(f'Unable to connect to the Redis database ({REDIS_SERVER}): {err}')
         sys.exit(-1)
 
     # Creating a Redis subscriber
     try:
         db_subscriber = redis_create_subscriber(redis_client)
-    except Exception as e:
-        logging.info("Unable to create a Redis subscriber: {}".format(e))
+    except Exception as err:
+        logging.info(f'Unable to create a Redis subscriber: {err}')
         sys.exit(-1)
 
     # Subscribing to Redis channel
     try:
         redis_subscribe_to_channel(db_subscriber,CHANNEL)
         logging.info("Connection and channel subscription to redis successful.")
-    except Exception as e:
-        logging.info("Channel subscription failed: {}".format(e))
+    except Exception as err:
+        logging.info(f'Channel subscription failed: {err}')
         sys.exit(-1)
 
     # Configuring the OpenVPN server
@@ -208,10 +200,10 @@ if __name__ == '__main__':
         for item in db_subscriber.listen():
             # Every new message is processed and acted upon
             if item['type'] == 'message':
-                logging.info("New message received in channel {}: {}".format(item['channel'],item['data']))
+                logging.info(f"New message received in channel {item['channel']}: {item['data']}")
                 if item['data'] == 'report_status':
                     redis_client.publish('services_status', 'MOD_OPENVPN:online')
-                    logging.info('Status: online')
+                    logging.info('Status Online')
                 elif 'new_profile' in item['data']:
                     account_error_message=""
                     logging.info('Received a new request for an OpenVPN profile')
@@ -283,11 +275,11 @@ if __name__ == '__main__':
 
         redis_client.publish('services_status', 'MOD_OPENVPN:offline')
         logging.info("Terminating")
-        redis_client.close()
         db_subscriber.close()
+        redis_client.close()
         sys.exit(-1)
     except Exception as err:
-        redis_client.close()
+        logging.info(f'Terminating via exception in main: {err}')
         db_subscriber.close()
-        logging.info("Terminating via exception in main: {}".format(err))
+        redis_client.close()
         sys.exit(-1)
