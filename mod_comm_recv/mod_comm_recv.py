@@ -81,7 +81,7 @@ def get_new_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
 
             # Parse subject and find matches for keyword VPN
             try:
-                email_subject = re.search(r'[VPN]+', msg['subject'],re.IGNORECASE).group(0)
+                email_subject = re.search(r'VPN', msg['subject'],re.IGNORECASE).group(0)
             except:
                 email_subject = ""
             logging.debug(f"Extracted email subject: {email_subject}")
@@ -95,7 +95,7 @@ def get_new_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
                 email_body = msg.get_payload()
 
             try:
-                email_body = re.search(r'[VPN]+', email_body,re.IGNORECASE).group(0)
+                email_body = re.search(r'VPN',email_body,re.IGNORECASE).group(0)
             except:
                 email_body = ""
             logging.debug(f"Extracted email body: {email_body}")
