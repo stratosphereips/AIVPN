@@ -15,18 +15,6 @@ from common.database import *
 from user_agents import parse
 from collections import Counter
 
-def read_configuration():
-    #Read configuration
-    config = configparser.ConfigParser()
-    config.read('config/config.ini')
-
-    REDIS_SERVER = config['REDIS']['REDIS_SERVER']
-    CHANNEL = config['REDIS']['REDIS_REPORT_CHECK']
-    LOG_FILE = config['LOGS']['LOG_REPORT']
-    PATH = config['STORAGE']['PATH']
-
-    return REDIS_SERVER,CHANNEL,LOG_FILE,PATH
-
 def process_profile_traffic(profile_name,PATH):
     """ Function to process the traffic for a given profile. """
     VALID_CAPTURE = False
@@ -103,29 +91,31 @@ def generate_profile_report(profile_name,PATH):
                 report.write(f'- {qry[1]} {qry[0]}\n')
 
             # Generate the HTTP Leak Information
-            report.write('### Information Leaked Via Insecure HTTP Requests\n\n')
-            report.write('Insecure connections (HTTP) may leak information or could be used in injection and redirection attacks to compromise the device. Uninstall all applications generating insecure requests.\n\n')
-
             with open(f'{capture_name}.http','r') as file_source:
                 file_http = json.load(file_source)
 
-            report.write('List of websites visited using HTTP:\n')
             http_hosts = []
             for qry in file_http:
                 http_hosts.append(qry['_source']['layers']['http.host'][0])
-            http_hosts_counter = Counter(http_hosts)
-            for qry in sorted(http_hosts_counter.items(), key=lambda x: x[1], reverse=True):
-                report.write(f'- {qry[1]} {qry[0]}\n')
+            if len(http_hosts)>0:
+                report.write('### Information Leaked Via Insecure HTTP Requests\n\n')
+                report.write('Insecure connections (HTTP) may leak information or could be used in injection and redirection attacks to compromise the device. Uninstall all applications generating insecure requests.\n\n')
 
-            report.write('\n')
-            report.write('These requests use the following User-Agents: \n')
-            http_uagents = []
-            for qry in file_http:
-                http_uagents.append(qry['_source']['layers']['http.user_agent'][0])
-            http_uagents_counter = Counter(http_uagents)
-            for qry in sorted(http_uagents_counter.items(), key=lambda x: x[1], reverse=True):
-                report.write(f'- {qry[1]} {qry[0]}\n')
-                report.write(f'\t- Information extracted: {parse(qry[0])}\n')
+                report.write('List of websites visited using HTTP:\n')
+                http_hosts_counter = Counter(http_hosts)
+                for qry in sorted(http_hosts_counter.items(), key=lambda x: x[1], reverse=True):
+                    report.write(f'- {qry[1]} {qry[0]}\n')
+                report.write('\n')
+
+                http_uagents = []
+                for qry in file_http:
+                    http_uagents.append(qry['_source']['layers']['http.user_agent'][0])
+                if len(http_uagents)>0:
+                    report.write('These requests use the following User-Agents: \n')
+                    http_uagents_counter = Counter(http_uagents)
+                    for qry in sorted(http_uagents_counter.items(), key=lambda x: x[1], reverse=True):
+                        report.write(f'- {qry[1]} {qry[0]}\n')
+                        report.write(f'\t- Information extracted: {parse(qry[0])}\n')
 
         # Generate final report (PDF)
         report.close()
@@ -139,8 +129,14 @@ def generate_profile_report(profile_name,PATH):
         return False
 
 if __name__ == '__main__':
-    # Read configuration file
-    REDIS_SERVER,CHANNEL,LOG_FILE,PATH = read_configuration()
+    #Read configuration
+    config = configparser.ConfigParser()
+    config.read('config/config.ini')
+
+    REDIS_SERVER = config['REDIS']['REDIS_SERVER']
+    CHANNEL = config['REDIS']['REDIS_REPORT_CHECK']
+    LOG_FILE = config['LOGS']['LOG_REPORT']
+    PATH = config['STORAGE']['PATH']
 
     logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s, MOD_REPORT, %(message)s')
 
