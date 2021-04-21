@@ -33,24 +33,21 @@ def process_profile_traffic(profile_name,PATH):
     try:
         # Find all pcaps for the profile and process them
         os.chdir(f'{PATH}/{profile_name}')
-        report_source=f'{profile_name}.md'
-        report_build=f'{profile_name}.pdf'
+
         for capture_file in glob.glob("*.pcap"):
             capture_size = os.stat(capture_file).st_size
             logging.info(f'Processing capture {capture_file} ({capture_size} b)')
-            # If capture is empty, move to next pcap
-            if capture_size < 25:
-                continue
-            # Capture not empty, process it
-            VALID_CAPTURE=True
-            logging.info("Running the Pcap Summarizer")
-            with open(report_source,"wb") as output:
+
+            # If capture is not empty: process it
+            if capture_size > 25:
+                VALID_CAPTURE=True
                 process = subprocess.Popen(["/code/pcapsummarizer.sh",capture_file])
                 process.wait()
+
         return VALID_CAPTURE
     except Exception as err:
         logging.info(f'Exception in process_profile_traffic: {err}')
-        sys.exit(-1)
+        return False
 
 def generate_profile_report(profile_name,PATH):
     """ Process all the outputs and assemble the report. """
@@ -183,8 +180,6 @@ if __name__ == '__main__':
                     logging.info(f'Starting report on profile {profile_name}')
                     status = process_profile_traffic(profile_name,PATH)
                     logging.info(f'Status of the processing of profile {profile_name}: {status}')
-                    status = generate_profile_report(profile_name,PATH)
-                    logging.info(f'Status of report on profile {profile_name}: {status}')
                     if not status:
                         logging.info('All associated captures were empty')
                         message=f'send_empty_capture_email:{profile_name}'
@@ -193,14 +188,20 @@ if __name__ == '__main__':
                         upd_reported_time_to_expired_profile(profile_name,redis_client)
                         continue
                     if status:
-                        logging.info('Processing of associated captures completed')
-                        message=f'send_report_profile_email:{profile_name}'
-                        redis_client.publish('mod_comm_send_check',message)
-                        status=del_profile_to_report(profile_name,redis_client)
-                        logging.info(f'del_profile_to_report: {status}')
-                        status=upd_reported_time_to_expired_profile(profile_name,redis_client)
-                        logging.info(f'upd_reported_time_to_expired_profile: {status}')
-                        continue
+                        status = generate_profile_report(profile_name,PATH)
+                        logging.info(f'Status of report on profile {profile_name}: {status}')
+                        if status:
+                            logging.info('Processing of associated captures completed')
+                            message=f'send_report_profile_email:{profile_name}'
+                            redis_client.publish('mod_comm_send_check',message)
+                            status=del_profile_to_report(profile_name,redis_client)
+                            logging.info(f'del_profile_to_report: {status}')
+                            status=upd_reported_time_to_expired_profile(profile_name,redis_client)
+                            logging.info(f'upd_reported_time_to_expired_profile: {status}')
+                            continue
+                        else:
+                            logging.info(f'Error encountered when generating the report for profile {profile_name}')
+
         redis_client.publish('services_status', 'MOD_REPORT:offline')
         logging.info("Terminating")
         db_subscriber.close()
