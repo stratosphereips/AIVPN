@@ -21,7 +21,6 @@ PASSWORD = addheretheaccountpassword
 
 [STORAGE]
 PATH = /data
-SWARM_CONF_FILE = /code/common/swarm_modules.py
 
 [OPENVPN]
 SERVER_PUBLIC_URL = udp://example-server.com
@@ -32,3 +31,12 @@ NETWORK_CIDR = 192.168.255.0/24
 [AIVPN]
 EXPIRATION_THRESHOLD = 72
 ACTIVE_ACCOUNT_LIMIT = 5
+CHECK_STATUS_TIME = 30
+CHECK_EXPIRED_TIME = 60
+MESSAGE_SUBJECT_PREFIX = [Civilsphere AI VPN]
+MESSAGE_NEW_PROFILE = Please find attached your new VPN profile.
+MESSAGE_REPORT = Please find attached the report with the automatic analysis of the network traffic in this session.
+MESSAGE_EXPIRED_PROFILE = Your AI VPN profile has expired. A report on the captured traffic is being generated and will be sent in a separate email.
+MESSAGE_REPORT_EMPTY = Dear user, there was no traffic captured in this session. This could be because (i) the profile was not used, (ii) the device did not connect to the VPN. Please try again.
+MESSAGE_MAX_LIMIT = You have reached the maximum number of active profiles per account. Try again after your active profiles have expired.
+MESSAGE_FULL_CAPACITY = Our service is at full capacity at the moment. Please try again in 24hs.
