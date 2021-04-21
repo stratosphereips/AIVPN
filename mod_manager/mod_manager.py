@@ -15,35 +15,25 @@ import configparser
 from common.database import *
 from common.storage import *
 
-def read_configuration():
-    # Read configuration file
-    config = configparser.ConfigParser()
-    config.read('config/config.ini')
 
-    REDIS_SERVER = config['REDIS']['REDIS_SERVER']
-    CHANNEL = config['REDIS']['REDIS_MANAGER_CHECK']
-    LOG_FILE = config['LOGS']['LOG_MANAGER']
-    PATH = config['STORAGE']['PATH']
-    SWARM_CONF_FILE = config['STORAGE']['SWARM_CONF_FILE']
-    MOD_CHANNELS = json.loads(config['REDIS']['REDIS_MODULES'])
-    EXPIRATION_THRESHOLD = config['AIVPN']['EXPIRATION_THRESHOLD']
-    return REDIS_SERVER,CHANNEL,LOG_FILE,PATH,SWARM_CONF_FILE,MOD_CHANNELS,EXPIRATION_THRESHOLD
-
-def redis_channel_monitoring(CHANNEL,db_subscriber,redis_client):
+def redis_channel_monitoring(CHANNEL,db_subscriber,redis_client,ACTIVE_ACCOUNT_LIMIT):
+    """
+    Function that checks for new messages from the modules.
+    """
     while True:
         try:
             # Checking for messages
             for item in db_subscriber.listen():
                 if item['type'] == 'message':
-                    logging.info("New message received in channel {}: {}".format(item['channel'],item['data']))
+                    logging.info(f"New message received in channel {item['channel']}: {item['data']}")
                     if item['data'] == 'MOD_COMM_RECV:NEW_REQUEST':
                         try:
                             new_request = get_item_provisioning_queue(redis_client)
-                            logging.info('New request received: {}'.format(new_request[0]))
-                            result = provision_account(new_request[0],redis_client)
-                            logging.info('Provisioning result: {}'.format(result))
-                        except Exception as e:
-                            logging.info(e)
+                            logging.info(f'Provisioning new request: {new_request[0]}')
+                            result = provision_account(new_request[0],redis_client,ACTIVE_ACCOUNT_LIMIT)
+                            logging.info(f'Provisioning result: {result}')
+                        except Exception as err:
+                            logging.info(f'Exception in handling new request: {err}')
         except Exception as err:
             logging.info(f'Error in loop in thread services_status_monitor: {err}')
             db_subscriber = redis_create_subscriber(redis_client)
@@ -52,18 +42,20 @@ def redis_channel_monitoring(CHANNEL,db_subscriber,redis_client):
             pass
 
 def thread_redis_channel_status_check(MOD_CHANNELS,redis_client):
-    """ """
+    """
+    Function that periodically sends status updates from modules.
+    """
     try:
-        logging.info("Sending report status message to: {}".format(MOD_CHANNELS))
-        # send status check to every channel
         for channel in MOD_CHANNELS:
-            logging.info("Sending report status message to: {}".format(channel))
+            logging.info(f'Sending report status message to: {channel}')
             redis_client.publish(channel,'report_status')
     except Exception as err:
-        logging.info(f'Error in loop in thread services_status_check: {err}')
+        logging.info(f'Error in loop in thread_redis_channel_status_check: {err}')
 
-def provision_account(new_request,REDIS_CLIENT):
-    """ This function handles the steps needed to provision a new account."""
+def provision_account(new_request,REDIS_CLIENT,ACTIVE_ACCOUNT_LIMIT):
+    """
+    This function handles the steps needed to provision a new account.
+    """
 
     # Step 0: Parse the new_request to extract values: msg_addr, msg_type, msg_id.
     ## new_request="msg_id":int(msg_id), "msg_type":str(msg_type), "msg_addr":str(msg_addr)
@@ -71,13 +63,10 @@ def provision_account(new_request,REDIS_CLIENT):
     p_msg_addr = new_request_object['msg_addr']
     p_msg_id = new_request_object['msg_id']
     p_msg_type = new_request_object['msg_type']
-    logging.info("Provisioning: new account for {} (ID: {}, Type: {})".format(p_msg_addr,p_msg_id,p_msg_type))
+    logging.info(f'Provisioning: new account for {p_msg_addr} (ID: {p_msg_id}, Type: {p_msg_type})')
 
     # Step 1: Can we provision this account? space, internet, PIDs, IPs, limits
     #         If we cannot, request is stored back in the provisioning queue.
-
-    ## TODO: read limit from configuration file
-    ACTIVE_ACCOUNT_LIMIT=300
 
     ## Check msg_addr hasn't reached the maximum limit of active profiles
     acc_number_active_profiles = get_active_profile_counter(p_msg_addr,REDIS_CLIENT)
@@ -96,13 +85,13 @@ def provision_account(new_request,REDIS_CLIENT):
     if available_ips<1:
         # Send message notifying the AI VPN is at full capacity. Discard request.
         logging.info(f'Provisioning: not enough ip addresses available to provision {p_msg_addr}')
-        redis_client.publish('mod_comm_send_check','error_max_capacity:'+p_msg_addr)
+        redis_client.publish('mod_comm_send_check',f'error_max_capacity:{p_msg_addr}')
         return False
 
     # Step 2: Generate profile name. Store it. Create folder.
     ## Get an account name
     acc_profile_name = gen_profile_name()
-    logging.info("Provisioning: profile name reserved {}".format(acc_profile_name))
+    logging.info(f'Provisioning: profile name reserved {acc_profile_name}')
     if not acc_profile_name:
         # Request is stored back in the provisioning queue.
         add_item_provisioning_queue(REDIS_CLIENT,p_msg_id,p_msg_type,p_msg_addr)
@@ -112,7 +101,7 @@ def provision_account(new_request,REDIS_CLIENT):
     ## Store the mapping of profile_name:msg_addr to quickly know how to reach
     ## the user when the reports are finished, or a contact is needed.
     prov_status = add_profile_name(acc_profile_name,p_msg_addr,REDIS_CLIENT)
-    logging.debug("Provisioning: Mapping of profile_name:mst_addr was {}".format(prov_status))
+    logging.debug(f'Provisioning: Mapping of profile_name:mst_addr was {prov_status}')
     if not prov_status:
         # Request is stored back in the provisioning queue.
         add_item_provisioning_queue(REDIS_CLIENT,p_msg_id,p_msg_type,p_msg_addr)
@@ -122,7 +111,7 @@ def provision_account(new_request,REDIS_CLIENT):
     ## Create a folder to store all files associated with the profile_name.
     ## The specific folder is specified in the configuration file.
     prov_status = create_working_directory(acc_profile_name)
-    logging.info("Provisioning: creation of working directory was {}".format(prov_status))
+    logging.info(f'Provisioning: creation of working directory was {prov_status}')
     if not prov_status:
         # Request is stored back in the provisioning queue.
         add_item_provisioning_queue(REDIS_CLIENT,p_msg_id,p_msg_type,p_msg_addr)
@@ -133,7 +122,7 @@ def provision_account(new_request,REDIS_CLIENT):
     #           Start traffic capture. Store PID.
 
     ## Trigger generation of VPN profile using profile_name.
-    message='new_profile:'+acc_profile_name
+    message=f'new_profile:{acc_profile_name}'
     REDIS_CLIENT.publish('mod_openvpn_check',message)
     logging.info("Provisioning: requested mod_openvpn a new profile.")
 
@@ -143,7 +132,7 @@ def provision_account(new_request,REDIS_CLIENT):
     redis_subscribe_to_channel(openvpn_subscriber,'provision_openvpn')
     for item in openvpn_subscriber.listen():
         if item['type'] == 'message':
-            logging.info("Provisioning: {}".format(item['data']))
+            logging.info(f"Provisioning: {item['data']}")
             if 'profile_creation_successful' in item['data']:
                 #Good. Continue.
                 break
@@ -152,7 +141,7 @@ def provision_account(new_request,REDIS_CLIENT):
                 message=item['data']
                 logging.info(f'provisioning: {message}')
                 if 'no available IP' in message:
-                    redis_client.publish('mod_comm_send_check','error_max_capacity:'+p_msg_addr)
+                    redis_client.publish('mod_comm_send_check',f'error_max_capacity:{p_msg_addr}')
                 else:
                     # Request is stored back in the provisioning queue.
                     add_item_provisioning_queue(REDIS_CLIENT,p_msg_id,p_msg_type,p_msg_addr)
@@ -160,18 +149,18 @@ def provision_account(new_request,REDIS_CLIENT):
                 return False
 
     # Step 5: Send profile or instruct manager to send profile.
-    REDIS_CLIENT.publish('mod_comm_send_check','send_openvpn_profile_email:'+acc_profile_name)
+    REDIS_CLIENT.publish('mod_comm_send_check',f'send_openvpn_profile_email:{acc_profile_name}')
 
     # Step 6: Provisioning successful, update Redis with account information.
     # If there's an error, these structures are not updated.
 
     ## Create identity for the account address.
     prov_status = add_identity(p_msg_addr,REDIS_CLIENT)
-    logging.info("Provisioning: result of adding new identity was {}".format(prov_status))
+    logging.info(f'Provisioning: result of adding new identity was {prov_status}')
 
     ## Update identity: add profile_name to account identity.
     prov_status = upd_identity_profiles(p_msg_addr,acc_profile_name,REDIS_CLIENT)
-    logging.info("Provisioning: identity profile update was {}".format(prov_status))
+    logging.info(f'Provisioning: identity profile update was {prov_status}')
 
     ## Update identity: increase identity counter by one.
     prov_status = upd_identity_counter(p_msg_addr,REDIS_CLIENT)
@@ -187,7 +176,9 @@ def provision_account(new_request,REDIS_CLIENT):
     return True
 
 def process_expired_accounts(REDIS_CLIENT,EXPIRATION_THRESHOLD):
-    """ Checks for new accounts to expire, and deprovisions them. """
+    """
+    Checks for new accounts to expire, and deprovisions them.
+    """
     try:
         # Get a list of active profiles to expire
         to_expire_profiles = get_active_profiles_to_expire(EXPIRATION_THRESHOLD,REDIS_CLIENT)
@@ -252,7 +243,7 @@ def deprovision_account(profile_name,REDIS_CLIENT):
         status = subs_active_profile_counter(acc_msg_addr,REDIS_CLIENT)
 
         # Notify user that the profile has expired
-        REDIS_CLIENT.publish('mod_comm_send_check','send_expire_profile_email:'+profile_name)
+        REDIS_CLIENT.publish('mod_comm_send_check',f'send_expire_profile_email:{profile_name}')
 
         # Add profile to expired_profiles 
         add_expired_profile(profile_name,acc_creation_time,REDIS_CLIENT)
@@ -264,30 +255,38 @@ def deprovision_account(profile_name,REDIS_CLIENT):
         openvpn_subscriber.close()
         return True
     except Exception as err:
+        logging.info(f'Exception in deprovision_account: {err}')
         return err
 
 if __name__ == '__main__':
-    REDIS_SERVER,CHANNEL,LOG_FILE,PATH,SWARM_CONF_FILE,MOD_CHANNELS,EXPIRATION_THRESHOLD = read_configuration()
-    try:
-        logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s, MOD_MANAGER, %(message)s')
-    except Exception as e:
-        logging.info(e)
-        sys.exit(-1)
+    # Read configuration
+    config = configparser.ConfigParser()
+    config.read('config/config.ini')
+
+    REDIS_SERVER = config['REDIS']['REDIS_SERVER']
+    CHANNEL = config['REDIS']['REDIS_MANAGER_CHECK']
+    LOG_FILE = config['LOGS']['LOG_MANAGER']
+    PATH = config['STORAGE']['PATH']
+    MOD_CHANNELS = json.loads(config['REDIS']['REDIS_MODULES'])
+    EXPIRATION_THRESHOLD = config['AIVPN']['EXPIRATION_THRESHOLD']
+    ACTIVE_ACCOUNT_LIMIT = int(config['AIVPN']['ACTIVE_ACCOUNT_LIMIT'])
+    CHECK_STATUS_TIME = int(config['AIVPN']['CHECK_STATUS_TIME'])
+    CHECK_EXPIRED_TIME = int(config['AIVPN']['CHECK_EXPIRED_TIME'])
+
+    logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s, MOD_MANAGER, %(message)s')
 
     # Connecting to the Redis database
     try:
         redis_client = redis_connect_to_db(REDIS_SERVER)
-    except Exception as e:
-        logging.info("Unable to connect to the Redis database (",REDIS_SERVER,")")
-        logging.info(e)
+    except Exception as err:
+        logging.info(f'Unable to connect to Redis ({REDIS_SERVER}): {err}')
         sys.exit(-1)
 
     # Creating a Redis subscriber
     try:
         db_subscriber = redis_create_subscriber(redis_client)
-    except Exception as e:
-        logging.info("Unable to create a Redis subscriber")
-        logging.info(e)
+    except Exception as err:
+        logging.info(f'Unable to create Redis subscriber: {err}')
         sys.exit(-1)
 
     # Subscribing to Redis channel
@@ -303,12 +302,12 @@ if __name__ == '__main__':
         redis_client.publish('services_status','MOD_MANAGER:online')
 
         # This thread sends status checks messages to modules
-        services_status_check = timerthread.Scheduler('recur', 60, thread_redis_channel_status_check, args=(MOD_CHANNELS,redis_client,))
+        services_status_check = timerthread.Scheduler('recur',CHECK_STATUS_TIME,thread_redis_channel_status_check,args=(MOD_CHANNELS,redis_client,))
         services_status_check.start()
         logging.info("services_status_check thread started")
 
         # Starting timerthread to check for expired accounts
-        expiration_timer = timerthread.Scheduler('recur', 60, process_expired_accounts, args=(redis_client,EXPIRATION_THRESHOLD,))
+        expiration_timer = timerthread.Scheduler('recur',CHECK_EXPIRED_TIME,process_expired_accounts,args=(redis_client,EXPIRATION_THRESHOLD,))
         expiration_timer_start = timerthread.Scheduler('delay', 60, expiration_timer.start, args=())
         expiration_timer_start.start()
         logging.info("expiration_timer scheduler started")
@@ -317,7 +316,7 @@ if __name__ == '__main__':
         logging.info("Starting the services_status_monitor")
         while True:
             try:
-                redis_channel_monitoring(CHANNEL,db_subscriber,redis_client)
+                redis_channel_monitoring(CHANNEL,db_subscriber,redis_client,ACTIVE_ACCOUNT_LIMIT)
             except Exception as err:
                 logging.info(f'services_status_monitor restarting due to exception: {err}')
 
