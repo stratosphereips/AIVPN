@@ -71,6 +71,7 @@ def generate_profile_report(profile_name,PATH):
             # Generate Top Data Transfer
             report.write('### Top Data Transfers (bytes)\n\n')
             report.write("Malicious applications usually steal data (photos, messages, files, voice recordings) from the device. The stolen data is uploaded to malicious servers. Recognizing which services the device is sending data to is important to identify possible malicious activity. If you do not recognize any of the services listed below, we recommend factory resetting the device to remove any suspicious activity. These are the top 5 data transfers:\n")
+            report.write('\n')
 
             report.write('| Source-Destination | Total Download | Total Upload | Total Transferred | Total Duration |\n')
             report.write('| ----|----:|----:| ----:| ----:|\n')
@@ -93,7 +94,7 @@ def generate_profile_report(profile_name,PATH):
 
             dns_counter = Counter(dns_queries)
             for qry in sorted(dns_counter.items(), key=lambda x: x[1], reverse=True)[:30]:
-                report.write(f'- {qry[1]} {qry[0]}\n')
+                report.write(f'- ({qry[1]} queries) {qry[0]}\n')
 
             # Generate the HTTP Leak Information
             with open(f'{capture_name}.http','r') as file_source:
@@ -109,7 +110,7 @@ def generate_profile_report(profile_name,PATH):
                 report.write('List of websites visited using HTTP:\n')
                 http_hosts_counter = Counter(http_hosts)
                 for qry in sorted(http_hosts_counter.items(), key=lambda x: x[1], reverse=True):
-                    report.write(f'- {qry[1]} {qry[0]}\n')
+                    report.write(f'- ({qry[1]} requests) {qry[0]}\n')
                 report.write('\n')
 
                 http_uagents = []
