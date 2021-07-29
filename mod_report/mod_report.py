@@ -109,7 +109,12 @@ def generate_profile_report(profile_name,PATH):
 
                 http_uagents = []
                 for qry in file_http:
-                    http_uagents.append(qry['_source']['layers']['http.user_agent'][0])
+                    try:
+                        http_uagents.append(qry['_source']['layers']['http.user_agent'][0])
+                    except:
+                        # There may be queries that do not have user-agent.
+                        # Ignore
+                        pass
                 if len(http_uagents)>0:
                     report.write('These requests use the following User-Agents: \n')
                     http_uagents_counter = Counter(http_uagents)
