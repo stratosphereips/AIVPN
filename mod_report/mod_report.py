@@ -73,7 +73,7 @@ def generate_profile_report(profile_name,PATH):
             report.write("Malicious applications usually steal data (photos, messages, files, voice recordings) from the device. The stolen data is uploaded to malicious servers. Recognizing which services the device is sending data to is important to identify possible malicious activity. If you do not recognize any of the services listed below, we recommend factory resetting the device to remove any suspicious activity. These are the top 5 data transfers:\n")
             report.write('\n')
 
-            report.write('| Source-Destination | Total Download | Total Upload | Total Transferred | Total Duration |\n')
+            report.write('| A <-> B | B -> A | A -> B | Total Transferred | Total Duration |\n')
             report.write('| ----|----:|----:| ----:| ----:|\n')
 
             with open(f'{capture_name}.uploads','r') as file_source:
