@@ -110,7 +110,8 @@ def generate_profile_report(profile_name,PATH):
                 report.write('List of websites visited using HTTP:\n')
                 http_hosts_counter = Counter(http_hosts)
                 for qry in sorted(http_hosts_counter.items(), key=lambda x: x[1], reverse=True):
-                    report.write(f'- ({qry[1]} requests) {qry[0]}\n')
+                    report.write(f'- {qry[0]}\n')
+                        report.write(f'\t- Requests: {qry[1]}\n')
                 report.write('\n')
 
                 http_uagents = []
@@ -122,10 +123,11 @@ def generate_profile_report(profile_name,PATH):
                         # Ignore
                         pass
                 if len(http_uagents)>0:
-                    report.write("Every HTTP connection has many pieces of data, among them the User-Agent. User-Agents identify the device and application so the content is properly shown on the mobile phone. We automatically analyze the User-Agents observed in the insecure connections listed above and automatically extract information that can identify the application and device:")
+                    report.write("Every HTTP connection has many pieces of data, among them the User-Agent. User-Agents identify the device and application so the content is properly shown on the mobile phone. We automatically analyze the User-Agents observed in the insecure connections listed above and automatically extract information that can identify the application and device:\n")
                     http_uagents_counter = Counter(http_uagents)
                     for qry in sorted(http_uagents_counter.items(), key=lambda x: x[1], reverse=True):
-                        report.write(f'- ({qry[1]} occurrences) {qry[0]}\n')
+                        report.write(f'- {qry[0]}\n')
+                        report.write(f'\t- Occurrences: {qry[1]}\n')
                         report.write(f'\t- Information extracted: {parse(qry[0])}\n')
 
         # Generate final report (PDF)
