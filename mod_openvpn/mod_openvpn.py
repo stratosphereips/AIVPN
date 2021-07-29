@@ -190,7 +190,7 @@ if __name__ == '__main__':
 
     # Configuring the OpenVPN server
     if configure_openvpn_server(SERVER_PUBLIC_URL,PKI_ADDRESS):
-        logging.info("OpenVPN Server is ready to be used")
+        logging.info(f'OpenVPN Server is ready to be used at {SERVER_PUBLIC_URL}')
 
     try:
         # Checking for messages
