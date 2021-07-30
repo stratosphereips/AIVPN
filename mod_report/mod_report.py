@@ -49,12 +49,14 @@ def generate_profile_report(profile_name,PATH):
         report = open(report_source,'w')
         report.write('# Emergency VPN Automated Report\n')
         report.write("This is an automated report of your Emergency VPN session generated with the Civilsphere AI VPN technology (beta). One of our analysts will review your session and send a follow-up report within the next 30 days.\n")
+        report.write('\n')
         report.write("If you are in need of immediate assistance, please contact AccessNow Helpline indicating that you already made the assessment with the Emergency VPN: https://www.accessnow.org/help/.\n")
+        report.write('\n')
 
         # One section per pcap
         for capture_file in glob.glob("*.pcap"):
             capture_name = capture_file.split('.pcap')[0]
-            report.write(f'## Capture {capture_name} \n')
+            report.write(f'## Capture {capture_name}\n\n')
 
             # Generate the capture information
             report.write('### Capture Information\n\n')
@@ -73,12 +75,18 @@ def generate_profile_report(profile_name,PATH):
             # Generate Top Data Transfer
             report.write('### Top Data Transfers (bytes)\n\n')
             report.write("Malicious applications usually steal data (photos, messages, files, voice recordings) from the device. The stolen data is uploaded to malicious servers. Recognizing which services the device is sending data to is important to identify possible malicious activity.\n")
+            report.write('\n')
             report.write("If you do not recognize any of the services listed below and you are a person at risk, we recommend factory resetting the device to remove any suspicious activity. Be advised that a  factory reset will not fix a compromised account (email, iCloud, Google, etc.).\n")
+            report.write('\n')
             report.write("These are the top 10 data transfers:\n")
             report.write('\n\n')
 
-            report.write('| A <-> B | ASN | B -> A <br> (bytes)| A -> B  <br> (bytes)| Total Transferred  <br> (bytes)| Total Duration <br> (seconds)|\n')
-            report.write('| ----|:----:|----:|----:| ----:| ----:|\n')
+            report.write("\small\n")
+            report.write("\\begin{tabular}{lcrrrr}\n")
+            report.write("\hline\n")
+            report.write("A \\textless{}-\\textgreater B & ASN & B -\\textgreater A & A -\\textgreater B & Total Transferred & Total Duration \\\\ \n")
+            report.write(" &  & (bytes) & (bytes) & (bytes) & (seconds)\\\\ \n")
+            report.write("\hline\n")
 
             with open(f'{capture_name}.uploads','r') as file_source:
                 file_uploads = json.load(file_source)
@@ -90,11 +98,17 @@ def generate_profile_report(profile_name,PATH):
                 except:
                     ASN="Unknown"
 
-                report.write(f"|{item['Source-Destination']}|{ASN}|{item['Total Download']}|{item['Total Upload']}|{item['Total Transferred']}|{item['Duration']}|\n")
+                #report.write(f"|{item['Source-Destination']}|{ASN}|{item['Total Download']}|{item['Total Upload']}|{item['Total Transferred']}|{item['Duration']}|\n")
+                report.write(f"{item['Source-Destination']} & {ASN} & {item['Total Download']} & {item['Total Upload']} & {item['Total Transferred']} & {item['Duration']} \\ \\ \n")
+
+            report.write("\hline\n")
+            report.write("\end{tabular}\n")
+            report.write('\n\n')
 
             # Generate the DNS information
             report.write('### Top Resolved DNS Requests\n\n')
             report.write("DNS is essential to network communications, and malware also relies on DNS to resolve addresses where to connect. DNS could also be used to tunnel data and steal information. Additionally, DNS helps identify the services the device is using. These are the top 30 DNS domains resolved in this session:\n")
+            report.write('\n\n')
             with open(f'{capture_name}.dns','r') as file_source:
                 file_dns = json.load(file_source)
 
@@ -104,7 +118,7 @@ def generate_profile_report(profile_name,PATH):
 
             dns_counter = Counter(dns_queries)
             for qry in sorted(dns_counter.items(), key=lambda x: x[1], reverse=True)[:30]:
-                report.write(f'- ({qry[1]} queries) {qry[0]}\n')
+                report.write(f'- {qry[1]}  {qry[0]}\n')
 
             # Generate the HTTP Leak Information
             with open(f'{capture_name}.http','r') as file_source:
@@ -116,12 +130,13 @@ def generate_profile_report(profile_name,PATH):
             if len(http_hosts)>0:
                 report.write("### Information on Insecure HTTP Requests\n\n")
                 report.write("The device communicates without encryption (plain HTTP) with several websites. Each connection that is not encrypted (uses HTTP instead of HTTPS), transfers information that potentially anyone with access to the device traffic can see without major effort. Who can access the traffic? This is illustrated by the Electronic Frontier Foundation at https://www.eff.org/pages/tor-and-https. People that share your WiFi, internet service providers, mobile cellular networks, and others. For maximum privacy, it's better if all connections from the phone are encrypted. If you are a person at risk, we recommend uninstalling all applications that are not essential. Use a VPN when using public and not trusted networks.\n")
+                report.write('\n')
 
                 report.write('List of websites visited using HTTP:\n')
+                report.write('\n')
                 http_hosts_counter = Counter(http_hosts)
                 for qry in sorted(http_hosts_counter.items(), key=lambda x: x[1], reverse=True):
-                    report.write(f'- {qry[0]}\n')
-                    report.write(f'\t- Requests: {qry[1]}\n')
+                    report.write(f'- {qry[0]} ({qry[1]} requests)\n')
                 report.write('\n')
 
                 http_uagents = []
@@ -134,16 +149,16 @@ def generate_profile_report(profile_name,PATH):
                         pass
                 if len(http_uagents)>0:
                     report.write("Every HTTP connection has many pieces of data, among them the User-Agent. User-Agents identify the device and application so the content is properly shown on the mobile phone. We automatically analyze the User-Agents observed in the insecure connections listed above and automatically extract information that can identify the application and device:\n\n")
+                    report.write('\n')
                     http_uagents_counter = Counter(http_uagents)
                     for qry in sorted(http_uagents_counter.items(), key=lambda x: x[1], reverse=True):
                         report.write(f'- {qry[0]}\n')
-                        report.write(f'\t- Occurrences: {qry[1]}\n')
                         report.write(f'\t- Information extracted: {parse(qry[0])}\n')
 
         # Generate final report (PDF)
         report.close()
         logging.info("Running pandoc")
-        args=["pandoc",report_source,"--pdf-engine=xelatex","-f","gfm","-V","linkcolor:blue","-V","geometry:a4paper","-V","geometry:top=2cm, bottom=1.5cm, left=2cm, right=2cm", "--metadata=author:Civilsphere Project","--metadata=lang:en-US","-o",report_build]
+        args=["pandoc",report_source,"--pdf-engine=xelatex","-f","gfm","-V","linkcolor:blue","-V","geometry:a4paper","-V","geometry:top=2cm, bottom=1.5cm, left=2cm, right=2cm", "--metadata=author:Civilsphere Project","--metadata=lang:en-US","-f","markdown","-o",report_build]
         process = subprocess.Popen(args)
         process.wait()
         return True
