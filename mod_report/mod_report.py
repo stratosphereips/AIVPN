@@ -14,6 +14,7 @@ import configparser
 from common.database import *
 from user_agents import parse
 from collections import Counter
+from ipwhois import IPWhois
 
 def process_profile_traffic(profile_name,PATH):
     """ Function to process the traffic for a given profile. """
@@ -76,15 +77,20 @@ def generate_profile_report(profile_name,PATH):
             report.write("These are the top 10 data transfers:\n")
             report.write('\n')
 
-            report.write('| A <-> B | B -> A | A -> B | Total Transferred | Total Duration |\n')
-            report.write('|  | (bytes) | (bytes)| (bytes) | (seconds) |\n')
-            report.write('| ----|----:|----:| ----:| ----:|\n')
+            report.write('| A <-> B | ASN | B -> A | A -> B | Total Transferred | Total Duration |\n')
+            report.write('|  | (bytes) | | (bytes)| (bytes) | (seconds) |\n')
+            report.write('| ----|:----:|----:|----:| ----:| ----:|\n')
 
             with open(f'{capture_name}.uploads','r') as file_source:
                 file_uploads = json.load(file_source)
 
             for item in file_uploads:
-                report.write(f"|{item['Source-Destination']}|{item['Total Download']}|{item['Total Upload']}|{item['Total Transferred']}|{item['Duration']}|\n")
+                try:
+                    ASN=IPWhois(item['Source-Destination'].split()[0]).lookup_whois()['asn_description']
+                except:
+                    ASN="Unknown"
+
+                report.write(f"|{item['Source-Destination']}|{ASN}|{item['Total Download']}|{item['Total Upload']}|{item['Total Transferred']}|{item['Duration']}|\n")
 
             # Generate the DNS information
             report.write('### Top Resolved DNS Requests\n\n')
