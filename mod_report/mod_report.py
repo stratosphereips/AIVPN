@@ -86,6 +86,7 @@ def generate_profile_report(profile_name,PATH):
 
             for item in file_uploads:
                 try:
+                    # This assumes the public IP is on the A position (A<->B)
                     ASN=IPWhois(item['Source-Destination'].split()[0]).lookup_whois()['asn_description']
                 except:
                     ASN="Unknown"
