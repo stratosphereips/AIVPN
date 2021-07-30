@@ -101,7 +101,7 @@ def generate_profile_report(profile_name,PATH):
                 SRCIP=item['Source-Destination'].split()[0]
                 DSTIP=item['Source-Destination'].split()[2]
                 #report.write(f"|{item['Source-Destination']}|{ASN}|{item['Total Download']}|{item['Total Upload']}|{item['Total Transferred']}|{item['Duration']}|\n")
-                report.write(f"{SRCIP} \\textless-\\textgreater {DSTIP} & {ASN} & {item['Total Download']} & {item['Total Upload']} & {item['Total Transferred']} & {item['Duration']} \\ \\ \n")
+                report.write(f"{SRCIP} \\textless-\\textgreater {DSTIP} & {ASN} & {item['Total Download']} & {item['Total Upload']} & {item['Total Transferred']} & {item['Duration']} \\\\ \n")
 
             report.write("\hline\n")
             report.write("\end{tabular}\n")
