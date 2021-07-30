@@ -47,7 +47,8 @@ def generate_profile_report(profile_name,PATH):
         # Open report file to generate
         report = open(report_source,'w')
         report.write('# Emergency VPN Automated Report\n')
-        report.write('This is an automated report of your Emergency VPN session generated with the Civilsphere AI VPN technology (beta). One of our analysts will review your session and send a follow-up report within the next 30 days.\n')
+        report.write("This is an automated report of your Emergency VPN session generated with the Civilsphere AI VPN technology (beta). One of our analysts will review your session and send a follow-up report within the next 30 days.\n")
+        report.write("If you are in need of immediate assistance, please contact AccessNow Helpline indicating that you already made the assessment with the Emergency VPN: https://www.accessnow.org/help/.\n")
 
         # One section per pcap
         for capture_file in glob.glob("*.pcap"):
@@ -70,10 +71,13 @@ def generate_profile_report(profile_name,PATH):
 
             # Generate Top Data Transfer
             report.write('### Top Data Transfers (bytes)\n\n')
-            report.write("Malicious applications usually steal data (photos, messages, files, voice recordings) from the device. The stolen data is uploaded to malicious servers. Recognizing which services the device is sending data to is important to identify possible malicious activity. If you do not recognize any of the services listed below, we recommend factory resetting the device to remove any suspicious activity. These are the top 5 data transfers:\n")
+            report.write("Malicious applications usually steal data (photos, messages, files, voice recordings) from the device. The stolen data is uploaded to malicious servers. Recognizing which services the device is sending data to is important to identify possible malicious activity.\n")
+            report.write("If you do not recognize any of the services listed below and you are a person at risk, we recommend factory resetting the device to remove any suspicious activity. Be advised that a  factory reset will not fix a compromised account (email, iCloud, Google, etc.).\n")
+            report.write("These are the top 10 data transfers:\n")
             report.write('\n')
 
             report.write('| A <-> B | B -> A | A -> B | Total Transferred | Total Duration |\n')
+            report.write('|  | (bytes) | (bytes)| (bytes) | (seconds) |\n')
             report.write('| ----|----:|----:| ----:| ----:|\n')
 
             with open(f'{capture_name}.uploads','r') as file_source:
@@ -90,7 +94,7 @@ def generate_profile_report(profile_name,PATH):
 
             dns_queries = []
             for qry in file_dns:
-                dns_queries.append(qry['_source']['layers']['dns.qry.name'][0])
+                dns_queries.append(qry['_source']['layers']['dns.qry.name'][0].replace('.','[.]'))
 
             dns_counter = Counter(dns_queries)
             for qry in sorted(dns_counter.items(), key=lambda x: x[1], reverse=True)[:30]:
@@ -102,7 +106,7 @@ def generate_profile_report(profile_name,PATH):
 
             http_hosts = []
             for qry in file_http:
-                http_hosts.append(qry['_source']['layers']['http.host'][0])
+                http_hosts.append(qry['_source']['layers']['http.host'][0].replace('.','[.]'))
             if len(http_hosts)>0:
                 report.write("### Information Leaked Via Insecure HTTP Requests\n\n")
                 report.write("The device communicates without encryption (plain HTTP) with several websites. Each connection that is not encrypted (uses HTTP instead of HTTPS), transfers information that potentially anyone with access to the device traffic can see without major effort. Who can access the traffic? This is illustrated by the Electronic Frontier Foundation at https://www.eff.org/pages/tor-and-https. People that share your WiFi, internet service providers, mobile cellular networks, and others. For maximum privacy, it's better if all connections from the phone are encrypted. If you are a person at risk, we recommend uninstalling all applications that are not essential. Use a VPN when using public and not trusted networks.\n")
@@ -123,7 +127,7 @@ def generate_profile_report(profile_name,PATH):
                         # Ignore
                         pass
                 if len(http_uagents)>0:
-                    report.write("Every HTTP connection has many pieces of data, among them the User-Agent. User-Agents identify the device and application so the content is properly shown on the mobile phone. We automatically analyze the User-Agents observed in the insecure connections listed above and automatically extract information that can identify the application and device:\n")
+                    report.write("Every HTTP connection has many pieces of data, among them the User-Agent. User-Agents identify the device and application so the content is properly shown on the mobile phone. We automatically analyze the User-Agents observed in the insecure connections listed above and automatically extract information that can identify the application and device:\n\n")
                     http_uagents_counter = Counter(http_uagents)
                     for qry in sorted(http_uagents_counter.items(), key=lambda x: x[1], reverse=True):
                         report.write(f'- {qry[0]}\n')
