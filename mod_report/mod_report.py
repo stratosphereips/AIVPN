@@ -115,7 +115,7 @@ def generate_profile_report(profile_name,PATH):
             for qry in file_http:
                 http_hosts.append(qry['_source']['layers']['http.host'][0].replace('.','[.]'))
             if len(http_hosts)>0:
-                report.write("### Information Leaked Via Insecure HTTP Requests\n\n")
+                report.write("### Information on Insecure HTTP Requests\n\n")
                 report.write("The device communicates without encryption (plain HTTP) with several websites. Each connection that is not encrypted (uses HTTP instead of HTTPS), transfers information that potentially anyone with access to the device traffic can see without major effort. Who can access the traffic? This is illustrated by the Electronic Frontier Foundation at https://www.eff.org/pages/tor-and-https. People that share your WiFi, internet service providers, mobile cellular networks, and others. For maximum privacy, it's better if all connections from the phone are encrypted. If you are a person at risk, we recommend uninstalling all applications that are not essential. Use a VPN when using public and not trusted networks.\n")
 
                 report.write('List of websites visited using HTTP:\n')
