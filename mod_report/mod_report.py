@@ -75,10 +75,10 @@ def generate_profile_report(profile_name,PATH):
             report.write("Malicious applications usually steal data (photos, messages, files, voice recordings) from the device. The stolen data is uploaded to malicious servers. Recognizing which services the device is sending data to is important to identify possible malicious activity.\n")
             report.write("If you do not recognize any of the services listed below and you are a person at risk, we recommend factory resetting the device to remove any suspicious activity. Be advised that a  factory reset will not fix a compromised account (email, iCloud, Google, etc.).\n")
             report.write("These are the top 10 data transfers:\n")
-            report.write('\n')
+            report.write('\n\n')
 
             report.write('| A <-> B | ASN | B -> A | A -> B | Total Transferred | Total Duration |\n')
-            report.write('|  | (bytes) | | (bytes)| (bytes) | (seconds) |\n')
+            report.write('|  |  | (bytes) | (bytes)| (bytes) | (seconds) |\n')
             report.write('| ----|:----:|----:|----:| ----:| ----:|\n')
 
             with open(f'{capture_name}.uploads','r') as file_source:
@@ -122,7 +122,7 @@ def generate_profile_report(profile_name,PATH):
                 http_hosts_counter = Counter(http_hosts)
                 for qry in sorted(http_hosts_counter.items(), key=lambda x: x[1], reverse=True):
                     report.write(f'- {qry[0]}\n')
-                        report.write(f'\t- Requests: {qry[1]}\n')
+                    report.write(f'\t- Requests: {qry[1]}\n')
                 report.write('\n')
 
                 http_uagents = []
