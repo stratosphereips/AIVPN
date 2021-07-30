@@ -81,7 +81,7 @@ def generate_profile_report(profile_name,PATH):
             report.write("These are the top 10 data transfers:\n")
             report.write('\n\n')
 
-            report.write("\small\n")
+            report.write("\scriptsize\n")
             report.write("\\begin{tabular}{lcrrrr}\n")
             report.write("\hline\n")
             report.write("A \\textless{}-\\textgreater B & ASN & B -\\textgreater A & A -\\textgreater B & Total Transferred & Total Duration \\\\ \n")
@@ -92,15 +92,14 @@ def generate_profile_report(profile_name,PATH):
                 file_uploads = json.load(file_source)
 
             for item in file_uploads:
+                SRCIP=item['Source-Destination'].split()[0]
+                DSTIP=item['Source-Destination'].split()[2]
                 try:
                     # This assumes the public IP is on the A position (A<->B)
-                    ASN=IPWhois(item['Source-Destination'].split()[0]).lookup_whois()['asn_description']
+                    ASN=IPWhois(SRCIP).lookup_whois()['asn_description']
                 except:
                     ASN="Unknown"
 
-                SRCIP=item['Source-Destination'].split()[0]
-                DSTIP=item['Source-Destination'].split()[2]
-                #report.write(f"|{item['Source-Destination']}|{ASN}|{item['Total Download']}|{item['Total Upload']}|{item['Total Transferred']}|{item['Duration']}|\n")
                 report.write(f"{SRCIP} \\textless-\\textgreater {DSTIP} & {ASN} & {item['Total Download']} & {item['Total Upload']} & {item['Total Transferred']} & {item['Duration']} \\\\ \n")
 
             report.write("\hline\n")
@@ -130,6 +129,7 @@ def generate_profile_report(profile_name,PATH):
             for qry in file_http:
                 http_hosts.append(qry['_source']['layers']['http.host'][0].replace('.','[.]'))
             if len(http_hosts)>0:
+                report.write('\n\n')
                 report.write("### Information on Insecure HTTP Requests\n\n")
                 report.write("The device communicates without encryption (plain HTTP) with several websites. Each connection that is not encrypted (uses HTTP instead of HTTPS), transfers information that potentially anyone with access to the device traffic can see without major effort. Who can access the traffic? This is illustrated by the Electronic Frontier Foundation at https://www.eff.org/pages/tor-and-https. People that share your WiFi, internet service providers, mobile cellular networks, and others. For maximum privacy, it's better if all connections from the phone are encrypted. If you are a person at risk, we recommend uninstalling all applications that are not essential. Use a VPN when using public and not trusted networks.\n")
                 report.write('\n')
