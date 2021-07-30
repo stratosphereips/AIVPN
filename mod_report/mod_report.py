@@ -77,8 +77,7 @@ def generate_profile_report(profile_name,PATH):
             report.write("These are the top 10 data transfers:\n")
             report.write('\n\n')
 
-            report.write('| A <-> B | ASN | B -> A | A -> B | Total Transferred | Total Duration |\n')
-            report.write('|  |  | (bytes) | (bytes)| (bytes) | (seconds) |\n')
+            report.write('| A <-> B | ASN | B -> A <br> (bytes)| A -> B  <br> (bytes)| Total Transferred  <br> (bytes)| Total Duration <br> (seconds)|\n')
             report.write('| ----|:----:|----:|----:| ----:| ----:|\n')
 
             with open(f'{capture_name}.uploads','r') as file_source:
