@@ -96,7 +96,8 @@ def generate_profile_report(profile_name,PATH):
                 DSTIP=item['Source-Destination'].split()[2]
                 try:
                     # This assumes the public IP is on the A position (A<->B)
-                    ASN=IPWhois(SRCIP).lookup_whois()['asn_description']
+                    # If ASN name has weird strings, it will break the LaTeX.
+                    ASN=IPWhois(SRCIP).lookup_whois()['asn_description'].replace('_','\_').replace('^','\^').replace('&','\&').replace('$','\$').replace('#','\#')
                 except:
                     ASN="Unknown"
 
