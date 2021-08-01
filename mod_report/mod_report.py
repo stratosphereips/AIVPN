@@ -105,6 +105,7 @@ def generate_profile_report(profile_name,PATH):
 
             report.write("\hline\n")
             report.write("\end{tabular}\n")
+            report.write("\\normalsize \n")
             report.write('\n\n')
 
             # Generate the DNS information
