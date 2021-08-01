@@ -97,7 +97,7 @@ def generate_profile_report(profile_name,PATH):
                 try:
                     # This assumes the public IP is on the A position (A<->B)
                     # If ASN name has weird strings, it will break the LaTeX.
-                    ASN=IPWhois(SRCIP).lookup_whois()['asn_description'].replace('_','\_').replace('^','\^').replace('&','\&').replace('$','\$').replace('#','\#')
+                    ASN=IPWhois(SRCIP).lookup_whois()['asn_description'].replace('_','\_').replace('^','\^').replace('&','\&').replace('$','\$').replace('#','\#')[:20]
                 except:
                     ASN="Unknown"
 
