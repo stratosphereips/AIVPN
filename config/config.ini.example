@@ -13,6 +13,7 @@ LOG_COMM_SEND = /logs/mod_comm_send.log
 LOG_MANAGER = /logs/mod_manager.log
 LOG_REPORT = /logs/mod_report.log
 LOG_OPENVPN = /logs/mod_openvpn.log
+LOG_SLIPS = /logs/mod_slips.log
 
 [IMAP]
 SERVER = imap.example-server.com
