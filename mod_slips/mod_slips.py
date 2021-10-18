@@ -12,7 +12,6 @@ import logging
 import subprocess
 import configparser
 from common.database import *
-from user_agents import parse
 from collections import Counter
 
 def process_profile_traffic(profile_name,PATH):
@@ -79,8 +78,8 @@ if __name__ == '__main__':
             if item['type'] == 'message':
                 logging.info("New message received in channel {}: {}".format(item['channel'],item['data']))
                 if item['data'] == 'report_status':
-                    redis_client.publish('services_status', 'MOD_REPORT:online')
-                    logging.info('MOD_REPORT:online')
+                    redis_client.publish('services_status', 'MOD_SLIPS:online')
+                    logging.info('MOD_SLIPS:online')
 
         redis_client.publish('services_status', 'MOD_SLIPS:offline')
         logging.info("Terminating")
