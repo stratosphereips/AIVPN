@@ -47,7 +47,7 @@ if __name__ == '__main__':
     LOG_FILE = config['LOGS']['LOG_SLIPS']
     PATH = config['STORAGE']['PATH']
 
-    logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s, MOD_SLIPS, %(message)s')
+    logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG,format='%(asctime)s, MOD_SLIPS, %(message)s')
 
     # Connecting to the Redis database
     try:
