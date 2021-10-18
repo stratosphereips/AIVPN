@@ -61,15 +61,12 @@ services:
             - mod_redis
             - mod_manager
     mod_slips:
-        image: alpine
+        image: aivpn_mod_slips:latest
         volumes:
             - ./logs:/logs/
             - ./data:/data/
             - ./config:/code/config/:ro
             - ./common:/code/common/:ro
-            - ./mod_slips:/opt/dataset
-        stdin_open: true
-        tty: true
         deploy:
             restart_policy:
                 condition: on-failure
