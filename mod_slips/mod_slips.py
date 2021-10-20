@@ -82,6 +82,20 @@ if __name__ == '__main__':
                 if item['data'] == 'report_status':
                     redis_client.publish('services_status', 'MOD_SLIPS:online')
                     logging.info('MOD_SLIPS:online')
+                elif 'process_profile' in item['data']:
+                    profile_name = item['data'].split(':')[1]
+                    logging.info(f'Processing profile {profile_name} with Slips')
+                    status = process_profile_traffic(profile_name,PATH)
+                    logging.info(f'Status of the processing of profile {profile_name}: {status}')
+                    if not status:
+                        logging.info('An error occurred processing the capture with Slips')
+                        message=f'slips_false:{profile_name}'
+                        redis_client.publish('mod_report_check',message)
+                        continue
+                    if status:
+                        logging.info('Processing of associated captures completed')
+                        message=f'slips_true:{profile_name}'
+                        redis_client.publish('mod_report_check',message)
 
         redis_client.publish('services_status', 'MOD_SLIPS:offline')
         logging.info("Terminating")
