@@ -15,9 +15,10 @@ from common.database import *
 from user_agents import parse
 from collections import Counter
 
-def process_profile_traffic(profile_name,PATH):
+def process_profile_traffic(profile_name,PATH,REDIS_CLIENT):
     """ Function to process the traffic for a given profile. """
     VALID_CAPTURE = False
+    SLIPS_RESULT = False
     try:
         # Find all pcaps for the profile and process them
         os.chdir(f'{PATH}/{profile_name}')
@@ -31,13 +32,22 @@ def process_profile_traffic(profile_name,PATH):
                 VALID_CAPTURE=True
                 process = subprocess.Popen(["/code/pcapsummarizer.sh",capture_file])
                 process.wait()
+                # If capture is meaningful, call Slips
+                slips_subscriber = redis_create_subscriber(REDIS_CLIENT)
+                redis_subscribe_to_channel(slips_subscriber,'slips_processing')
+                for item in slips_subscriber.listen():
+                    if item['type'] == 'message':
+                        logging.info(f"Slips processing: {item['data']}")
+                        if 'slips_true' in item['data']:
+                            #Good. Continue.
+                            SLIPS_RESULT = True
 
-        return VALID_CAPTURE
+        return VALID_CAPTURE,SLIPS_RESULT
     except Exception as err:
         logging.info(f'Exception in process_profile_traffic: {err}')
         return False
 
-def generate_profile_report(profile_name,PATH):
+def generate_profile_report(profile_name,PATH,SLIPS_STATUS):
     """ Process all the outputs and assemble the report. """
     try:
         report_source=f'{profile_name}.md'
@@ -174,7 +184,7 @@ if __name__ == '__main__':
                 elif 'report_profile' in item['data']:
                     profile_name = item['data'].split(':')[1]
                     logging.info(f'Starting report on profile {profile_name}')
-                    status = process_profile_traffic(profile_name,PATH)
+                    status,slips_status = process_profile_traffic(profile_name,PATH,redis_client)
                     logging.info(f'Status of the processing of profile {profile_name}: {status}')
                     if not status:
                         logging.info('All associated captures were empty')
@@ -184,7 +194,7 @@ if __name__ == '__main__':
                         upd_reported_time_to_expired_profile(profile_name,redis_client)
                         continue
                     if status:
-                        status = generate_profile_report(profile_name,PATH)
+                        status = generate_profile_report(profile_name,PATH,slips_status)
                         logging.info(f'Status of report on profile {profile_name}: {status}')
                         if status:
                             logging.info('Processing of associated captures completed')
