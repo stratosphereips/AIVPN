@@ -90,12 +90,12 @@ if __name__ == '__main__':
                     if not status:
                         logging.info('An error occurred processing the capture with Slips')
                         message=f'slips_false:{profile_name}'
-                        redis_client.publish('mod_report_check',message)
+                        redis_client.publish('slips_processing',message)
                         continue
                     if status:
                         logging.info('Processing of associated captures completed')
                         message=f'slips_true:{profile_name}'
-                        redis_client.publish('mod_report_check',message)
+                        redis_client.publish('slips_processing',message)
 
         redis_client.publish('services_status', 'MOD_SLIPS:offline')
         logging.info("Terminating")
