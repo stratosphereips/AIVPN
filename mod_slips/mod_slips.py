@@ -22,6 +22,7 @@ def process_profile_traffic(profile_name,PATH):
         os.chdir(f'{PATH}/{profile_name}')
 
         for capture_file in glob.glob("*.pcap"):
+            os.mkdir('{PATH}/{profile_name}/slips_{capture_file}')
             capture_size = os.stat(capture_file).st_size
             logging.info(f'Processing capture {capture_file} ({capture_size} b)')
 
@@ -29,10 +30,11 @@ def process_profile_traffic(profile_name,PATH):
             if capture_size > 25:
                 VALID_CAPTURE=True
                 # Run Slips here
-                process = subprocess.Popen(["",capture_file])
+                args=['/StratosphereLinuxIPS/slips.py','-c','slips.conf','-f',capture_file,'-o','{PATH}/{profile_name}/slips_{capture_file}']
+                process = subprocess.Popen(args,cwd="/StratosphereLinuxIPS", stdout=subprocess.PIPE)
                 process.wait()
-
-        return VALID_CAPTURE
+                return VALID_CAPTURE
+        return False
     except Exception as err:
         logging.info(f'Exception in process_profile_traffic: {err}')
         return False
