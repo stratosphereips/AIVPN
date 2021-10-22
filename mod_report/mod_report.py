@@ -33,6 +33,10 @@ def process_profile_traffic(profile_name,PATH,REDIS_CLIENT):
                 process = subprocess.Popen(["/code/pcapsummarizer.sh",capture_file])
                 process.wait()
                 # If capture is meaningful, call Slips
+                ## Trigger generation of VPN profile using profile_name.
+                message=f'process_profile:{profile_name}'
+                REDIS_CLIENT.publish('mod_slips_check',message)
+                logging.info(f'Requested mod_slips to process the capture {capture_file}')
                 slips_subscriber = redis_create_subscriber(REDIS_CLIENT)
                 redis_subscribe_to_channel(slips_subscriber,'slips_processing')
                 for item in slips_subscriber.listen():
