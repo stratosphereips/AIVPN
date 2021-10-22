@@ -37,16 +37,17 @@ def process_profile_traffic(profile_name,PATH,REDIS_CLIENT):
                 message=f'process_profile:{profile_name}'
                 REDIS_CLIENT.publish('mod_slips_check',message)
                 logging.info(f'Requested mod_slips to process the capture {capture_file}')
+                ## Wait for slips to finish
                 slips_subscriber = redis_create_subscriber(REDIS_CLIENT)
                 redis_subscribe_to_channel(slips_subscriber,'slips_processing')
                 for item in slips_subscriber.listen():
+                    logging.info('Listening for Slips responses')
                     if item['type'] == 'message':
                         logging.info(f"Slips processing: {item['data']}")
                         if 'slips_true' in item['data']:
                             #Good. Continue.
                             SLIPS_RESULT = True
-
-        return VALID_CAPTURE,SLIPS_RESULT
+                            return VALID_CAPTURE,SLIPS_RESULT
     except Exception as err:
         logging.info(f'Exception in process_profile_traffic: {err}')
         return False
