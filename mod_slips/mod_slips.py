@@ -22,7 +22,7 @@ def process_profile_traffic(profile_name,PATH):
         os.chdir(f'{PATH}/{profile_name}')
 
         for capture_file in glob.glob("*.pcap"):
-            os.mkdir('{PATH}/{profile_name}/slips_{capture_file}')
+            os.mkdir(f'{PATH}/{profile_name}/slips_{capture_file}')
             capture_size = os.stat(capture_file).st_size
             logging.info(f'Processing capture {capture_file} ({capture_size} b)')
 
