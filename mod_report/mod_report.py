@@ -64,7 +64,7 @@ def generate_profile_report(profile_name,PATH,SLIPS_STATUS):
         report.write('# Emergency VPN Report\n')
 
         # One section per pcap
-        for capture_file in glob.glob("*.pcap"):
+        for capture_file in glob.glob("20*.pcap"):
             capture_name = capture_file.split('.pcap')[0]
             report.write(f'## Capture {capture_name} \n')
 
@@ -103,7 +103,7 @@ def generate_profile_report(profile_name,PATH,SLIPS_STATUS):
 
             dns_counter = Counter(dns_queries)
             for qry in sorted(dns_counter.items(), key=lambda x: x[1], reverse=True)[:30]:
-                report.write(f'- {qry[1]} {qry[0]}\n')
+                report.write(f'- {qry[1]} {qry[0].replace(".","[.]")}\n')
 
             # Generate the HTTP Leak Information
             with open(f'{capture_name}.http','r') as file_source:
@@ -119,7 +119,7 @@ def generate_profile_report(profile_name,PATH,SLIPS_STATUS):
                 report.write('List of websites visited using HTTP:\n')
                 http_hosts_counter = Counter(http_hosts)
                 for qry in sorted(http_hosts_counter.items(), key=lambda x: x[1], reverse=True):
-                    report.write(f'- {qry[1]} {qry[0]}\n')
+                    report.write(f'- {qry[1]} {qry[0].replace(".","[.]")}\n')
                 report.write('\n')
 
                 http_uagents = []
