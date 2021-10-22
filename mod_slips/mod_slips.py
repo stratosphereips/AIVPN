@@ -30,7 +30,8 @@ def process_profile_traffic(profile_name,PATH):
             if capture_size > 25:
                 VALID_CAPTURE=True
                 # Run Slips here
-                args=['/StratosphereLinuxIPS/slips.py','-c','slips.conf','-f',capture_file,'-o','{PATH}/{profile_name}/slips_{capture_file}']
+                OUTPUT=f'{PATH}/{profile_name}/slips_{capture_file}/'
+                args=['/StratosphereLinuxIPS/slips.py','-c','slips.conf','-f',capture_file,'-o',OUTPUT]
                 process = subprocess.Popen(args,cwd="/StratosphereLinuxIPS", stdout=subprocess.PIPE)
                 process.wait()
                 return VALID_CAPTURE
