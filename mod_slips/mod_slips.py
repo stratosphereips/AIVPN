@@ -31,7 +31,8 @@ def process_profile_traffic(profile_name,PATH):
                 VALID_CAPTURE=True
                 # Run Slips here
                 OUTPUT=f'{PATH}/{profile_name}/slips_{capture_file}/'
-                args=['/StratosphereLinuxIPS/slips.py','-c','slips.conf','-f',capture_file,'-o',OUTPUT]
+                FILENAME=f'{PATH}/{profile_name}/{capture_file}'
+                args=['/StratosphereLinuxIPS/slips.py','-c','slips.conf','-f',FILENAME,'-o',OUTPUT]
                 process = subprocess.Popen(args,cwd="/StratosphereLinuxIPS", stdout=subprocess.PIPE)
                 process.wait()
                 return VALID_CAPTURE
@@ -71,6 +72,14 @@ if __name__ == '__main__':
         redis_subscribe_to_channel(db_subscriber,CHANNEL)
     except Exception as err:
         logging.error(f'Channel subscription failed: {err}')
+        sys.exit(-1)
+
+    # Starting Slips Redis Database
+    try:
+        # Run redis
+        subprocess.Popen(['redis-server','--daemonize','yes'])
+    except Exception as err:
+        logging.error(f'Cannot Slips redis database: {err}')
         sys.exit(-1)
 
     try:
