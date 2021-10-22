@@ -47,7 +47,8 @@ def process_profile_traffic(profile_name,PATH,REDIS_CLIENT):
                         if 'slips_true' in item['data']:
                             #Good. Continue.
                             SLIPS_RESULT = True
-                            return VALID_CAPTURE,SLIPS_RESULT
+                            break 
+        return VALID_CAPTURE,SLIPS_RESULT
     except Exception as err:
         logging.info(f'Exception in process_profile_traffic: {err}')
         return False
