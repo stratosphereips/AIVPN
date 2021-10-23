@@ -163,10 +163,10 @@ def generate_profile_report(profile_name,PATH,SLIPS_STATUS):
 
             if len(slips)>0:
                 report.write('### Slips IDS Automatic Alerts\n\n')
-                report.write('#### Connections to Unknown Ports]\n\n')
+                report.write('#### Connections to Unknown Ports\n\n')
                 report.write('An unknown port may indicate the device is connecting to a new type of service, or it may be a sign of malware. If you do not recognize the connections below, seek help.\n\n')
                 for alert in slips:
-                    report.write(f'- {alert}')
+                    report.write(f'- {alert}\n')
 
         # Generate final report (PDF)
         report.close()
