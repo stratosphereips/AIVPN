@@ -120,8 +120,11 @@ def generate_profile_report(profile_name,PATH,SLIPS_STATUS):
                 file_http = json.load(file_source)
 
             http_hosts = []
-            for qry in file_http:
-                http_hosts.append(qry['_source']['layers']['http.host'][0])
+            try:
+                for qry in file_http:
+                    http_hosts.append(qry['_source']['layers']['http.host'][0])
+            except Exception as err:
+                logging.info(f'Error parsing http hosts: {err}')
             if len(http_hosts)>0:
                 report.write('### Information Leaked Via Insecure HTTP Requests\n\n')
                 report.write('Insecure connections (HTTP) may leak information or could be used in injection and redirection attacks to compromise the device. Uninstall all applications generating insecure requests.\n\n')
@@ -133,8 +136,12 @@ def generate_profile_report(profile_name,PATH,SLIPS_STATUS):
                 report.write('\n')
 
                 http_uagents = []
-                for qry in file_http:
-                    http_uagents.append(qry['_source']['layers']['http.user_agent'][0])
+                try:
+                    for qry in file_http:
+                        http_uagents.append(qry['_source']['layers']['http.user_agent'][0])
+                except Exception as err:
+                    logging.info(f'Error processing the user agents: {err}')
+
                 if len(http_uagents)>0:
                     report.write('These requests use the following User-Agents: \n')
                     http_uagents_counter = Counter(http_uagents)
