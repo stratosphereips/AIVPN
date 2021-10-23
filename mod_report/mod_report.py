@@ -4,6 +4,7 @@
 # Author: Veronica Valeros, vero.valeros@gmail.com, veronica.valeros@aic.fel.cvut.cz
 
 import os
+import re
 import sys
 import glob
 import json
@@ -47,10 +48,17 @@ def process_profile_traffic(profile_name,PATH,REDIS_CLIENT):
                         if 'slips_true' in item['data']:
                             #Good. Continue.
                             SLIPS_RESULT = True
-                            break 
+                            break
         return VALID_CAPTURE,SLIPS_RESULT
     except Exception as err:
         logging.info(f'Exception in process_profile_traffic: {err}')
+        return False
+
+def generate_slips_report(profile_name,PATH,SLIPS_STATUS):
+    try:
+        # Processing UNKNOWN_PORT Slips alerts
+    except Exception as err:
+        logging.info(f'Exception in generate_slips_report: {err}')
         return False
 
 def generate_profile_report(profile_name,PATH,SLIPS_STATUS):
@@ -132,6 +140,14 @@ def generate_profile_report(profile_name,PATH,SLIPS_STATUS):
                     for qry in sorted(http_uagents_counter.items(), key=lambda x: x[1], reverse=True):
                         report.write(f'- {qry[1]} {qry[0]}\n')
                         report.write(f'\t- Information extracted: {parse(qry[0])}\n')
+
+            # Generate Slips Report
+            report.write('### Slips IDS Automatic Alerts\n\n')
+            with open(f'slips_{capture_file}/alerts.json','r') as slips_alerts:
+                for alert in slips_alerts.readlines():
+                    if re.search('UnknownPort', alert, re.I):
+                        jsonalert = json.loads(alert)
+                        report.write(f'- {jsonalert["timestamp"]}: {jsonalert["description]}')
 
         # Generate final report (PDF)
         report.close()
