@@ -143,12 +143,23 @@ def generate_profile_report(profile_name,PATH,SLIPS_STATUS):
                         report.write(f'\t- Information extracted: {parse(qry[0])}\n')
 
             # Generate Slips Report
-            report.write('### Slips IDS Automatic Alerts\n\n')
-            with open(f'slips_{capture_file}/alerts.json','r') as slips_alerts:
-                for alert in slips_alerts.readlines():
-                    if re.search('UnknownPort', alert, re.I):
-                        jsonalert = json.loads(alert)
-                        report.write(f'- {jsonalert["timestamp"]}: {jsonalert["description"]}')
+            slips = []
+            try:
+                with open(f'slips_{capture_file}/alerts.json','r') as slips_alerts:
+                    for alert in slips_alerts.readlines():
+                        if re.search('UnknownPort', alert, re.I):
+                            jsonalert = json.loads(alert)
+                            slips.append(f'{jsonalert["timestamp"]}: {jsonalert["description"]}')
+            except Exception as err:
+                logging.info("Unable to process Slips results")
+                pass
+
+            if len(slips)>0:
+                report.write('### Slips IDS Automatic Alerts\n\n')
+                report.write('#### Connections to Unknown Ports]\n\n')
+                report.write('An unknown port may indicate the device is connecting to a new type of service, or it may be a sign of malware. If you do not recognize the connections below, seek help.\n\n')
+                for alert in slips:
+                    report.write(f'- {alert}')
 
         # Generate final report (PDF)
         report.close()
