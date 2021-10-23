@@ -57,6 +57,7 @@ def process_profile_traffic(profile_name,PATH,REDIS_CLIENT):
 def generate_slips_report(profile_name,PATH,SLIPS_STATUS):
     try:
         # Processing UNKNOWN_PORT Slips alerts
+        pass
     except Exception as err:
         logging.info(f'Exception in generate_slips_report: {err}')
         return False
@@ -147,7 +148,7 @@ def generate_profile_report(profile_name,PATH,SLIPS_STATUS):
                 for alert in slips_alerts.readlines():
                     if re.search('UnknownPort', alert, re.I):
                         jsonalert = json.loads(alert)
-                        report.write(f'- {jsonalert["timestamp"]}: {jsonalert["description]}')
+                        report.write(f'- {jsonalert["timestamp"]}: {jsonalert["description"]}')
 
         # Generate final report (PDF)
         report.close()
