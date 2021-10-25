@@ -1,3 +1,4 @@
 redis
 configparser
 emails
+python-telegram-bot
