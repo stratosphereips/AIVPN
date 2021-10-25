@@ -4,8 +4,9 @@ REDIS_COMM_RECV_CHECK = mod_comm_recv_check
 REDIS_COMM_SEND_CHECK = mod_comm_send_check
 REDIS_REPORT_CHECK = mod_report_check
 REDIS_OPENVPN_CHECK = mod_openvpn_check
+REDIS_SLIPS_CHECK = mod_slips_check
 REDIS_MANAGER_CHECK = services_status
-REDIS_MODULES = ["mod_comm_recv_check","mod_comm_send_check","mod_report_check","mod_openvpn_check"]
+REDIS_MODULES = ["mod_comm_recv_check","mod_comm_send_check","mod_report_check","mod_openvpn_check","mod_slips_check"]
 
 [LOGS]
 LOG_COMM_RECV = /logs/mod_comm_recv.log
@@ -13,6 +14,7 @@ LOG_COMM_SEND = /logs/mod_comm_send.log
 LOG_MANAGER = /logs/mod_manager.log
 LOG_REPORT = /logs/mod_report.log
 LOG_OPENVPN = /logs/mod_openvpn.log
+LOG_SLIPS = /logs/mod_slips.log
 
 [IMAP]
 SERVER = imap.example-server.com

@@ -4,6 +4,7 @@
 # Author: Veronica Valeros, vero.valeros@gmail.com, veronica.valeros@aic.fel.cvut.cz
 
 import os
+import re
 import sys
 import glob
 import json
@@ -16,9 +17,10 @@ from user_agents import parse
 from collections import Counter
 from ipwhois import IPWhois
 
-def process_profile_traffic(profile_name,PATH):
+def process_profile_traffic(profile_name,PATH,REDIS_CLIENT):
     """ Function to process the traffic for a given profile. """
     VALID_CAPTURE = False
+    SLIPS_RESULT = False
     try:
         # Find all pcaps for the profile and process them
         os.chdir(f'{PATH}/{profile_name}')
@@ -32,13 +34,36 @@ def process_profile_traffic(profile_name,PATH):
                 VALID_CAPTURE=True
                 process = subprocess.Popen(["/code/pcapsummarizer.sh",capture_file])
                 process.wait()
-
-        return VALID_CAPTURE
+                # If capture is meaningful, call Slips
+                ## Trigger generation of VPN profile using profile_name.
+                message=f'process_profile:{profile_name}'
+                REDIS_CLIENT.publish('mod_slips_check',message)
+                logging.info(f'Requested mod_slips to process the capture {capture_file}')
+                ## Wait for slips to finish
+                slips_subscriber = redis_create_subscriber(REDIS_CLIENT)
+                redis_subscribe_to_channel(slips_subscriber,'slips_processing')
+                for item in slips_subscriber.listen():
+                    logging.info('Listening for Slips responses')
+                    if item['type'] == 'message':
+                        logging.info(f"Slips processing: {item['data']}")
+                        if 'slips_true' in item['data']:
+                            #Good. Continue.
+                            SLIPS_RESULT = True
+                            break
+        return VALID_CAPTURE,SLIPS_RESULT
     except Exception as err:
         logging.info(f'Exception in process_profile_traffic: {err}')
         return False
 
-def generate_profile_report(profile_name,PATH):
+def generate_slips_report(profile_name,PATH,SLIPS_STATUS):
+    try:
+        # Processing UNKNOWN_PORT Slips alerts
+        pass
+    except Exception as err:
+        logging.info(f'Exception in generate_slips_report: {err}')
+        return False
+
+def generate_profile_report(profile_name,PATH,SLIPS_STATUS):
     """ Process all the outputs and assemble the report. """
     try:
         report_source=f'{profile_name}.md'
@@ -54,7 +79,7 @@ def generate_profile_report(profile_name,PATH):
         report.write('\n')
 
         # One section per pcap
-        for capture_file in glob.glob("*.pcap"):
+        for capture_file in glob.glob("20*.pcap"):
             capture_name = capture_file.split('.pcap')[0]
             report.write(f'## Capture {capture_name}\n\n')
 
@@ -121,15 +146,18 @@ def generate_profile_report(profile_name,PATH):
 
             dns_counter = Counter(dns_queries)
             for qry in sorted(dns_counter.items(), key=lambda x: x[1], reverse=True)[:30]:
-                report.write(f'- {qry[1]}  {qry[0]}\n')
+                report.write(f'- {qry[1]} {qry[0].replace(".","[.]")}\n')
 
             # Generate the HTTP Leak Information
             with open(f'{capture_name}.http','r') as file_source:
                 file_http = json.load(file_source)
 
             http_hosts = []
-            for qry in file_http:
-                http_hosts.append(qry['_source']['layers']['http.host'][0].replace('.','[.]'))
+            try:
+                for qry in file_http:
+                    http_hosts.append(qry['_source']['layers']['http.host'][0])
+            except Exception as err:
+                logging.info(f'Error parsing http hosts: {err}')
             if len(http_hosts)>0:
                 report.write('\n\n')
                 report.write("### Information on Insecure HTTP Requests\n\n")
@@ -140,17 +168,16 @@ def generate_profile_report(profile_name,PATH):
                 report.write('\n')
                 http_hosts_counter = Counter(http_hosts)
                 for qry in sorted(http_hosts_counter.items(), key=lambda x: x[1], reverse=True):
-                    report.write(f'- {qry[0]} ({qry[1]} requests)\n')
+                    report.write(f'- {qry[1]} {qry[0].replace(".","[.]")}\n')
                 report.write('\n')
 
                 http_uagents = []
-                for qry in file_http:
-                    try:
+                try:
+                    for qry in file_http:
                         http_uagents.append(qry['_source']['layers']['http.user_agent'][0])
-                    except:
-                        # There may be queries that do not have user-agent.
-                        # Ignore
-                        pass
+                except Exception as err:
+                    logging.info(f'Error processing the user agents: {err}')
+
                 if len(http_uagents)>0:
                     report.write("Every HTTP connection has many pieces of data, among them the User-Agent. User-Agents identify the device and application so the content is properly shown on the mobile phone. We automatically analyze the User-Agents observed in the insecure connections listed above and automatically extract information that can identify the application and device:\n\n")
                     report.write('\n')
@@ -158,6 +185,26 @@ def generate_profile_report(profile_name,PATH):
                     for qry in sorted(http_uagents_counter.items(), key=lambda x: x[1], reverse=True):
                         report.write(f'- {qry[0]}\n')
                         report.write(f'\t- Information extracted: {parse(qry[0])}\n')
+
+            # Generate Slips Report
+            slips = []
+            try:
+                with open(f'slips_{capture_file}/alerts.json','r') as slips_alerts:
+                    for alert in slips_alerts.readlines():
+                        if re.search('UnknownPort', alert, re.I):
+                            jsonalert = json.loads(alert)
+                            slips.append(f'{jsonalert["timestamp"]}: {jsonalert["description"]}')
+            except Exception as err:
+                logging.info("Unable to process Slips results")
+                pass
+
+            if len(slips)>0:
+                report.write('### Slips Automatic Alerts\n\n')
+                report.write('Slips is a behavioral-based Python intrusion prevention system that uses machine learning to detect malicious behaviors in the network traffic. Slips is designed to focus on targeted attacks and detection of malware command and control channels. Slips is developed by th Stratosphere Research Laboratory and it is free software (https://stratospherelinuxips.readthedocs.io/en/develop/).\n\n')
+                report.write('#### Connections to Unknown Ports\n\n')
+                report.write('An unknown port may indicate the device is connecting to a new type of service, or it may be a sign of malware. If you do not recognize the connections below, seek help.\n\n')
+                for alert in slips:
+                    report.write(f'- {alert}\n')
 
         # Generate final report (PDF)
         report.close()
@@ -216,7 +263,7 @@ if __name__ == '__main__':
                 elif 'report_profile' in item['data']:
                     profile_name = item['data'].split(':')[1]
                     logging.info(f'Starting report on profile {profile_name}')
-                    status = process_profile_traffic(profile_name,PATH)
+                    status,slips_status = process_profile_traffic(profile_name,PATH,redis_client)
                     logging.info(f'Status of the processing of profile {profile_name}: {status}')
                     if not status:
                         logging.info('All associated captures were empty')
@@ -226,7 +273,7 @@ if __name__ == '__main__':
                         upd_reported_time_to_expired_profile(profile_name,redis_client)
                         continue
                     if status:
-                        status = generate_profile_report(profile_name,PATH)
+                        status = generate_profile_report(profile_name,PATH,slips_status)
                         logging.info(f'Status of report on profile {profile_name}: {status}')
                         if status:
                             logging.info('Processing of associated captures completed')

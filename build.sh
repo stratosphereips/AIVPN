@@ -6,6 +6,7 @@ echo "" > logs/mod_comm_recv.log
 echo "" > logs/mod_comm_send.log
 echo "" > logs/mod_report.log
 echo "" > logs/mod_manager.log
+echo "" > logs/mod_slips.log
 
 echo "Starting building modules"
 cd mod_comm_recv
@@ -26,6 +27,10 @@ cd ..
 
 cd mod_report
 docker build -t aivpn_mod_report:latest .
+cd ..
+
+cd mod_slips
+docker build -t aivpn_mod_slips:latest .
 cd ..
 
 docker rmi -f $(docker images -f "dangling=true" -q)
