@@ -162,7 +162,8 @@ def generate_profile_report(profile_name,PATH,SLIPS_STATUS):
                 pass
 
             if len(slips)>0:
-                report.write('### Slips IDS Automatic Alerts\n\n')
+                report.write('### Slips Automatic Alerts\n\n')
+                report.write('Slips is a behavioral-based Python intrusion prevention system that uses machine learning to detect malicious behaviors in the network traffic. Slips is designed to focus on targeted attacks and detection of malware command and control channels. Slips is developed by th Stratosphere Research Laboratory and it is free software (https://stratospherelinuxips.readthedocs.io/en/develop/).\n\n')
                 report.write('#### Connections to Unknown Ports\n\n')
                 report.write('An unknown port may indicate the device is connecting to a new type of service, or it may be a sign of malware. If you do not recognize the connections below, seek help.\n\n')
                 for alert in slips:
