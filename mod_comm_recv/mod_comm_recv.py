@@ -11,6 +11,9 @@ import re
 import imaplib
 from email.parser import BytesFeedParser
 from common.database import *
+from telegram.ext import CommandHandler
+from telegram.ext import MessageHandler, Filters
+from telegram.ext import Updater
 
 def send_request_to_redis(msg_id, msg_addr, msg_type, logging, redis_client):
     """
@@ -187,7 +190,7 @@ if __name__ == '__main__':
     try:
         logging.info("Connection and channel subscription to redis successful.")
 
-        # Checking for messages
+        # Checking for email messages
         for item in db_subscriber.listen():
             if item['type'] == 'message':
                 logging.info(f"New message received in channel {item['channel']}: {item['data']}")
