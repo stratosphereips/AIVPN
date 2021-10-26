@@ -6,7 +6,8 @@ REDIS_REPORT_CHECK = mod_report_check
 REDIS_OPENVPN_CHECK = mod_openvpn_check
 REDIS_SLIPS_CHECK = mod_slips_check
 REDIS_MANAGER_CHECK = services_status
-REDIS_MODULES = ["mod_comm_recv_check","mod_comm_send_check","mod_report_check","mod_openvpn_check","mod_slips_check"]
+REDIS_WIREGUARD_CHECK = mod_wireguard_check
+REDIS_MODULES = ["mod_comm_recv_check","mod_comm_send_check","mod_report_check","mod_openvpn_check","mod_slips_check","mod_wireguard_check"]
 
 [LOGS]
 LOG_COMM_RECV = /logs/mod_comm_recv.log
@@ -15,6 +16,7 @@ LOG_MANAGER = /logs/mod_manager.log
 LOG_REPORT = /logs/mod_report.log
 LOG_OPENVPN = /logs/mod_openvpn.log
 LOG_SLIPS = /logs/mod_slips.log
+LOG_WIREGUARD = /logs/mod_wireguard.log
 
 [STORAGE]
 PATH = /data
@@ -40,6 +42,11 @@ TELEGRAM_WAIT_MSG = Thank you for your request. Your VPN profile is being genera
 [OPENVPN]
 SERVER_PUBLIC_URL = udp://example-server.com
 PKI_ADDRESS = vpn.example-server.com
+NETWORK_CIDR = 192.168.255.0/24
+
+[WIREGUARD]
+SERVER_PUBLIC_URL = tcp://147.32.83.193
+PKI_ADDRESS = 147.32.83.193
 NETWORK_CIDR = 192.168.255.0/24
 
 [AIVPN]
