@@ -86,7 +86,7 @@ services:
             restart_policy:
                 condition: on-failure
         ports:
-          - "1194:1194/udp"
+          - "1194:1194/tcp"
         depends_on:
             - mod_redis
             - mod_manager
