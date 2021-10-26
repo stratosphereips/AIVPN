@@ -86,7 +86,26 @@ services:
             restart_policy:
                 condition: on-failure
         ports:
-          - "1194:1194/tcp"
+            - "1194:1194/tcp"
+        depends_on:
+            - mod_redis
+            - mod_manager
+    mod_wireguard:
+        privileged: true
+        image: aivpn_mod_wireguard:latest
+        volumes:
+            - ./logs:/logs/
+            - ./data:/data/
+            - ./data/conf:/config
+            - ./config:/code/config/:ro
+            - ./common:/code/common/:ro
+        deploy:
+            restart_policy:
+                condition: on-failure
+        ports:
+            - "51820:51820/udp"
+        sysctls:
+            - net.ipv4.conf.all.src_valid_mark=1
         depends_on:
             - mod_redis
             - mod_manager
@@ -98,3 +117,4 @@ volumes:
     mod_redis:
     mod_comm_send:
     mod_comm_recv:
+    mod_wireguard:
