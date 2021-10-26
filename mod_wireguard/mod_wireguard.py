@@ -19,7 +19,7 @@ def configure_vpn_server(SERVER_PUBLIC_URL,PKI_ADDRESS):
     If it is not, then it configures it.
     """
     try:
-        pass
+        return True
     except Exception as err:
         logging.info(f'Exception in configure_vpn_server: {err}')
         return False
