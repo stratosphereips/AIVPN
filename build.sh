@@ -8,6 +8,7 @@ echo "" > logs/mod_comm_send.log
 echo "" > logs/mod_report.log
 echo "" > logs/mod_manager.log
 echo "" > logs/mod_slips.log
+echo "" > logs/mod_wireguard.log
 
 echo "Starting building modules"
 cd mod_comm_recv
@@ -28,6 +29,10 @@ cd ..
 
 cd mod_novpn
 docker build -t aivpn_mod_novpn:latest .
+cd ..
+
+cd mod_wireguard
+docker build -t aivpn_mod_wireguard:latest .
 cd ..
 
 cd mod_report
