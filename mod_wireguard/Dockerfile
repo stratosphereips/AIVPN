@@ -1,4 +1,4 @@
-FROM lscr.io/linuxserver/wireguard
+FROM debian:sid-slim
 LABEL Description="This image is used to provide the AI VPN WireGuard VPN." Vendor="Civilsphere Project" Version="0.1" Maintainer="civilsphere@aic.fel.cvut.cz"
 RUN apt update && apt install -y python3 tcpdump
 RUN apt install -y python3-pip
