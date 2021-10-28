@@ -146,7 +146,7 @@ def generate_profile_report(profile_name,PATH,SLIPS_STATUS):
 
             dns_counter = Counter(dns_queries)
             for qry in sorted(dns_counter.items(), key=lambda x: x[1], reverse=True)[:30]:
-                report.write(f'- {qry[1]} {qry[0].replace(".","[.]")}\n')
+                report.write(f'- {qry[1]} {qry[0]}\n')
 
             # Generate the HTTP Leak Information
             with open(f'{capture_name}.http','r') as file_source:
