@@ -29,28 +29,28 @@ def send_request_to_redis(msg_id, msg_addr, msg_type, logging, redis_client):
         logging.info(f'Exception in send_request_to_redis: {err}')
         return False
 
-# Commands
-def telegram_cmd_start(update, context):
-    context.bot.send_message(chat_id=update.effective_chat.id, text="Welcome to Civilsphere Emergency VPN service.\nCommands:\n/getopenvpn to receive a new OpenVPN profile\n/getwireguard to receive a new WireGuard profile")
-    logging.info('New Telegram chat received')
-
-def telegram_cmd_getopenvpn(update, context):
-    context.bot.send_message(chat_id=update.effective_chat.id, text="Your profile is being generated and activated, please wait.")
-    logging.info(f'New Telegram OpenVPN request received from: {update.effective_chat.id}')
-
-def telegram_cmd_getwireguard(update, context):
-    context.bot.send_message(chat_id=update.effective_chat.id, text="Your profile is being generated and activated, please wait.")
-    logging.info(f'New Telegram WireGuard request received from: {update.effective_chat.id}')
-
-def get_telegram_requests(redis_client,TELEGRAM_BOT_NAME,TELEGRAM_BOT_TOKEN,TELEGRAM_START_MSG,TELEGRAM_WAIT_MSG):
+def get_telegram_requests(redis_client,TELEGRAM_BOT_TOKEN,TELEGRAM_START_MSG,TELEGRAM_WAIT_MSG):
     """
     This function runs the telegram bot in charge of receiving messages
     """
     msg_type = "telegram"
+
+    # Telegram Handlers
+    def telegram_cmd_start(update, context):
+        context.bot.send_message(chat_id=update.effective_chat.id,text=TELEGRAM_START_MSG)
+        logging.info('New Telegram chat received')
+
+    def telegram_cmd_getopenvpn(update, context):
+        context.bot.send_message(chat_id=update.effective_chat.id,text=TELEGRAM_WAIT_MSG)
+        logging.info(f'New Telegram OpenVPN request received from: {update.effective_chat.id}')
+
+    def telegram_cmd_getwireguard(update, context):
+        context.bot.send_message(chat_id=update.effective_chat.id,text=TELEGRAM_WAIT_MSG)
+        logging.info(f'New Telegram WireGuard request received from: {update.effective_chat.id}')
+
     try:
-        pass
         # Initializing
-        updater = Updater(token=token, use_context=True)
+        updater = Updater(token=TELEGRAM_BOT_TOKEN, use_context=True)
         dispatcher = updater.dispatcher
         logging.info('Telegram bot initialized')
 
@@ -68,7 +68,6 @@ def get_telegram_requests(redis_client,TELEGRAM_BOT_NAME,TELEGRAM_BOT_TOKEN,TELE
 
         # Starting
         updater.start_polling()
-        updater.idle()
 
     except Exception as err:
         logging.info(f'Exception in get_telegram_requests: {err}')
@@ -201,7 +200,6 @@ if __name__ == '__main__':
     IMAP_SERVER = config['IMAP']['SERVER']
     IMAP_USERNAME = config['IMAP']['USERNAME']
     IMAP_PASSWORD = config['IMAP']['PASSWORD']
-    TELEGRAM_BOT_NAME = config['TELEGRAM']['TELEGRAM_BOT_NAME']
     TELEGRAM_BOT_TOKEN = config['TELEGRAM']['TELEGRAM_BOT_TOKEN']
     TELEGRAM_START_MSG = config['TELEGRAM']['TELEGRAM_START_MSG']
     TELEGRAM_WAIT_MSG = config['TELEGRAM']['TELEGRAM_WAIT_MSG']
@@ -234,7 +232,7 @@ if __name__ == '__main__':
         logging.info("Connection and channel subscription to redis successful.")
 
         # Starting Telegram bot to check for new messages
-        telegram_bot = threading.Thread(target=get_telegram_requests, args=(redis_client,TELEGRAM_BOT_NAME,TELEGRAM_BOT_TOKEN,TELEGRAM_START_MSG,TELEGRAM_WAIT_MSG,), daemon=True)
+        telegram_bot = threading.Thread(target=get_telegram_requests, args=(redis_client,TELEGRAM_BOT_TOKEN,TELEGRAM_START_MSG,TELEGRAM_WAIT_MSG,), daemon=True)
         telegram_bot.start()
         logging.info("Telegram bot thread started")
 
