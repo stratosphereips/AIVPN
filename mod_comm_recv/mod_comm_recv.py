@@ -43,10 +43,18 @@ def get_telegram_requests(redis_client,TELEGRAM_BOT_TOKEN,TELEGRAM_START_MSG,TEL
     def telegram_cmd_getopenvpn(update, context):
         context.bot.send_message(chat_id=update.effective_chat.id,text=TELEGRAM_WAIT_MSG)
         logging.info(f'New Telegram OpenVPN request received from: {update.effective_chat.id}')
+        # Write pending account to provision in REDIS
+        send_request_to_redis(int(update.effective_chat.id),update.effective_chat.id,msg_type,logging,redis_client)
+        # Notify manager of new request
+        redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
 
     def telegram_cmd_getwireguard(update, context):
         context.bot.send_message(chat_id=update.effective_chat.id,text=TELEGRAM_WAIT_MSG)
         logging.info(f'New Telegram WireGuard request received from: {update.effective_chat.id}')
+        # Write pending account to provision in REDIS
+        send_request_to_redis(int(update.effective_chat.id),update.effective_chat.id,msg_type,logging,redis_client)
+        # Notify manager of new request
+        redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
 
     try:
         # Initializing
@@ -68,6 +76,7 @@ def get_telegram_requests(redis_client,TELEGRAM_BOT_TOKEN,TELEGRAM_START_MSG,TEL
 
         # Starting
         updater.start_polling()
+
 
     except Exception as err:
         logging.info(f'Exception in get_telegram_requests: {err}')
