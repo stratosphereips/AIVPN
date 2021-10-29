@@ -141,6 +141,7 @@ def send_message_via_telegram(msg_type,profile_name,msg_addr,config):
 
         dispatcher.bot.send_message(chat_id=msg_addr, text=MSG_BODY)
         dispatcher.bot.send_document(chat_id=msg_addr,document=open(MSG_ATTACHMENT, 'r'))
+        return True
     except Exception as err:
         logging.info(f'Exception in send_message_via_telegram: {err}')
         return False
