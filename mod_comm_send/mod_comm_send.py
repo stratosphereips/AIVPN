@@ -13,6 +13,7 @@ from email.mime.multipart import MIMEMultipart, MIMEBase
 from email.mime.text import MIMEText
 from email.encoders import encode_base64
 from telegram.ext import CommandHandler
+from telegram.ext import MessageHandler, Filters
 from telegram.ext import Updater
 
 def send_mime_msg_via_email(msg_type,profile_name,msg_addr,config):
@@ -118,15 +119,27 @@ def send_plain_msg_via_email(msg_type,profile_name,msg_addr,config):
 def send_message_via_telegram(msg_type,profile_name,msg_addr,config):
     """ Function to send a message to the user via Telegram. """
     try:
-        pass
         # Load configuration
         TELEGRAM_BOT_TOKEN = config['TELEGRAM']['TELEGRAM_BOT_TOKEN']
 
         # Initializing Telegram Bot
         updater = Updater(token=TELEGRAM_BOT_TOKEN, use_context=True)
         dispatcher = updater.dispatcher
+        logging.info(f'Sending {msg_type}, {profile_name} to {msg_addr}')
 
-        dispatcher.bot.send_message(msg_addr, text="Your profile has expired")
+        # Different bodies based on the message type
+        if msg_type == 'send_openvpn_profile_telegram':
+            MSG_BODY = config.get('AIVPN','MESSAGE_NEW_PROFILE')
+            MSG_ATTACHMENT = f'{PATH}/{profile_name}/{profile_name}.ovpn'
+            MSG_FILENAME = f'{profile_name}.ovpn'
+
+        if msg_type == 'send_report_profile_telegram':
+            MSG_BODY = config.get('AIVPN','MESSAGE_REPORT')
+            MSG_ATTACHMENT = f'{PATH}/{profile_name}/{profile_name}.pdf'
+            MSG_FILENAME = f'{profile_name}.pdf'
+
+        context.bot.send_message(chat_id=msg_addr, text=MSG_BODY)
+        context.bot.send_document(chat_id=msg_addr,document=open(MSG_ATTACHMENT, 'r'))
     except Exception as err:
         logging.info(f'Exception in send_message_via_telegram: {err}')
         return False
@@ -182,7 +195,7 @@ if __name__ == '__main__':
                     # Different options of what to send
                     logging.info(f"{msg_type} to {profile_name} ({msg_addr})")
                     status = ""
-                    if msg_type == 'email':
+                    if 'email' in msg_type:
                         if 'send_openvpn_profile_email' in item['data']:
                             status = send_mime_msg_via_email(msg_type,profile_name,msg_addr,config)
                         elif 'send_report_profile_email' in item['data']:
@@ -192,8 +205,10 @@ if __name__ == '__main__':
 
                         logging.info(f"{item['data']} status: {status}")
                         redis_client.publish('services_status',f"MOD_COMM_SEND:{item['data']}_{status}")
-                    elif msg_type == 'telegram':
-                            status = send_message_via_telegram(msg_type,profile_name,msg_addr,config)
+                    elif 'telegram' in msg_type:
+                        status = send_message_via_telegram(msg_type,profile_name,msg_addr,config)
+                        logging.info(f"{item['data']} status: {status}")
+                        redis_client.publish('services_status',f"MOD_COMM_SEND:{item['data']}_{status}")
 
                 elif 'error' in item['data']:
                     # Obtain the address where to send the error message
