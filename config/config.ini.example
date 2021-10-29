@@ -27,7 +27,14 @@ PASSWORD = addheretheaccountpassword
 [TELEGRAM]
 TELEGRAM_BOT_NAME = telegram_bot
 TELEGRAM_BOT_TOKEN = telegram_bot_token
-TELEGRAM_START_MSG = Welcome to Civilsphere Emergency VPN service.\nUse one of the following commands to obtain a VPN profile:\n/getopenvpn to receive a new OpenVPN profile\n/getwireguard to receive a new WireGuard profile.
+TELEGRAM_START_MSG = Welcome to the Civilsphere Emergency VPN service.
+
+
+                     Use one of the following commands to obtain a VPN profile:
+
+                     /getopenvpn to receive a new OpenVPN profile
+
+                     /getwireguard to receive a new WireGuard profile.
 TELEGRAM_WAIT_MSG = Thank you for your request. Your VPN profile is being generated and activated. Please wait.
 
 [OPENVPN]
