@@ -28,7 +28,7 @@ def send_request_to_redis(msg_id, msg_addr, msg_type, logging, redis_client):
         logging.info(f'Exception in send_request_to_redis: {err}')
         return False
 
-def get_new_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
+def get_email_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
     """
     This function connects to an email server and retrieves all new emails to
     identify new VPN requests.
@@ -193,7 +193,7 @@ if __name__ == '__main__':
             if item['type'] == 'message':
                 logging.info(f"New message received in channel {item['channel']}: {item['data']}")
                 if item['data'] == 'report_status':
-                    if get_new_requests(redis_client, IMAP_SERVER, IMAP_USERNAME, IMAP_PASSWORD):
+                    if get_email_requests(redis_client, IMAP_SERVER, IMAP_USERNAME, IMAP_PASSWORD):
                         redis_client.publish('services_status','MOD_COMM_RECV:online')
                         logging.info('Status Online')
                     else:
