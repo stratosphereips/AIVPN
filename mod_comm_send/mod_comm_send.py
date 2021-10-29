@@ -182,15 +182,18 @@ if __name__ == '__main__':
                     # Different options of what to send
                     logging.info(f"{msg_type} to {profile_name} ({msg_addr})")
                     status = ""
-                    if 'send_openvpn_profile_email' in item['data']:
-                        status = send_mime_msg_via_email(msg_type,profile_name,msg_addr,config)
-                    elif 'send_report_profile_email' in item['data']:
-                        status = send_mime_msg_via_email(msg_type,profile_name,msg_addr,config)
-                    else:
-                        status = send_plain_msg_via_email(msg_type,profile_name,msg_addr,config)
+                    if msg_type == 'email':
+                        if 'send_openvpn_profile_email' in item['data']:
+                            status = send_mime_msg_via_email(msg_type,profile_name,msg_addr,config)
+                        elif 'send_report_profile_email' in item['data']:
+                            status = send_mime_msg_via_email(msg_type,profile_name,msg_addr,config)
+                        else:
+                            status = send_plain_msg_via_email(msg_type,profile_name,msg_addr,config)
 
-                    logging.info(f"{item['data']} status: {status}")
-                    redis_client.publish('services_status',f"MOD_COMM_SEND:{item['data']}_{status}")
+                        logging.info(f"{item['data']} status: {status}")
+                        redis_client.publish('services_status',f"MOD_COMM_SEND:{item['data']}_{status}")
+                    elif msg_type == 'telegram':
+                            status = send_message_via_telegram(msg_type,profile_name,msg_addr,config)
 
                 elif 'error' in item['data']:
                     # Obtain the address where to send the error message
