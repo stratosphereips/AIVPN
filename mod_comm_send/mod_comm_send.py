@@ -12,6 +12,8 @@ from smtplib import SMTP_SSL, SMTP_SSL_PORT
 from email.mime.multipart import MIMEMultipart, MIMEBase
 from email.mime.text import MIMEText
 from email.encoders import encode_base64
+from telegram.ext import CommandHandler
+from telegram.ext import Updater
 
 def send_mime_msg_via_email(msg_type,profile_name,msg_addr,config):
     """ Function to send a MIME message to the user via email. """
