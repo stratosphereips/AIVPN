@@ -28,6 +28,16 @@ def send_request_to_redis(msg_id, msg_addr, msg_type, logging, redis_client):
         logging.info(f'Exception in send_request_to_redis: {err}')
         return False
 
+def get_telegram_requests(redis_client,TELEGRAM_BOT_NAME,TELEGRAM_BOT_TOKEN,TELEGRAM_START_MSG,TELEGRAM_WAIT_MSG):
+    """
+    This function runs the telegram bot in charge of receiving messages
+    """
+    msg_type = "email"
+    try:
+        pass
+    except Exception as err:
+        logging.info(f'Exception in get_telegram_requests: {err}')
+
 def get_email_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
     """
     This function connects to an email server and retrieves all new emails to
