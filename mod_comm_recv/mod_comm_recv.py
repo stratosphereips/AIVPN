@@ -9,6 +9,7 @@ import logging
 import configparser
 import re
 import imaplib
+import threading
 from email.parser import BytesFeedParser
 from common.database import *
 from telegram.ext import CommandHandler
@@ -31,15 +32,15 @@ def send_request_to_redis(msg_id, msg_addr, msg_type, logging, redis_client):
 # Commands
 def telegram_cmd_start(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id, text="Welcome to Civilsphere Emergency VPN service.\nCommands:\n/getopenvpn to receive a new OpenVPN profile\n/getwireguard to receive a new WireGuard profile")
-    logging.INFO('New Telegram chat received')
+    logging.info('New Telegram chat received')
 
 def telegram_cmd_getopenvpn(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id, text="Your profile is being generated and activated, please wait.")
-    logging.INFO(f'New Telegram OpenVPN request received from: {update.effective_chat.id}')
+    logging.info(f'New Telegram OpenVPN request received from: {update.effective_chat.id}')
 
 def telegram_cmd_getwireguard(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id, text="Your profile is being generated and activated, please wait.")
-    logging.INFO(f'New Telegram WireGuard request received from: {update.effective_chat.id}')
+    logging.info(f'New Telegram WireGuard request received from: {update.effective_chat.id}')
 
 def get_telegram_requests(redis_client,TELEGRAM_BOT_NAME,TELEGRAM_BOT_TOKEN,TELEGRAM_START_MSG,TELEGRAM_WAIT_MSG):
     """
@@ -51,7 +52,7 @@ def get_telegram_requests(redis_client,TELEGRAM_BOT_NAME,TELEGRAM_BOT_TOKEN,TELE
         # Initializing
         updater = Updater(token=token, use_context=True)
         dispatcher = updater.dispatcher
-        logging.INFO('Telegram bot initialized')
+        logging.info('Telegram bot initialized')
 
         # Creating handlers per action
         start_handler = CommandHandler('start', telegram_cmd_start)
@@ -63,7 +64,7 @@ def get_telegram_requests(redis_client,TELEGRAM_BOT_NAME,TELEGRAM_BOT_TOKEN,TELE
         wireguard_handler = CommandHandler('getwireguard', telegram_cmd_getwireguard)
         dispatcher.add_handler(wireguard_handler)
 
-        logging.INFO('Telegram handlers created')
+        logging.info('Telegram handlers created')
 
         # Starting
         updater.start_polling()
@@ -231,6 +232,11 @@ if __name__ == '__main__':
 
     try:
         logging.info("Connection and channel subscription to redis successful.")
+
+        # Starting Telegram bot to check for new messages
+        telegram_bot = threading.Thread(target=get_telegram_requests, args=(redis_client,TELEGRAM_BOT_NAME,TELEGRAM_BOT_TOKEN,TELEGRAM_START_MSG,TELEGRAM_WAIT_MSG,), daemon=True)
+        telegram_bot.start()
+        logging.info("Telegram bot thread started")
 
         # Checking for email messages
         for item in db_subscriber.listen():
