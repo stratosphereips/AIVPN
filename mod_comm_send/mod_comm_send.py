@@ -121,6 +121,7 @@ def send_message_via_telegram(msg_type,profile_name,msg_addr,config):
     try:
         # Load configuration
         TELEGRAM_BOT_TOKEN = config['TELEGRAM']['TELEGRAM_BOT_TOKEN']
+        PATH = config.get('STORAGE','PATH')
 
         # Initializing Telegram Bot
         updater = Updater(token=TELEGRAM_BOT_TOKEN, use_context=True)
@@ -138,8 +139,8 @@ def send_message_via_telegram(msg_type,profile_name,msg_addr,config):
             MSG_ATTACHMENT = f'{PATH}/{profile_name}/{profile_name}.pdf'
             MSG_FILENAME = f'{profile_name}.pdf'
 
-        context.bot.send_message(chat_id=msg_addr, text=MSG_BODY)
-        context.bot.send_document(chat_id=msg_addr,document=open(MSG_ATTACHMENT, 'r'))
+        dispatcher.bot.send_message(chat_id=msg_addr, text=MSG_BODY)
+        dispatcher.bot.send_document(chat_id=msg_addr,document=open(MSG_ATTACHMENT, 'r'))
     except Exception as err:
         logging.info(f'Exception in send_message_via_telegram: {err}')
         return False
