@@ -145,8 +145,8 @@ def get_new_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
         print(e)
         return False
 
-def read_configuration():
-    # Read configuration file
+if __name__ == '__main__':
+    # Read cofiguration file 
     config = configparser.ConfigParser()
     config.read('config/config.ini')
 
@@ -156,12 +156,10 @@ def read_configuration():
     IMAP_SERVER = config['IMAP']['SERVER']
     IMAP_USERNAME = config['IMAP']['USERNAME']
     IMAP_PASSWORD = config['IMAP']['PASSWORD']
-
-    return REDIS_SERVER,CHANNEL,LOG_FILE,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD
-
-if __name__ == '__main__':
-    # Read cofiguration file 
-    REDIS_SERVER,CHANNEL,LOG_FILE,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD = read_configuration()
+    TELEGRAM_BOT_NAME = config['TELEGRAM']['TELEGRAM_BOT_NAME']
+    TELEGRAM_BOT_TOKEN = config['TELEGRAM']['TELEGRAM_BOT_TOKEN']
+    TELEGRAM_START_MSG = config['TELEGRAM']['TELEGRAM_START_MSG']
+    TELEGRAM_WAIT_MSG = config['TELEGRAM']['TELEGRAM_WAIT_MSG']
 
     # Initialize logging
     logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.INFO,format='%(asctime)s, MOD_COMM_RECV, %(message)s')
