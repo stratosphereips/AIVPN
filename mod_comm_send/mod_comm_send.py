@@ -115,6 +115,22 @@ def send_plain_msg_via_email(msg_type,profile_name,msg_addr,config):
         logging.info(f'Exception in send_plain_msg_via_email: {err}')
         return False
 
+def send_message_via_telegram(msg_type,profile_name,msg_addr,config):
+    """ Function to send a message to the user via Telegram. """
+    try:
+        pass
+        # Load configuration
+        TELEGRAM_BOT_TOKEN = config['TELEGRAM']['TELEGRAM_BOT_TOKEN']
+
+        # Initializing Telegram Bot
+        updater = Updater(token=TELEGRAM_BOT_TOKEN, use_context=True)
+        dispatcher = updater.dispatcher
+
+        dispatcher.bot.send_message(msg_addr, text="Your profile has expired")
+    except Exception as err:
+        logging.info(f'Exception in send_message_via_telegram: {err}')
+        return False
+
 if __name__ == '__main__':
     # Read configuration
     config = configparser.ConfigParser()
