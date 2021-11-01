@@ -245,7 +245,7 @@ def deprovision_account(profile_name,REDIS_CLIENT):
         status = subs_active_profile_counter(acc_msg_addr,REDIS_CLIENT)
 
         # Notify user that the profile has expired
-        REDIS_CLIENT.publish('mod_comm_send_check',f'send_expire_profile_email:{profile_name}')
+        REDIS_CLIENT.publish('mod_comm_send_check',f'send_expire_profile:{profile_name}')
 
         # Add profile to expired_profiles 
         add_expired_profile(profile_name,acc_creation_time,REDIS_CLIENT)
