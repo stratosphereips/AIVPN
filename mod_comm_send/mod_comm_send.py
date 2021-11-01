@@ -122,6 +122,7 @@ def send_message_via_telegram(msg_task,profile_name,msg_addr,config):
         # Load configuration
         TELEGRAM_BOT_TOKEN = config['TELEGRAM']['TELEGRAM_BOT_TOKEN']
         PATH = config.get('STORAGE','PATH')
+        MSG_ATTACHMENT = ""
 
         # Initializing Telegram Bot
         updater = Updater(token=TELEGRAM_BOT_TOKEN, use_context=True)
@@ -132,13 +133,11 @@ def send_message_via_telegram(msg_task,profile_name,msg_addr,config):
         if 'send_openvpn_profile' in msg_task:
             MSG_BODY = config.get('AIVPN','MESSAGE_NEW_PROFILE')
             MSG_ATTACHMENT = f'{PATH}/{profile_name}/{profile_name}.ovpn'
-            MSG_FILENAME = f'{profile_name}.ovpn'
 
         if 'send_report_profile' in msg_task:
             MSG_BODY = f"Profile: {profile_name}\r\n"
             MSG_BODY += config.get('AIVPN','MESSAGE_REPORT')
             MSG_ATTACHMENT = f'{PATH}/{profile_name}/{profile_name}.pdf'
-            MSG_FILENAME = f'{profile_name}.pdf'
 
         if 'send_expire_profile' in msg_task:
             MSG_BODY = f"Profile: {profile_name}\r\n"
@@ -157,7 +156,8 @@ def send_message_via_telegram(msg_task,profile_name,msg_addr,config):
             MSG_BODY += config.get('AIVPN','MESSAGE_FULL_CAPACITY')
 
         dispatcher.bot.send_message(chat_id=msg_addr, text=MSG_BODY)
-        dispatcher.bot.send_document(chat_id=msg_addr,document=open(MSG_ATTACHMENT, 'r'))
+        if MSG_ATTACHMENT:
+            dispatcher.bot.send_document(chat_id=msg_addr,document=open(MSG_ATTACHMENT, 'r'))
         return True
     except Exception as err:
         logging.info(f'Exception in send_message_via_telegram: {err}')
