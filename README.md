@@ -32,3 +32,8 @@ This project was funded through the NGI0 PET Fund, a fund established by NLnet w
 This project was developed by the Stratosphere Laboratory, Artificial Intelligence Centre, Faculty of Electrical Engineering, Czech Technical University in Prague (2020-2021).
 
 The AI VPN threat detection is provided by the [Stratosphere Linux IPS](https://github.com/stratosphereips/StratosphereLinuxIPS) developed at the Stratosphere Laboratory.
+
+We would like to specially acknowledge the contributions of the following individuals:
+
+* Maria Rigaki
+* Joaquin Bogado
