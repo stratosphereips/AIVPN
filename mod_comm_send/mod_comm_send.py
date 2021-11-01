@@ -32,13 +32,13 @@ def send_mime_msg_via_email(msg_task,profile_name,msg_addr,config):
         email_message.add_header('To', msg_addr)
 
         # Different bodies based on the message type
-        if 'send_openvpn_profile_email' in msg_task:
+        if 'send_openvpn_profile' in msg_task:
             EMAIL_BODY = config.get('AIVPN','MESSAGE_NEW_PROFILE')
             EMAIL_ATTACHMENT = f'{PATH}/{profile_name}/{profile_name}.ovpn'
             EMAIL_FILENAME = f'{profile_name}.ovpn'
             email_message.add_header('Subject', f"{EMAIL_SUBJ_PREFIX} VPN Profile Active: {profile_name}\r\n")
 
-        if 'send_report_profile_email' in msg_task:
+        if 'send_report_profile' in msg_task:
             EMAIL_BODY = config.get('AIVPN','MESSAGE_REPORT')
             EMAIL_ATTACHMENT = f'{PATH}/{profile_name}/{profile_name}.pdf'
             EMAIL_FILENAME = f'{profile_name}.pdf'
