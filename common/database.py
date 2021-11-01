@@ -47,9 +47,9 @@ def redis_subscribe_to_channel(subscriber,CHANNEL):
 ## The hash table will be account_identities and the value will be a JSON.
 ## Fields: msg_addr
 ## Value:
-## {'total_profiles':1,'profiles':'[profile_name1,profile_name2]','gpg':string-gpg}
+## {'total_profiles':1,'type':'email','profiles':'[profile_name1,profile_name2]','gpg':string-gpg}
 
-identity_template = json.dumps({'total_profiles':0,'profiles':[],'gpg':''})
+identity_template = json.dumps({'total_profiles':0,'type':'email','profiles':[],'gpg':''})
 hash_account_identities = "account_identities"
 
 def add_identity(msg_addr,REDIS_CLIENT):
@@ -91,13 +91,46 @@ def upd_identity_counter(msg_addr,REDIS_CLIENT):
     except Exception as err:
         return err
 
+def upd_identity_type(msg_addr,REDIS_CLIENT,msg_type='email'):
+    """
+    If identity exists, add the identity type (email, telegram, etc).
+    Default value is 'email'.
+    """
+    try:
+        identity_value = REDIS_CLIENT.hget(hash_account_identities,msg_addr)
+        identity_object = json.loads(identity_value)
+
+        #identity = {'total_profiles':0,'type':'','profiles':'[]','gpg':''g}
+        identity_object['type'] = str(msg_type)
+
+        identity_value = json.dumps(identity_object)
+
+        status = REDIS_CLIENT.hset(hash_account_identities,msg_addr,identity_value)
+
+        return True
+    except Exception as err:
+        return err
+
+def get_identity_type(msg_addr,REDIS_CLIENT):
+    """
+    If identity exists, return the identity type (email, telegram, etc).
+    """
+    try:
+        identity_value = REDIS_CLIENT.hget(hash_account_identities,msg_addr)
+        identity_object = json.loads(identity_value)
+
+        #identity = {'total_profiles':0,'type':'','profiles':'[]','gpg':''g}
+        return identity_object['type']
+    except Exception as err:
+        return err
+
 def upd_identity_profiles(msg_addr,profile_name,REDIS_CLIENT):
     """ If identity exists, add a new profile for the identity """
     try:
         identity_value = REDIS_CLIENT.hget(hash_account_identities,msg_addr)
         identity_object = json.loads(identity_value)
 
-        #identity = {'total_profiles':0,'profiles':[],'gpg':''}
+        #identity = {'total_profiles':0,'type':'','profiles':'[]','gpg':''g}
         identity_object['profiles'].append(str(profile_name))
 
         identity_value = json.dumps(identity_object)
@@ -113,6 +146,7 @@ def upd_identity_gpg(msg_addr,gpg_key,REDIS_CLIENT):
     try:
         identity_object = json.loads(REDIS_CLIENT.hget(hash_account_identities,msg_addr))
 
+        #identity = {'total_profiles':0,'type':'','profiles':'[]','gpg':''g}
         identity_object['gpg'] = gpg_key
 
         identity_value = json.dumps(identity_object)
