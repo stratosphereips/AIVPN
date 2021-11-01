@@ -16,7 +16,7 @@ from telegram.ext import CommandHandler
 from telegram.ext import MessageHandler, Filters
 from telegram.ext import Updater
 
-def send_mime_msg_via_email(msg_type,profile_name,msg_addr,config):
+def send_mime_msg_via_email(msg_task,profile_name,msg_addr,config):
     """ Function to send a MIME message to the user via email. """
     try:
         # Load general configuration
@@ -32,13 +32,13 @@ def send_mime_msg_via_email(msg_type,profile_name,msg_addr,config):
         email_message.add_header('To', msg_addr)
 
         # Different bodies based on the message type
-        if msg_type == 'send_openvpn_profile_email':
+        if msg_task == 'send_openvpn_profile_email':
             EMAIL_BODY = config.get('AIVPN','MESSAGE_NEW_PROFILE')
             EMAIL_ATTACHMENT = f'{PATH}/{profile_name}/{profile_name}.ovpn'
             EMAIL_FILENAME = f'{profile_name}.ovpn'
             email_message.add_header('Subject', f"{EMAIL_SUBJ_PREFIX} VPN Profile Active: {profile_name}\r\n")
 
-        if msg_type == 'send_report_profile_email':
+        if msg_task == 'send_report_profile_email':
             EMAIL_BODY = config.get('AIVPN','MESSAGE_REPORT')
             EMAIL_ATTACHMENT = f'{PATH}/{profile_name}/{profile_name}.pdf'
             EMAIL_FILENAME = f'{profile_name}.pdf'
@@ -70,7 +70,7 @@ def send_mime_msg_via_email(msg_type,profile_name,msg_addr,config):
         logging.info(f'Exception in send_mime_msg_via_email: {err}')
         return False
 
-def send_plain_msg_via_email(msg_type,profile_name,msg_addr,config):
+def send_plain_msg_via_email(msg_task,profile_name,msg_addr,config):
     """ Function to send a PLAIN message to the user via email. """
     try:
         # Load general configuration
@@ -85,19 +85,19 @@ def send_plain_msg_via_email(msg_type,profile_name,msg_addr,config):
         headers += f"To: {msg_addr}\r\n"
 
         # Different content based on the message type
-        if msg_type == 'send_expire_profile_email':
+        if msg_task == 'send_expire_profile_email':
             EMAIL_BODY = config.get('AIVPN','MESSAGE_EXPIRED_PROFILE')
             headers += f"Subject: {EMAIL_SUBJ_PREFIX} VPN Profile Expired: {profile_name}\r\n"
 
-        if msg_type == 'send_empty_capture_email':
+        if msg_task == 'send_empty_capture_email':
             EMAIL_BODY = config.get('AIVPN','MESSAGE_REPORT_EMPTY')
             headers += f"Subject: {EMAIL_SUBJ_PREFIX} VPN Profile Report: {profile_name}\r\n"
 
-        if msg_type == 'error_limit_reached':
+        if msg_task == 'error_limit_reached':
             EMAIL_BODY = config.get('AIVPN','MESSAGE_MAX_LIMIT')
             headers += f"Subject: {EMAIL_SUBJ_PREFIX} Account Limit Reached\r\n"
 
-        if msg_type == 'error_max_capacity':
+        if msg_task == 'error_max_capacity':
             EMAIL_BODY = config.get('AIVPN','MESSAGE_FULL_CAPACITY')
             headers += f"Subject: {EMAIL_SUBJ_PREFIX} Service at Full Capacity\r\n"
 
@@ -116,7 +116,7 @@ def send_plain_msg_via_email(msg_type,profile_name,msg_addr,config):
         logging.info(f'Exception in send_plain_msg_via_email: {err}')
         return False
 
-def send_message_via_telegram(msg_type,profile_name,msg_addr,config):
+def send_message_via_telegram(msg_task,profile_name,msg_addr,config):
     """ Function to send a message to the user via Telegram. """
     try:
         # Load configuration
@@ -126,15 +126,15 @@ def send_message_via_telegram(msg_type,profile_name,msg_addr,config):
         # Initializing Telegram Bot
         updater = Updater(token=TELEGRAM_BOT_TOKEN, use_context=True)
         dispatcher = updater.dispatcher
-        logging.info(f'Sending {msg_type}, {profile_name} to {msg_addr}')
+        logging.info(f'Sending {msg_task}, {profile_name} to {msg_addr}')
 
         # Different bodies based on the message type
-        if msg_type == 'send_openvpn_profile_telegram':
+        if msg_task == 'send_openvpn_profile_telegram':
             MSG_BODY = config.get('AIVPN','MESSAGE_NEW_PROFILE')
             MSG_ATTACHMENT = f'{PATH}/{profile_name}/{profile_name}.ovpn'
             MSG_FILENAME = f'{profile_name}.ovpn'
 
-        if msg_type == 'send_report_profile_telegram':
+        if msg_task == 'send_report_profile_telegram':
             MSG_BODY = config.get('AIVPN','MESSAGE_REPORT')
             MSG_ATTACHMENT = f'{PATH}/{profile_name}/{profile_name}.pdf'
             MSG_FILENAME = f'{profile_name}.pdf'
@@ -184,45 +184,49 @@ if __name__ == '__main__':
         # Checking for messages
         for item in db_subscriber.listen():
             if item['type'] == 'message':
+                # Receiving messages from the manager and other modules
                 logging.info(f"New message received in {item['channel']}: {item['data']}")
                 if item['data'] == 'report_status':
                     redis_client.publish('services_status','MOD_COMM_SEND:online')
                     logging.info('Status Online')
+                # Messages with prefix 'send' require this module to send back
+                # information to the user
                 elif 'send' in item['data']:
                     # Obtain the profile name and address where to send
                     profile_name = item['data'].split(':')[1]
-                    msg_type = item['data'].split(':')[0]
+                    msg_task = item['data'].split(':')[0]
                     msg_addr=get_profile_name_address(profile_name,redis_client)
 
                     # Different options of what to send
-                    logging.info(f"{msg_type} to {profile_name} ({msg_addr})")
+                    logging.info(f"{msg_task} to {profile_name} ({msg_addr})")
                     status = ""
-                    if 'email' in msg_type:
+                    if 'email' in msg_task:
                         if 'send_openvpn_profile_email' in item['data']:
-                            status = send_mime_msg_via_email(msg_type,profile_name,msg_addr,config)
+                            status = send_mime_msg_via_email(msg_task,profile_name,msg_addr,config)
                         elif 'send_report_profile_email' in item['data']:
-                            status = send_mime_msg_via_email(msg_type,profile_name,msg_addr,config)
+                            status = send_mime_msg_via_email(msg_task,profile_name,msg_addr,config)
                         else:
-                            status = send_plain_msg_via_email(msg_type,profile_name,msg_addr,config)
+                            status = send_plain_msg_via_email(msg_task,profile_name,msg_addr,config)
 
                         logging.info(f"{item['data']} status: {status}")
                         redis_client.publish('services_status',f"MOD_COMM_SEND:{item['data']}_{status}")
-                    elif 'telegram' in msg_type:
-                        status = send_message_via_telegram(msg_type,profile_name,msg_addr,config)
+                    elif 'telegram' in msg_task:
+                        status = send_message_via_telegram(msg_task,profile_name,msg_addr,config)
                         logging.info(f"{item['data']} status: {status}")
                         redis_client.publish('services_status',f"MOD_COMM_SEND:{item['data']}_{status}")
-
+                # Messages with prefix 'error' require this module to send back
+                # error messages to the user
                 elif 'error' in item['data']:
                     # Obtain the address where to send the error message
                     msg_addr=item['data'].split(':')[1]
-                    msg_type = item['data'].split(':')[0]
+                    msg_task = item['data'].split(':')[0]
                     profile_name=""
 
-                    logging.info(f"Sending {msg_type} to {msg_addr}")
-                    status = send_plain_msg_via_email(msg_type,profile_name,msg_addr,config)
+                    logging.info(f"Sending {msg_task} to {msg_addr}")
+                    status = send_plain_msg_via_email(msg_task,profile_name,msg_addr,config)
 
-                    logging.info(f"Sending {msg_type} status: {status}")
-                    redis_client.publish('services_status',f"MOD_COMM_SEND:{msg_type}_{status}")
+                    logging.info(f"Sending {ksg_type} status: {status}")
+                    redis_client.publish('services_status',f"MOD_COMM_SEND:{msg_task}_{status}")
 
         redis_client.publish('services_status', 'MOD_COMM_SEND:offline')
         logging.info("Terminating")
