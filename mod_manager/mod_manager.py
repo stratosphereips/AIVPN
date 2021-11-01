@@ -43,7 +43,7 @@ def redis_channel_monitoring(CHANNEL,db_subscriber,redis_client,ACTIVE_ACCOUNT_L
 
 def thread_redis_channel_status_check(MOD_CHANNELS,redis_client):
     """
-    Function that periodically sends status updates from modules.
+    Function that periodically request status updates from modules.
     """
     try:
         for channel in MOD_CHANNELS:
