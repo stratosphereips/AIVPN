@@ -81,10 +81,10 @@ def generate_profile_report(profile_name,PATH,SLIPS_STATUS):
         # One section per pcap
         for capture_file in glob.glob("20*.pcap"):
             capture_name = capture_file.split('.pcap')[0]
-            report.write(f'## Capture {capture_name}\n\n')
+            report.write(f'# Capture {capture_name}\n\n')
 
             # Generate the capture information
-            report.write('### Capture Information\n\n')
+            report.write('## Capture Information\n\n')
             with open(f'{capture_name}.capinfos','r') as file_source:
                 file_capinfos = json.load(file_source)
             report.write('\n```\n')
@@ -98,7 +98,7 @@ def generate_profile_report(profile_name,PATH,SLIPS_STATUS):
             report.write('\n')
 
             # Generate Top Data Transfer
-            report.write('### Top Data Transfers (bytes)\n\n')
+            report.write('## Top Data Transfers (bytes)\n\n')
             report.write("Malicious applications usually steal data (photos, messages, files, voice recordings) from the device. The stolen data is uploaded to malicious servers. Recognizing which services the device is sending data to is important to identify possible malicious activity.\n")
             report.write('\n')
             report.write("If you do not recognize any of the services listed below and you are a person at risk, we recommend factory resetting the device to remove any suspicious activity. Be advised that a  factory reset will not fix a compromised account (email, iCloud, Google, etc.).\n")
@@ -134,7 +134,7 @@ def generate_profile_report(profile_name,PATH,SLIPS_STATUS):
             report.write('\n\n')
 
             # Generate the DNS information
-            report.write('### Top Resolved DNS Requests\n\n')
+            report.write('## Top Resolved DNS Requests\n\n')
             report.write("DNS is essential to network communications, and malware also relies on DNS to resolve addresses where to connect. DNS could also be used to tunnel data and steal information. Additionally, DNS helps identify the services the device is using. These are the top 30 DNS domains resolved in this session:\n")
             report.write('\n\n')
             with open(f'{capture_name}.dns','r') as file_source:
@@ -160,7 +160,7 @@ def generate_profile_report(profile_name,PATH,SLIPS_STATUS):
                 logging.info(f'Error parsing http hosts: {err}')
             if len(http_hosts)>0:
                 report.write('\n\n')
-                report.write("### Information on Insecure HTTP Requests\n\n")
+                report.write("## Information on Insecure HTTP Requests\n\n")
                 report.write("The device communicates without encryption (plain HTTP) with several websites. Each connection that is not encrypted (uses HTTP instead of HTTPS), transfers information that potentially anyone with access to the device traffic can see without major effort. Who can access the traffic? This is illustrated by the Electronic Frontier Foundation at https://www.eff.org/pages/tor-and-https. People that share your WiFi, internet service providers, mobile cellular networks, and others. For maximum privacy, it's better if all connections from the phone are encrypted. If you are a person at risk, we recommend uninstalling all applications that are not essential. Use a VPN when using public and not trusted networks.\n")
                 report.write('\n')
 
@@ -200,9 +200,9 @@ def generate_profile_report(profile_name,PATH,SLIPS_STATUS):
 
             if len(slips)>0:
                 report.write('\n\n')
-                report.write('### Slips Automatic Alerts\n\n')
-                report.write('Slips is a behavioral-based Python intrusion prevention system that uses machine learning to detect malicious behaviors in the network traffic. Slips is designed to focus on targeted attacks and detection of malware command and control channels. Slips is developed by th Stratosphere Research Laboratory and it is free software (https://stratospherelinuxips.readthedocs.io/en/develop/).\n\n')
-                report.write('#### Connections to Unknown Ports\n\n')
+                report.write('## Slips Automatic Alerts\n\n')
+                report.write('Slips is a behavioral-based Python intrusion prevention system that uses machine learning to detect malicious behaviors in the network traffic. Slips is designed to focus on targeted attacks and detection of malware command and control channels. Slips is developed by the Stratosphere Research Laboratory and it is free software (https://stratospherelinuxips.readthedocs.io/en/develop/).\n\n')
+                report.write('### Connections to Unknown Ports\n\n')
                 report.write('An unknown port may indicate the device is connecting to a new type of service, or it may be a sign of malware. If you do not recognize the connections below, seek help.\n\n')
                 for alert in slips:
                     report.write(f'- {alert}\n')
