@@ -65,6 +65,12 @@ def provision_account(new_request,REDIS_CLIENT,ACTIVE_ACCOUNT_LIMIT):
     p_msg_type = new_request_object['msg_type']
     logging.info(f'Provisioning: new account for {p_msg_addr} (ID: {p_msg_id}, Type: {p_msg_type})')
 
+    ## Create identity for the account address.
+    prov_status = add_identity(p_msg_addr,REDIS_CLIENT)
+    logging.info(f'Provisioning: result of adding new identity was {prov_status}')
+    prov_status = upd_identity_type(p_msg_addr,REDIS_CLIENT,p_msg_type)
+    logging.info(f'Provisioning: result of updating the new identity type was {prov_status}')
+
     # Step 1: Can we provision this account? space, internet, PIDs, IPs, limits
     #         If we cannot, request is stored back in the provisioning queue.
 
@@ -156,10 +162,6 @@ def provision_account(new_request,REDIS_CLIENT,ACTIVE_ACCOUNT_LIMIT):
 
     # Step 6: Provisioning successful, update Redis with account information.
     # If there's an error, these structures are not updated.
-
-    ## Create identity for the account address.
-    prov_status = add_identity(p_msg_addr,REDIS_CLIENT)
-    logging.info(f'Provisioning: result of adding new identity was {prov_status}')
 
     ## Update identity: add profile_name to account identity.
     prov_status = upd_identity_profiles(p_msg_addr,acc_profile_name,REDIS_CLIENT)
