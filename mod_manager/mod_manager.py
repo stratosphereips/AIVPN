@@ -155,10 +155,7 @@ def provision_account(new_request,REDIS_CLIENT,ACTIVE_ACCOUNT_LIMIT):
                 return False
 
     # Step 5: Send profile or instruct manager to send profile.
-    if p_msg_type == 'telegram':
-        REDIS_CLIENT.publish('mod_comm_send_check',f'send_openvpn_profile_telegram:{acc_profile_name}')
-    else:
-        REDIS_CLIENT.publish('mod_comm_send_check',f'send_openvpn_profile_email:{acc_profile_name}')
+    REDIS_CLIENT.publish('mod_comm_send_check',f'send_openvpn_profile:{acc_profile_name}')
 
     # Step 6: Provisioning successful, update Redis with account information.
     # If there's an error, these structures are not updated.
