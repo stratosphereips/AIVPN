@@ -148,11 +148,9 @@ def send_message_via_telegram(msg_task,profile_name,msg_addr,config):
             MSG_BODY += config.get('AIVPN','MESSAGE_REPORT_EMPTY')
 
         if 'error_limit_reached' in msg_task:
-            MSG_BODY = f"Profile: {profile_name}\r\n"
             MSG_BODY += config.get('AIVPN','MESSAGE_MAX_LIMIT')
 
         if 'error_max_capacity' in msg_task:
-            MSG_BODY = f"Profile: {profile_name}\r\n"
             MSG_BODY += config.get('AIVPN','MESSAGE_FULL_CAPACITY')
 
         dispatcher.bot.send_message(chat_id=msg_addr, text=MSG_BODY)
@@ -211,15 +209,16 @@ if __name__ == '__main__':
                 else:
                     # Obtain the profile name and address where to send
                     msg_task = item['data'].split(':')[0]
-                    try:
+                    if 'send' in item['data']:
                         profile_name = item['data'].split(':')[1]
                         msg_addr=get_profile_name_address(profile_name,redis_client)
                         msg_type=get_identity_type(msg_addr,redis_client)
-                        logging.info(f"Processing task: {msg_task} to {profile_name} ({msg_addr}, {msg_type})")
-                    except:
-                        msg_addr=item['data'].split(':')[1]
+                    elif 'error' in item['data']:
                         profile_name = ""
-                        logging.info(f"Processing task: {msg_task} to {msg_addr} ({msg_type})")
+                        msg_addr=item['data'].split(':')[1]
+                        msg_type=get_identity_type(msg_addr,redis_client)
+
+                    logging.info(f"Processing task: {msg_task} to {profile_name} ({msg_addr}, {msg_type})")
 
                     status = ""
                     # We have different logic for different type of messages
