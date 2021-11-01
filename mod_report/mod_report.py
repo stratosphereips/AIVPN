@@ -268,7 +268,7 @@ if __name__ == '__main__':
                     logging.info(f'Status of the processing of profile {profile_name}: {status}')
                     if not status:
                         logging.info('All associated captures were empty')
-                        message=f'send_empty_capture_email:{profile_name}'
+                        message=f'send_empty_capture:{profile_name}'
                         redis_client.publish('mod_comm_send_check',message)
                         del_profile_to_report(profile_name,redis_client)
                         upd_reported_time_to_expired_profile(profile_name,redis_client)
@@ -278,7 +278,7 @@ if __name__ == '__main__':
                         logging.info(f'Status of report on profile {profile_name}: {status}')
                         if status:
                             logging.info('Processing of associated captures completed')
-                            message=f'send_report_profile_email:{profile_name}'
+                            message=f'send_report_profile:{profile_name}'
                             redis_client.publish('mod_comm_send_check',message)
                             status=del_profile_to_report(profile_name,redis_client)
                             logging.info(f'del_profile_to_report: {status}')
