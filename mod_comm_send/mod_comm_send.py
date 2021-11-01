@@ -32,13 +32,13 @@ def send_mime_msg_via_email(msg_task,profile_name,msg_addr,config):
         email_message.add_header('To', msg_addr)
 
         # Different bodies based on the message type
-        if msg_task == 'send_openvpn_profile_email':
+        if 'send_openvpn_profile_email' in msg_task:
             EMAIL_BODY = config.get('AIVPN','MESSAGE_NEW_PROFILE')
             EMAIL_ATTACHMENT = f'{PATH}/{profile_name}/{profile_name}.ovpn'
             EMAIL_FILENAME = f'{profile_name}.ovpn'
             email_message.add_header('Subject', f"{EMAIL_SUBJ_PREFIX} VPN Profile Active: {profile_name}\r\n")
 
-        if msg_task == 'send_report_profile_email':
+        if 'send_report_profile_email' in msg_task:
             EMAIL_BODY = config.get('AIVPN','MESSAGE_REPORT')
             EMAIL_ATTACHMENT = f'{PATH}/{profile_name}/{profile_name}.pdf'
             EMAIL_FILENAME = f'{profile_name}.pdf'
@@ -85,19 +85,19 @@ def send_plain_msg_via_email(msg_task,profile_name,msg_addr,config):
         headers += f"To: {msg_addr}\r\n"
 
         # Different content based on the message type
-        if msg_task == 'send_expire_profile_email':
+        if 'send_expire_profile' in msg_task:
             EMAIL_BODY = config.get('AIVPN','MESSAGE_EXPIRED_PROFILE')
             headers += f"Subject: {EMAIL_SUBJ_PREFIX} VPN Profile Expired: {profile_name}\r\n"
 
-        if msg_task == 'send_empty_capture_email':
+        if 'send_empty_capture' in msg_task:
             EMAIL_BODY = config.get('AIVPN','MESSAGE_REPORT_EMPTY')
             headers += f"Subject: {EMAIL_SUBJ_PREFIX} VPN Profile Report: {profile_name}\r\n"
 
-        if msg_task == 'error_limit_reached':
+        if 'error_limit_reached' in msg_task:
             EMAIL_BODY = config.get('AIVPN','MESSAGE_MAX_LIMIT')
             headers += f"Subject: {EMAIL_SUBJ_PREFIX} Account Limit Reached\r\n"
 
-        if msg_task == 'error_max_capacity':
+        if 'error_max_capacity' in msg_task:
             EMAIL_BODY = config.get('AIVPN','MESSAGE_FULL_CAPACITY')
             headers += f"Subject: {EMAIL_SUBJ_PREFIX} Service at Full Capacity\r\n"
 
