@@ -135,9 +135,26 @@ def send_message_via_telegram(msg_task,profile_name,msg_addr,config):
             MSG_FILENAME = f'{profile_name}.ovpn'
 
         if 'send_report_profile' in msg_task:
-            MSG_BODY = config.get('AIVPN','MESSAGE_REPORT')
+            MSG_BODY = f"Profile: {profile_name}\r\n"
+            MSG_BODY += config.get('AIVPN','MESSAGE_REPORT')
             MSG_ATTACHMENT = f'{PATH}/{profile_name}/{profile_name}.pdf'
             MSG_FILENAME = f'{profile_name}.pdf'
+
+        if 'send_expire_profile' in msg_task:
+            MSG_BODY = f"Profile: {profile_name}\r\n"
+            MSG_BODY += config.get('AIVPN','MESSAGE_EXPIRED_PROFILE')
+
+        if 'send_empty_capture' in msg_task:
+            MSG_BODY = f"Profile: {profile_name}\r\n"
+            MSG_BODY += config.get('AIVPN','MESSAGE_REPORT_EMPTY')
+
+        if 'error_limit_reached' in msg_task:
+            MSG_BODY = f"Profile: {profile_name}\r\n"
+            MSG_BODY += config.get('AIVPN','MESSAGE_MAX_LIMIT')
+
+        if 'error_max_capacity' in msg_task:
+            MSG_BODY = f"Profile: {profile_name}\r\n"
+            MSG_BODY += config.get('AIVPN','MESSAGE_FULL_CAPACITY')
 
         dispatcher.bot.send_message(chat_id=msg_addr, text=MSG_BODY)
         dispatcher.bot.send_document(chat_id=msg_addr,document=open(MSG_ATTACHMENT, 'r'))
@@ -219,6 +236,7 @@ if __name__ == '__main__':
 
                     logging.info(f"Processing task: {msg_task} is {status}")
                     redis_client.publish('services_status',f"MOD_COMM_SEND:{item['data']}_{status}")
+                    continue
 
         redis_client.publish('services_status', 'MOD_COMM_SEND:offline')
         logging.info("Terminating")
