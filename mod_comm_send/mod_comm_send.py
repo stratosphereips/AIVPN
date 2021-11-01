@@ -129,12 +129,12 @@ def send_message_via_telegram(msg_task,profile_name,msg_addr,config):
         logging.info(f'Sending {msg_task}, {profile_name} to {msg_addr}')
 
         # Different bodies based on the message type
-        if msg_task == 'send_openvpn_profile_telegram':
+        if 'send_openvpn_profile' in msg_task:
             MSG_BODY = config.get('AIVPN','MESSAGE_NEW_PROFILE')
             MSG_ATTACHMENT = f'{PATH}/{profile_name}/{profile_name}.ovpn'
             MSG_FILENAME = f'{profile_name}.ovpn'
 
-        if msg_task == 'send_report_profile_telegram':
+        if 'send_report_profile' in msg_task:
             MSG_BODY = config.get('AIVPN','MESSAGE_REPORT')
             MSG_ATTACHMENT = f'{PATH}/{profile_name}/{profile_name}.pdf'
             MSG_FILENAME = f'{profile_name}.pdf'
@@ -191,42 +191,34 @@ if __name__ == '__main__':
                     logging.info('Status Online')
                 # Messages with prefix 'send' require this module to send back
                 # information to the user
-                elif 'send' in item['data']:
+                else:
                     # Obtain the profile name and address where to send
-                    profile_name = item['data'].split(':')[1]
                     msg_task = item['data'].split(':')[0]
-                    msg_addr=get_profile_name_address(profile_name,redis_client)
+                    try:
+                        profile_name = item['data'].split(':')[1]
+                        msg_addr=get_profile_name_address(profile_name,redis_client)
+                        msg_type=get_identity_type(msg_addr,redis_client)
+                        logging.info(f"Processing task: {msg_task} to {profile_name} ({msg_addr}, {msg_type})")
+                    except:
+                        msg_addr=item['data'].split(':')[1]
+                        profile_name = ""
+                        logging.info(f"Processing task: {msg_task} to {msg_addr} ({msg_type})")
 
-                    # Different options of what to send
-                    logging.info(f"{msg_task} to {profile_name} ({msg_addr})")
                     status = ""
-                    if 'email' in msg_task:
-                        if 'send_openvpn_profile_email' in item['data']:
+                    # We have different logic for different type of messages
+                    # (email, telegram, etc).
+                    if msg_type == 'telegram':
+                        status = send_message_via_telegram(msg_task,profile_name,msg_addr,config)
+                    elif msg_type == 'email':
+                        # Messages with prefix 'error' require this module to send back
+                        # error messages to the user
+                        if 'send' in item['data']:
                             status = send_mime_msg_via_email(msg_task,profile_name,msg_addr,config)
-                        elif 'send_report_profile_email' in item['data']:
-                            status = send_mime_msg_via_email(msg_task,profile_name,msg_addr,config)
-                        else:
+                        elif 'error' in item['data']:
                             status = send_plain_msg_via_email(msg_task,profile_name,msg_addr,config)
 
-                        logging.info(f"{item['data']} status: {status}")
-                        redis_client.publish('services_status',f"MOD_COMM_SEND:{item['data']}_{status}")
-                    elif 'telegram' in msg_task:
-                        status = send_message_via_telegram(msg_task,profile_name,msg_addr,config)
-                        logging.info(f"{item['data']} status: {status}")
-                        redis_client.publish('services_status',f"MOD_COMM_SEND:{item['data']}_{status}")
-                # Messages with prefix 'error' require this module to send back
-                # error messages to the user
-                elif 'error' in item['data']:
-                    # Obtain the address where to send the error message
-                    msg_addr=item['data'].split(':')[1]
-                    msg_task = item['data'].split(':')[0]
-                    profile_name=""
-
-                    logging.info(f"Sending {msg_task} to {msg_addr}")
-                    status = send_plain_msg_via_email(msg_task,profile_name,msg_addr,config)
-
-                    logging.info(f"Sending {ksg_type} status: {status}")
-                    redis_client.publish('services_status',f"MOD_COMM_SEND:{msg_task}_{status}")
+                    logging.info(f"Processing task: {msg_task} is {status}")
+                    redis_client.publish('services_status',f"MOD_COMM_SEND:{item['data']}_{status}")
 
         redis_client.publish('services_status', 'MOD_COMM_SEND:offline')
         logging.info("Terminating")
