@@ -2,6 +2,7 @@
 
 echo "Cleaning up"
 echo "" > logs/mod_openvpn.log
+echo "" > logs/mod_novpn.log
 echo "" > logs/mod_comm_recv.log
 echo "" > logs/mod_comm_send.log
 echo "" > logs/mod_report.log
@@ -23,6 +24,10 @@ cd ..
 
 cd mod_openvpn
 docker build -t aivpn_mod_openvpn:latest .
+cd ..
+
+cd mod_novpn
+docker build -t aivpn_mod_novpn:latest .
 cd ..
 
 cd mod_report
