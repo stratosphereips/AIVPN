@@ -90,6 +90,23 @@ services:
         depends_on:
             - mod_redis
             - mod_manager
+    mod_novpn:
+        privileged: true
+        image: aivpn_mod_novpn:latest
+        volumes:
+            - ./logs:/logs/
+            - ./data:/data/
+            - ./data/conf_novpn:/etc/openvpn
+            - ./config:/code/config/:ro
+            - ./common:/code/common/:ro
+        deploy:
+            restart_policy:
+                condition: on-failure
+        ports:
+          - "1195:1195/tcp"
+        depends_on:
+            - mod_redis
+            - mod_manager
 volumes:
     mod_manager:
     mod_report:
