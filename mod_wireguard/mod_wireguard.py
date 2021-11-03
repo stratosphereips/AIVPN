@@ -76,6 +76,7 @@ def set_profile_static_ip(CLIENT_NAME,CLIENT_IP):
     a file in the ccd/ directory with the IP set for the client.
     """
     try:
+        # Lets not need this
         pass
     except Exception as err:
         logging.info(f'Exception in set_profile_static_ip: {err}')
@@ -123,10 +124,6 @@ if __name__ == '__main__':
         logging.info(f'Channel subscription failed: {err}')
         sys.exit(-1)
 
-    # Configuring the WireGuard server
-    if configure_vpn_server(SERVER_PUBLIC_URL,PKI_ADDRESS):
-        logging.info(f'WireGuard VPN server is ready to be used at {SERVER_PUBLIC_URL}')
-
     try:
         # Checking for messages
         logging.info("Listening for messages")
@@ -151,7 +148,7 @@ if __name__ == '__main__':
                         # Generate the openVPN profile for the client
                         if generate_profile(CLIENT_NAME):
                             # Write the new profile to disk
-                            get_openvpn_profile(CLIENT_NAME,PATH)
+                            #get_openvpn_profile(CLIENT_NAME,PATH)
                             # Write the static IP address client configuration
                             set_profile_static_ip(CLIENT_NAME,CLIENT_IP)
                             # Store client:ip relationship for the traffic capture
