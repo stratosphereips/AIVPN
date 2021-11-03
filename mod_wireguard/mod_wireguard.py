@@ -18,6 +18,7 @@ def revoke_profile(CLIENT_NAME):
     This function revokes a given profile.
     """
     try:
+        # This is where we call the del-peer
         pass
     except Exception as err:
         logging.info(f'Exception in revoke_profile: {err}')
@@ -29,19 +30,11 @@ def generate_profile(CLIENT_NAME):
     This function generates a new profile for a client_name.
     """
     try:
+        # This is where we call the add-peer
         pass
     except Exception as err:
         logging.info(f'Exception in generate_profile: {err}')
         return False
-
-def get_vpn_profile(CLIENT_NAME,PATH):
-    """
-    This function returns the new generated client profile.
-    """
-    try:
-        pass
-    except Exception as err:
-        logging.info(f'Error in get_openvpn_profile: {err}')
 
 def start_traffic_capture(CLIENT_NAME,CLIENT_IP,PATH):
     """
