@@ -13,17 +13,6 @@ import ipaddress
 from common.database import *
 import subprocess
 
-def configure_vpn_server(SERVER_PUBLIC_URL,PKI_ADDRESS):
-    """
-    This function checks if a WireGuard server is configured.
-    If it is not, then it configures it.
-    """
-    try:
-        return True
-    except Exception as err:
-        logging.info(f'Exception in configure_vpn_server: {err}')
-        return False
-
 def revoke_profile(CLIENT_NAME):
     """
     This function revokes a given profile.
