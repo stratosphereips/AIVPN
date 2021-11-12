@@ -26,7 +26,7 @@ def configure_openvpn_server(SERVER_PUBLIC_URL,PKI_ADDRESS):
         # the OpenVPN server.
         if not os.path.exists('/etc/openvpn/pki/crl.pem'):
             try:
-                COMMAND=f'/usr/local/bin/ovpn_genconfig -u {SERVER_PUBLIC_URL}'
+                COMMAND=f'/usr/local/bin/ovpn_genconfig -u {SERVER_PUBLIC_URL} -E "cipher none"'
                 logging.info(COMMAND)
                 os.system(COMMAND)
             except Exception as err:
