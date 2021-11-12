@@ -16,14 +16,14 @@ from telegram.ext import CommandHandler
 from telegram.ext import MessageHandler, Filters
 from telegram.ext import Updater
 
-def send_request_to_redis(msg_id, msg_addr, msg_type, logging, redis_client):
+def send_request_to_redis(msg_id, msg_addr, msg_type, msg_request, logging, redis_client):
     """
     This function writes a new AI-VPN request to Redis.
     This is the first step to get a new account provisioned.
     """
     try:
-        logging.debug(f'Sending request to Redis: ({str(msg_id)}) {msg_addr} on {msg_type}')
-        add_item_provisioning_queue(redis_client,msg_id,msg_type,msg_addr)
+        logging.debug(f'Sending {msg_request} request to Redis: ({str(msg_id)}) {msg_addr} on {msg_type}')
+        add_item_provisioning_queue(redis_client,msg_id,msg_type,msg_addr,msg_request)
         return True
     except Exception as err:
         logging.info(f'Exception in send_request_to_redis: {err}')
