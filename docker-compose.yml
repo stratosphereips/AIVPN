@@ -103,7 +103,7 @@ services:
             restart_policy:
                 condition: on-failure
         ports:
-          - "80:80/tcp"
+          - "80:1194/tcp"
         depends_on:
             - mod_redis
             - mod_manager
