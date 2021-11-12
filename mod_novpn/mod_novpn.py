@@ -46,7 +46,7 @@ def configure_openvpn_server(SERVER_PUBLIC_URL,PKI_ADDRESS):
             os.environ['EASYRSA_CRL_DAYS']='3650'
             os.environ['EASYRSA_PKI']='/etc/openvpn/pki'
             logging.info('Invoking the ovpn_run script to start the service')
-            subprocess.Popen(["/usr/local/bin/ovpn_run --ncp-disable --cipher none"])
+            subprocess.Popen(["/usr/local/bin/ovpn_run","--ncp-disable","--cipher","none"])
             return True
         except Exception as err:
             logging.info(f'Exception attempting to run the OpenVPN server: {err}')
