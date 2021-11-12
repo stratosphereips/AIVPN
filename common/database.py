@@ -421,9 +421,9 @@ def del_profile_name(profile_name,REDIS_CLIENT):
 ## The provisioning queue is where new requests are queued before being handled.
 ## We receive many types of requests, through many types of messaging apps.
 ## One client can do many requests.
-## We store { "msg_id":45, "msg_type":"email", "msg_addr":"email@email.com" }
+## We store { "msg_id":45, "msg_type":"email", "msg_addr":"email@email.com", "msg_request":"openvpn" }
 
-def add_item_provisioning_queue(REDIS_CLIENT,msg_id,msg_type,msg_addr):
+def add_item_provisioning_queue(REDIS_CLIENT,msg_id,msg_type,msg_addr,msg_request):
     """ Function to add an item to the provisioning_queue Redis SET"""
 
     try:
@@ -431,8 +431,7 @@ def add_item_provisioning_queue(REDIS_CLIENT,msg_id,msg_type,msg_addr):
         score = time.time()
 
         # Build the JSON item to add to the set
-        dataset = { "msg_id":int(msg_id), "msg_type":str(msg_type),
-                "msg_addr":str(msg_addr) }
+        dataset = { "msg_id":int(msg_id), "msg_type":str(msg_type), "msg_addr":str(msg_addr), "msg_request":str(msg_request) }
         new_request = json.dumps(dataset)
 
         # If new_request exists, ignore and do not update score.
