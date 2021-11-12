@@ -34,6 +34,7 @@ def get_telegram_requests(redis_client,TELEGRAM_BOT_TOKEN,TELEGRAM_START_MSG,TEL
     This function runs the telegram bot in charge of receiving messages
     """
     msg_type = "telegram"
+    msg_request = "openvpn"
 
     # Telegram Handlers
     def telegram_cmd_start(update, context):
@@ -42,17 +43,19 @@ def get_telegram_requests(redis_client,TELEGRAM_BOT_TOKEN,TELEGRAM_START_MSG,TEL
 
     def telegram_cmd_getopenvpn(update, context):
         context.bot.send_message(chat_id=update.effective_chat.id,text=TELEGRAM_WAIT_MSG)
+        msg_request = "openvpn"
         logging.info(f'New Telegram OpenVPN request received from: {update.effective_chat.id}')
         # Write pending account to provision in REDIS
-        send_request_to_redis(int(update.effective_chat.id),update.effective_chat.id,msg_type,logging,redis_client)
+        send_request_to_redis(int(update.effective_chat.id),update.effective_chat.id,msg_type,msg_request,logging,redis_client)
         # Notify manager of new request
         redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
 
     def telegram_cmd_getwireguard(update, context):
         context.bot.send_message(chat_id=update.effective_chat.id,text=TELEGRAM_WAIT_MSG)
+        msg_request = "wireguard"
         logging.info(f'New Telegram WireGuard request received from: {update.effective_chat.id}')
         # Write pending account to provision in REDIS
-        send_request_to_redis(int(update.effective_chat.id),update.effective_chat.id,msg_type,logging,redis_client)
+        send_request_to_redis(int(update.effective_chat.id),update.effective_chat.id,msg_type,msg_request,logging,redis_client)
         # Notify manager of new request
         redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
 
