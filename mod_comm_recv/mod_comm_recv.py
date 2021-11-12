@@ -59,6 +59,15 @@ def get_telegram_requests(redis_client,TELEGRAM_BOT_TOKEN,TELEGRAM_START_MSG,TEL
         # Notify manager of new request
         redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
 
+    def telegram_cmd_getnoencryptedvpn(update, context):
+        context.bot.send_message(chat_id=update.effective_chat.id,text=TELEGRAM_WAIT_MSG)
+        msg_request = "novpn"
+        logging.info(f'New Telegram OpenVPN request received from: {update.effective_chat.id}')
+        # Write pending account to provision in REDIS
+        send_request_to_redis(int(update.effective_chat.id),update.effective_chat.id,msg_type,msg_request,logging,redis_client)
+        # Notify manager of new request
+        redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
+
     try:
         # Initializing
         updater = Updater(token=TELEGRAM_BOT_TOKEN, use_context=True)
@@ -74,6 +83,9 @@ def get_telegram_requests(redis_client,TELEGRAM_BOT_TOKEN,TELEGRAM_START_MSG,TEL
 
         wireguard_handler = CommandHandler('getwireguard', telegram_cmd_getwireguard)
         dispatcher.add_handler(wireguard_handler)
+
+        novpn_handler = CommandHandler('getnoencryptedvpn', telegram_cmd_getnoencryptedvpn)
+        dispatcher.add_handler(novpn_handler)
 
         logging.info('Telegram handlers created')
 
