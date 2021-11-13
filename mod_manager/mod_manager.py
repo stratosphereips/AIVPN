@@ -93,7 +93,7 @@ def provision_account(new_request,REDIS_CLIENT,ACTIVE_ACCOUNT_LIMIT):
     elif p_msg_request == "wireguard":
         # TODO: handle the IPs for wireguard
         available_ips=100
-    elif p_msg_request == "novpn"
+    elif p_msg_request == "novpn":
         # TODO: handle the IPs for wireguard
         available_ips=100
 
@@ -156,7 +156,7 @@ def provision_account(new_request,REDIS_CLIENT,ACTIVE_ACCOUNT_LIMIT):
     # This wait is from a pub/sub channel dedicate for this step
     vpn_subscriber = redis_create_subscriber(REDIS_CLIENT)
     vpn_provision_channel = f'provision_{p_msg_request}'
-    redis_subscribe_to_channel(openvpn_subscriber,vpn_provision_channel)
+    redis_subscribe_to_channel(vpn_subscriber,vpn_provision_channel)
 
     for item in vpn_subscriber.listen():
         if item['type'] == 'message':
