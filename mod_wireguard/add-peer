@@ -1,16 +1,46 @@
-#!/usr/bin/with-contenv bash
+#!/bin/bash
+# Variables:
+#   - INTERNAL_SUBNET set at startup from the Docker .env file
+#   - SERVERURL set at startup from the Docker .env file
+#   - SERVERPORT set at startup from the Docker .env file
+#   - PROFILE_NAME is given as parameter
+#   - PROFILE_PATH is given as parameter
+
+PROFILE_NAME=$1
+PROFILE_PATH=$2
+CLIENT_IP=$3
+
+# Check the profile name is not empty
+if [[ -z "$PROFILE_NAME" ]];
+then
+    echo "Profile name not given"
+fi
+
+# Check the path is not empty
+if [[ -z "$PROFILE_PATH" ]];
+then
+    echo "Path not given"
+fi
+
+# Check the client IP is not empty
+if [[ -z "$CLIENT_IP" ]];
+then
+    echo "Client IP not given"
+fi
+
+# Configuring the server interface
+INTERFACE=$(echo "$INTERNAL_SUBNET" | awk 'BEGIN{FS=OFS="."} NF--')
+
+# Configuring the server DNSs
+## If the DNS servers are not set, try using the local network
+if [ -z "$PEERDNS" ] || [ "$PEERDNS" = "auto" ]; then
+  PEERDNS="${INTERFACE}.1"
+fi
 
 if [ ! -f /config/wg0.conf ] || [ -z "$PEERS" ]; then
   echo "Wireguard is not set up in server mode"
   exit 0
 fi
-
-# Environmental variables:
-#   - INTERNAL_SUBNET set at startup from the Docker .env file
-#   - SERVERURL set at startup from the Docker .env file
-#   - SERVERPORT set at startup from the Docker .env file
-#
-
 # Configuring the internal subnet
 INTERNAL_SUBNET=${INTERNAL_SUBNET:-10.13.13.0}
 
@@ -23,42 +53,39 @@ fi
 # Configuring the server port
 SERVERPORT=${SERVERPORT:-51820}
 
-# Configuring the server DNSs
-## If the DNS servers are not set, try using the local network
-if [ -z "$PEERDNS" ] || [ "$PEERDNS" = "auto" ]; then
-  PEERDNS="${INTERFACE}.1"
-fi
-
-# Configuring the server interface 
-INTERFACE=$(echo "$INTERNAL_SUBNET" | awk 'BEGIN{FS=OFS="."} NF--')
-
+echo "Configuration parameters: "
+echo " - PROFILE_NAME: $PROFILE_NAME"
+echo " - PROFILE_PATH: $PROFILE_PATH"
+echo " - CLIENT_IP: $CLIENT_IP"
+echo " - INTERFACE: $INTERFACE"
+echo " - PEER DNS: $PEERDNS"
+echo " - INTERNAL_SUBNET: $INTERNAL_SUBNET"
+echo " - SERVER URL: $SERVERURL"
+echo " - SERVER PORT: $SERVERPORT"
+echo
 
 # Finding an IP
-for i in {1..254}; do
-  if grep -q "AllowedIPs = ${INTERFACE}.$(( $i + 1 ))/32" /config/wg0.conf; then
-    echo "Peer $i exists"
-  else
-    echo "Adding new Peer $i"
-    mkdir -p /config/peer${i}
-    if [ ! -f /config/peer${i}/privatekey-peer${i} ]; then
-      umask 077
-      wg genkey | tee /config/peer${i}/privatekey-peer${i} | wg pubkey > /config/peer${i}/publickey-peer${i}
-    fi
-    eval "`printf %s`
-    cat <<DUDE > /config/peer${i}/peer${i}.conf
+echo "Adding new client $PROFILE_NAME"
+umask 077
+
+wg genkey | tee ${PROFILE_PATH}/${PROFILE_NAME}/${PROFILE_NAME}_private | wg pubkey > ${PROFILE_PATH}/${PROFILE_NAME}/${PROFILE_NAME}_public
+
+echo "Generating .conf file"
+eval "`printf %s`
+cat <<DUDE > ${PROFILE_PATH}/${PROFILE_NAME}/${PROFILE_NAME}.conf
 `cat /config/templates/peer.conf`
 DUDE"
-    cat <<DUDE >> /config/wg0.conf
+
+echo "Adding peer to wg0.conf"
+cat <<DUDE >> /config/wg0.conf
 [Peer]
-PublicKey = $(cat /config/peer${i}/publickey-peer${i})
-AllowedIPs = ${INTERFACE}.$(( $i + 1 ))/32
+PublicKey = $(cat ${PROFILE_PATH}/${PROFILE_NAME}/${PROFILE_NAME}_public)
+AllowedIPs = ${CLIENT_IP}/32
 
 DUDE
-    echo "PEER ${i} QR code:"
-    qrencode -t ansiutf8 < /config/peer${i}/peer${i}.conf
-    qrencode -o /config/peer${i}/peer${i}.png < /config/peer${i}/peer${i}.conf
-    chown -R abc:abc /config/peer${i}
-    s6-svc -t /var/run/s6/services/wireguard
-    break
-  fi
-done
+
+echo "PEER ${PROFILE_NAME} QR code:"
+qrencode -t ansiutf8 < ${PROFILE_PATH}/${PROFILE_NAME}/${PROFILE_NAME}.conf
+qrencode -o ${PROFILE_PATH}/${PROFILE_NAME}/${PROFILE_NAME}.png < ${PROFILE_PATH}/${PROFILE_NAME}/${PROFILE_NAME}.conf
+chown -R abc:abc ${PROFILE_PATH}/${PROFILE_NAME}
+s6-svc -t /var/run/s6/services/wireguard
