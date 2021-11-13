@@ -252,7 +252,7 @@ def deprovision_account(profile_name,REDIS_CLIENT):
                     return False
 
         # Remove IP from list of VPN blocked IPs
-        status = del_ip_address(acc_ip_addr,REDIS_CLIENT)
+        status = del_ip_address(acc_ip_addr,acc_msg_request,REDIS_CLIENT)
 
         # Remove PID<->Profile_Name relationships
         status = del_pid_profile_name_relationship(acc_active_pid,REDIS_CLIENT)
