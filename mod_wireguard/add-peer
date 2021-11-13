@@ -1,0 +1,64 @@
+#!/usr/bin/with-contenv bash
+
+if [ ! -f /config/wg0.conf ] || [ -z "$PEERS" ]; then
+  echo "Wireguard is not set up in server mode"
+  exit 0
+fi
+
+# Environmental variables:
+#   - INTERNAL_SUBNET set at startup from the Docker .env file
+#   - SERVERURL set at startup from the Docker .env file
+#   - SERVERPORT set at startup from the Docker .env file
+#
+
+# Configuring the internal subnet
+INTERNAL_SUBNET=${INTERNAL_SUBNET:-10.13.13.0}
+
+# Configuring the server address
+## If the server URL is not set, attempt to retrieve it from icanhazip.com
+if [ -z "$SERVERURL" ] || [ "$SERVERURL" = "auto" ]; then
+  SERVERURL=$(curl icanhazip.com)
+fi
+
+# Configuring the server port
+SERVERPORT=${SERVERPORT:-51820}
+
+# Configuring the server DNSs
+## If the DNS servers are not set, try using the local network
+if [ -z "$PEERDNS" ] || [ "$PEERDNS" = "auto" ]; then
+  PEERDNS="${INTERFACE}.1"
+fi
+
+# Configuring the server interface 
+INTERFACE=$(echo "$INTERNAL_SUBNET" | awk 'BEGIN{FS=OFS="."} NF--')
+
+
+# Finding an IP
+for i in {1..254}; do
+  if grep -q "AllowedIPs = ${INTERFACE}.$(( $i + 1 ))/32" /config/wg0.conf; then
+    echo "Peer $i exists"
+  else
+    echo "Adding new Peer $i"
+    mkdir -p /config/peer${i}
+    if [ ! -f /config/peer${i}/privatekey-peer${i} ]; then
+      umask 077
+      wg genkey | tee /config/peer${i}/privatekey-peer${i} | wg pubkey > /config/peer${i}/publickey-peer${i}
+    fi
+    eval "`printf %s`
+    cat <<DUDE > /config/peer${i}/peer${i}.conf
+`cat /config/templates/peer.conf`
+DUDE"
+    cat <<DUDE >> /config/wg0.conf
+[Peer]
+PublicKey = $(cat /config/peer${i}/publickey-peer${i})
+AllowedIPs = ${INTERFACE}.$(( $i + 1 ))/32
+
+DUDE
+    echo "PEER ${i} QR code:"
+    qrencode -t ansiutf8 < /config/peer${i}/peer${i}.conf
+    qrencode -o /config/peer${i}/peer${i}.png < /config/peer${i}/peer${i}.conf
+    chown -R abc:abc /config/peer${i}
+    s6-svc -t /var/run/s6/services/wireguard
+    break
+  fi
+done
