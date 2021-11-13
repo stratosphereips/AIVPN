@@ -19,7 +19,7 @@ def revoke_profile(CLIENT_NAME):
     """
     try:
         # This is where we call the del-peer
-        pass
+        return True
     except Exception as err:
         logging.info(f'Exception in revoke_profile: {err}')
         return err
