@@ -115,7 +115,7 @@ services:
             - INTERNAL_SUBNET=$ENV_INTERNAL_SUBNET
             - ALLOWEDIPS=$ENV_ALLOWEDIPS
         ports:
-            - "81:51820/udp"
+            - "1194:51820/udp"
         sysctls:
             - net.ipv4.conf.all.src_valid_mark=1
         depends_on:
