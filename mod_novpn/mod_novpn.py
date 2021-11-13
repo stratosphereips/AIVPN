@@ -208,7 +208,7 @@ if __name__ == '__main__':
                     redis_client.publish('services_status', 'MOD_NOVPN:processing a new Not Encrypted OpenVPN profile')
 
                     # Obtaining an IP address for client is a must to move forward.
-                    CLIENT_IP=get_openvpn_client_ip_address(redis_client)
+                    CLIENT_IP=get_vpn_client_ip_address('novpn',redis_client)
                     if not CLIENT_IP==False:
                         # Parse the name obtained in the request
                         CLIENT_NAME=item['data'].split(':')[1]
