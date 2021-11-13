@@ -154,9 +154,11 @@ def provision_account(new_request,REDIS_CLIENT,ACTIVE_ACCOUNT_LIMIT):
 
     # Wait for message from mod_openvpn that the generation is done
     # This wait is from a pub/sub channel dedicate for this step
-    openvpn_subscriber = redis_create_subscriber(REDIS_CLIENT)
-    redis_subscribe_to_channel(openvpn_subscriber,'provision_openvpn')
-    for item in openvpn_subscriber.listen():
+    vpn_subscriber = redis_create_subscriber(REDIS_CLIENT)
+    vpn_provision_channel = f'provision_{p_msg_request}'
+    redis_subscribe_to_channel(openvpn_subscriber,vpn_provision_channel)
+
+    for item in vpn_subscriber.listen():
         if item['type'] == 'message':
             logging.info(f"Provisioning: {item['data']}")
             if 'profile_creation_successful' in item['data']:
@@ -170,12 +172,12 @@ def provision_account(new_request,REDIS_CLIENT,ACTIVE_ACCOUNT_LIMIT):
                     redis_client.publish('mod_comm_send_check',f'error_max_capacity:{p_msg_addr}')
                 else:
                     # Request is stored back in the provisioning queue.
-                    add_item_provisioning_queue(REDIS_CLIENT,p_msg_id,p_msg_type,p_msg_addr)
+                    add_item_provisioning_queue(REDIS_CLIENT,p_msg_id,p_msg_type,p_msg_addr,p_msg_request)
                     logging.info(f'Provisioning: unable to provision, rolling back.')
                 return False
 
     # Step 5: Send profile or instruct manager to send profile.
-    REDIS_CLIENT.publish('mod_comm_send_check',f'send_openvpn_profile:{acc_profile_name}')
+    REDIS_CLIENT.publish('mod_comm_send_check',f'send_vpn_profile:{acc_profile_name}')
 
     # Step 6: Provisioning successful, update Redis with account information.
     # If there's an error, these structures are not updated.
@@ -194,7 +196,7 @@ def provision_account(new_request,REDIS_CLIENT,ACTIVE_ACCOUNT_LIMIT):
     prov_status = add_active_profile(acc_profile_name,REDIS_CLIENT)
 
     # Close the redis subscriber we created
-    openvpn_subscriber.close()
+    vpn_subscriber.close()
     return True
 
 def process_expired_accounts(REDIS_CLIENT,EXPIRATION_THRESHOLD):
