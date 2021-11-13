@@ -417,6 +417,39 @@ def del_profile_name(profile_name,REDIS_CLIENT):
     except Exception as err:
         return err
 
+### MAP profile_name:vpn_type for easy access
+hash_profile_vpntypes = "profile_vpntype"
+
+def add_profile_vpn_type(profile_name,msg_request,REDIS_CLIENT):
+    """ Stores the profile_name:msg_request in Redis  """
+
+    try:
+        status = REDIS_CLIENT.hsetnx(hash_profile_vpntypes,profile_name,msg_request)
+
+        # status==1 if HSETNX created a field in the hash set
+        # status==0 if the identity exists and no operation is done.
+        return status
+    except Exception as err:
+        return err
+
+def get_profile_vpn_type(profile_name,REDIS_CLIENT):
+    """ Obtains a msg_request for given a profile_name """
+
+    try:
+        msg_request = REDIS_CLIENT.hget(hash_profile_vpntypes,profile_name)
+        return msg_request
+    except Exception as err:
+        return err
+
+def del_profile_vpn_type(profile_name,REDIS_CLIENT):
+    """ Deletes a profile_name vpn type from Redis """
+
+    try:
+        REDIS_CLIENT.hdel(hash_profile_vpntypes,profile_name)
+        return True
+    except Exception as err:
+        return err
+
 # PROVISIONING QUEUE
 ## The provisioning queue is where new requests are queued before being handled.
 ## We receive many types of requests, through many types of messaging apps.
