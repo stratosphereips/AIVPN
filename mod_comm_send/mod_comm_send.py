@@ -16,7 +16,7 @@ from telegram.ext import CommandHandler
 from telegram.ext import MessageHandler, Filters
 from telegram.ext import Updater
 
-def send_mime_msg_via_email(msg_task,profile_name,msg_addr,config):
+def send_mime_msg_via_email(msg_task,profile_name,msg_addr,msg_vpn_type,config):
     """ Function to send a MIME message to the user via email. """
     try:
         # Load general configuration
@@ -34,8 +34,12 @@ def send_mime_msg_via_email(msg_task,profile_name,msg_addr,config):
         # Different bodies based on the message type
         if 'send_vpn_profile' in msg_task:
             EMAIL_BODY = config.get('AIVPN','MESSAGE_NEW_PROFILE')
-            EMAIL_ATTACHMENT = f'{PATH}/{profile_name}/{profile_name}.ovpn'
-            EMAIL_FILENAME = f'{profile_name}.ovpn'
+            if 'wireguard' in msg_vpn_type: 
+                EMAIL_ATTACHMENT = f'{PATH}/{profile_name}/{profile_name}.conf'
+                EMAIL_FILENAME = f'{profile_name}.conf'
+            else:
+                EMAIL_ATTACHMENT = f'{PATH}/{profile_name}/{profile_name}.ovpn'
+                EMAIL_FILENAME = f'{profile_name}.ovpn'
             email_message.add_header('Subject', f"{EMAIL_SUBJ_PREFIX} VPN Profile Active: {profile_name}\r\n")
 
         if 'send_report_profile' in msg_task:
@@ -239,7 +243,7 @@ if __name__ == '__main__':
                         # Messages with prefix 'error' require this module to send back
                         # error messages to the user
                         if 'send' in item['data']:
-                            status = send_mime_msg_via_email(msg_task,profile_name,msg_addr,config)
+                            status = send_mime_msg_via_email(msg_task,profile_name,msg_addr,msg_vpn_type,config)
                         elif 'error' in item['data']:
                             status = send_plain_msg_via_email(msg_task,profile_name,msg_addr,config)
 
