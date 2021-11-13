@@ -1,0 +1,8 @@
+#!/bin/bash
+
+CLIENT_IP=$1
+
+if [[ -z "$CLIENT_IP" ]];
+then
+    echo "Client IP not given"
+fi
