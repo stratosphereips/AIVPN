@@ -151,11 +151,26 @@ def get_email_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
                 continue
 
             # Parse subject and find matches for keyword VPN
+            email_subject = ""
+            msg_request=""
             try:
-                email_subject = re.search(r'VPN', msg['subject'],re.IGNORECASE).group(0)
+                email_subject = re.search(r'NOENCRYPTEDVPN', msg['subject'],re.IGNORECASE).group(0)
+                msg_request="novpn"
             except:
-                email_subject = ""
-            logging.debug(f"Extracted email subject: {email_subject}")
+                try:
+                    email_subject = re.search(r'NOTENCRYPTEDVPN', msg['subject'],re.IGNORECASE).group(0)
+                    msg_request="novpn"
+                except:
+                    try:
+                        email_subject = re.search(r'WIREGUARD', msg['subject'],re.IGNORECASE).group(0)
+                        msg_request="wireguard"
+                    except:
+                        try:
+                            email_subject = re.search(r'VPN', msg['subject'],re.IGNORECASE).group(0)
+                            msg_request="openvpn"
+                        except:
+                            pass
+            logging.debug(f"Extracted email subject: {email_subject} ({msg_request})")
 
             # Parse email body and find matches for keyword VPN
             try:
@@ -166,14 +181,28 @@ def get_email_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
                 email_body = msg.get_payload()
 
             try:
-                email_body = re.search(r'VPN',email_body,re.IGNORECASE).group(0)
+                email_body = re.search(r'NOENCRYPTEDVPN',email_body,re.IGNORECASE).group(0)
+                msg_request="novpn"
             except:
-                email_body = ""
-            logging.debug(f"Extracted email body: {email_body}")
+                try:
+                    email_body = re.search(r'NOTENCRYPTEDVPN',email_body,re.IGNORECASE).group(0)
+                    msg_request="novpn"
+                except:
+                    try:
+                        email_body = re.search(r'WIREGUARD',email_body,re.IGNORECASE).group(0)
+                        msg_request="wireguard"
+                    except:
+                        try:
+                            email_body = re.search(r'VPN',email_body,re.IGNORECASE).group(0)
+                            msg_request="openvpn"
+                        except:
+                            email_body = ""
+            logging.debug(f"Extracted email body: {email_body} ({msg_request})")
 
             # We only parse messages that contain VPN in subject or body
             # These prints will be removed after we test everything is good
-            if ('vpn' in email_subject.lower() or 'vpn' in email_body.lower()):
+            if msg_request != "":
+                logging.info(f"Extracted email request: {email_subject}:{email_body}({msg_request})")
                 # Parse email date
                 email_date = msg['date']
 
@@ -181,7 +210,7 @@ def get_email_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
                 email_from = re.search(r'[\w\.-]+@[\w\.-]+', msg['from']).group(0)
 
                 # Write pending account to provision in REDIS
-                send_request_to_redis(int(email_uid),email_from,msg_type,logging,redis_client)
+                send_request_to_redis(int(email_uid),email_from,msg_type,msg_request,logging,redis_client)
 
                 # Notify manager of new request
                 redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
@@ -269,7 +298,9 @@ if __name__ == '__main__':
                         redis_client.publish('services_status','MOD_COMM_RECV:online')
                         logging.info('Status Online')
                     else:
-                        REDIS_SERVER,CHANNEL,LOG_FILE,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD = read_configuration()
+                        IMAP_SERVER = config['IMAP']['SERVER']
+                        IMAP_USERNAME = config['IMAP']['USERNAME']
+                        IMAP_PASSWORD = config['IMAP']['PASSWORD']
                         redis_client.publish('services_status','MOD_COMM_RECV:error_checking_requests')
                         logging.info('Error checking requests')
 
