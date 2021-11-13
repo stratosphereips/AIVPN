@@ -62,7 +62,7 @@ def get_telegram_requests(redis_client,TELEGRAM_BOT_TOKEN,TELEGRAM_START_MSG,TEL
     def telegram_cmd_getnoencryptedvpn(update, context):
         context.bot.send_message(chat_id=update.effective_chat.id,text=TELEGRAM_WAIT_MSG)
         msg_request = "novpn"
-        logging.info(f'New Telegram OpenVPN request received from: {update.effective_chat.id}')
+        logging.info(f'New Telegram Not Encrypted OpenVPN request received from: {update.effective_chat.id}')
         # Write pending account to provision in REDIS
         send_request_to_redis(int(update.effective_chat.id),update.effective_chat.id,msg_type,msg_request,logging,redis_client)
         # Notify manager of new request
