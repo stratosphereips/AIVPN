@@ -3,11 +3,11 @@ REDIS_SERVER = aivpn_mod_redis_1
 REDIS_COMM_RECV_CHECK = mod_comm_recv_check
 REDIS_COMM_SEND_CHECK = mod_comm_send_check
 REDIS_REPORT_CHECK = mod_report_check
-REDIS_OPENVPN_CHECK = mod_openvpn_check
 REDIS_SLIPS_CHECK = mod_slips_check
-REDIS_MANAGER_CHECK = services_status
+REDIS_OPENVPN_CHECK = mod_openvpn_check
 REDIS_WIREGUARD_CHECK = mod_wireguard_check
 REDIS_NOVPN_CHECK = mod_novpn_check
+REDIS_MANAGER_CHECK = services_status
 REDIS_MODULES = ["mod_comm_recv_check","mod_comm_send_check","mod_report_check","mod_openvpn_check","mod_slips_check","mod_wireguard_check","mod_novpn_check"]
 
 [LOGS]
