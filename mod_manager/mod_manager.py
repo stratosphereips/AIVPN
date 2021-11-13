@@ -63,7 +63,8 @@ def provision_account(new_request,REDIS_CLIENT,ACTIVE_ACCOUNT_LIMIT):
     p_msg_addr = new_request_object['msg_addr']
     p_msg_id = new_request_object['msg_id']
     p_msg_type = new_request_object['msg_type']
-    logging.info(f'Provisioning: new account for {p_msg_addr} (ID: {p_msg_id}, Type: {p_msg_type})')
+    p_msg_request = new_request_object['msg_request']
+    logging.info(f'Provisioning: new {p_msg_request} account for {p_msg_addr} (ID: {p_msg_id}, Type: {p_msg_type})')
 
     ## Create identity for the account address.
     prov_status = add_identity(p_msg_addr,REDIS_CLIENT)
@@ -86,7 +87,16 @@ def provision_account(new_request,REDIS_CLIENT,ACTIVE_ACCOUNT_LIMIT):
     ## TODO: Check if we have enough storage to provision the new account.
 
     ## Check if we have enough IP addresses to provision new account.
-    available_ips=get_openvpn_free_ip_address_space(REDIS_CLIENT)
+    ## TODO: refactor this code
+    if p_msg_request == "openvpn":
+        available_ips=get_openvpn_free_ip_address_space(REDIS_CLIENT)
+    elif p_msg_request == "wireguard":
+        # TODO: handle the IPs for wireguard
+        available_ips=100
+    elif p_msg_request == "novpn"
+        # TODO: handle the IPs for wireguard
+        available_ips=100
+
     logging.info(f'Provisioning: number of available IPs: {available_ips}')
     if available_ips<1:
         # Send message notifying the AI VPN is at full capacity. Discard request.
@@ -100,7 +110,7 @@ def provision_account(new_request,REDIS_CLIENT,ACTIVE_ACCOUNT_LIMIT):
     logging.info(f'Provisioning: profile name reserved {acc_profile_name}')
     if not acc_profile_name:
         # Request is stored back in the provisioning queue.
-        add_item_provisioning_queue(REDIS_CLIENT,p_msg_id,p_msg_type,p_msg_addr)
+        add_item_provisioning_queue(REDIS_CLIENT,p_msg_id,p_msg_type,p_msg_addr,p_msg_request)
         logging.info(f'Provisioning: unable to provision, rolling back.')
         return False
 
@@ -110,7 +120,17 @@ def provision_account(new_request,REDIS_CLIENT,ACTIVE_ACCOUNT_LIMIT):
     logging.debug(f'Provisioning: Mapping of profile_name:mst_addr was {prov_status}')
     if not prov_status:
         # Request is stored back in the provisioning queue.
-        add_item_provisioning_queue(REDIS_CLIENT,p_msg_id,p_msg_type,p_msg_addr)
+        add_item_provisioning_queue(REDIS_CLIENT,p_msg_id,p_msg_type,p_msg_addr,p_msg_request)
+        logging.info(f'Provisioning: unable to provision, rolling back.')
+        return False
+
+    ## Store the mapping of profile_name:msg_request to quickly known
+    ## which vpn was assigned to which profile
+    prov_status = add_profile_vpn_type(acc_profile_name,p_msg_request,REDIS_CLIENT)
+    logging.debug(f'Provisioning: Mapping of profile_name:msg_request was {prov_status}')
+    if not prov_status:
+        # Request is stored back in the provisioning queue.
+        add_item_provisioning_queue(REDIS_CLIENT,p_msg_id,p_msg_type,p_msg_addr,p_msg_request)
         logging.info(f'Provisioning: unable to provision, rolling back.')
         return False
 
@@ -120,7 +140,7 @@ def provision_account(new_request,REDIS_CLIENT,ACTIVE_ACCOUNT_LIMIT):
     logging.info(f'Provisioning: creation of working directory was {prov_status}')
     if not prov_status:
         # Request is stored back in the provisioning queue.
-        add_item_provisioning_queue(REDIS_CLIENT,p_msg_id,p_msg_type,p_msg_addr)
+        add_item_provisioning_queue(REDIS_CLIENT,p_msg_id,p_msg_type,p_msg_addr,p_msg_request)
         logging.info(f'Provisioning: unable to provision, rolling back.')
         return False
 
@@ -129,8 +149,8 @@ def provision_account(new_request,REDIS_CLIENT,ACTIVE_ACCOUNT_LIMIT):
 
     ## Trigger generation of VPN profile using profile_name.
     message=f'new_profile:{acc_profile_name}'
-    REDIS_CLIENT.publish('mod_openvpn_check',message)
-    logging.info("Provisioning: requested mod_openvpn a new profile.")
+    REDIS_CLIENT.publish(f'mod_{p_msg_request}_check',message)
+    logging.info(f'Provisioning: requested mod_{p_msg_request} a new profile.')
 
     # Wait for message from mod_openvpn that the generation is done
     # This wait is from a pub/sub channel dedicate for this step
