@@ -32,7 +32,7 @@ def send_mime_msg_via_email(msg_task,profile_name,msg_addr,config):
         email_message.add_header('To', msg_addr)
 
         # Different bodies based on the message type
-        if 'send_openvpn_profile' in msg_task:
+        if 'send_vpn_profile' in msg_task:
             EMAIL_BODY = config.get('AIVPN','MESSAGE_NEW_PROFILE')
             EMAIL_ATTACHMENT = f'{PATH}/{profile_name}/{profile_name}.ovpn'
             EMAIL_FILENAME = f'{profile_name}.ovpn'
@@ -130,7 +130,7 @@ def send_message_via_telegram(msg_task,profile_name,msg_addr,config):
         logging.info(f'Sending {msg_task}, {profile_name} to {msg_addr}')
 
         # Different bodies based on the message type
-        if 'send_openvpn_profile' in msg_task:
+        if 'send_vpn_profile' in msg_task:
             MSG_BODY = config.get('AIVPN','MESSAGE_NEW_PROFILE')
             MSG_ATTACHMENT = f'{PATH}/{profile_name}/{profile_name}.ovpn'
 
