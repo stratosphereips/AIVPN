@@ -45,7 +45,7 @@ def get_vpn_profile(CLIENT_NAME,PATH):
     try:
         pass
     except Exception as err:
-        logging.info(f'Error in get_openvpn_profile: {err}')
+        logging.info(f'Error in get_vpn_profile: {err}')
 
 def start_traffic_capture(CLIENT_NAME,CLIENT_IP,PATH):
     """
@@ -186,7 +186,7 @@ if __name__ == '__main__':
                     if account_error_message:
                         logging.info(account_error_message)
                         redis_client.publish('services_status',account_error_message)
-                        redis_client.publish('provision_openvpn',account_error_message)
+                        redis_client.publish('provision_wireguard',account_error_message)
 
                 elif 'revoke_profile' in item['data']:
                     account_error_message=""
@@ -203,7 +203,7 @@ if __name__ == '__main__':
                         if status:
                             # Account revoked successfully
                             redis_client.publish('services_status','MOD_WIREGUARD: profile_revocation_successful')
-                            redis_client.publish('deprovision_openvpn','profile_revocation_successful')
+                            redis_client.publish('deprovision_wireguard','profile_revocation_successful')
                             logging.info('profile_revocation_successful')
                         else:
                             account_error_message='Unable to stop the traffic capture.'
@@ -214,7 +214,7 @@ if __name__ == '__main__':
                     if account_error_message:
                         logging.info(account_error_message)
                         redis_client.publish('services_status',account_error_message)
-                        redis_client.publish('deprovision_openvpn',account_error_message)
+                        redis_client.publish('deprovision_wireguard',account_error_message)
 
         redis_client.publish('services_status', 'MOD_WIREGUARD:offline')
         logging.info("Terminating")
