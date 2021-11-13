@@ -1,8 +1,11 @@
 #!/bin/bash
 
-CLIENT_IP=$1
+CLIENT_NAME=$1
 
-if [[ -z "$CLIENT_IP" ]];
+if [[ -z "$CLIENT_NAME" ]];
 then
-    echo "Client IP not given"
+    echo "CLIENT_NAME not given"
 fi
+
+echo "Removing $CLIENT_NAME from wg0.conf"
+sed -i '/'"$CLIENT_NAME"'/,+3d' /config/wg0.conf
