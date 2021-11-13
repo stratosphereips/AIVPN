@@ -13,12 +13,13 @@ import ipaddress
 from common.database import *
 import subprocess
 
-def revoke_profile(CLIENT_NAME):
+def revoke_profile(CLIENT_IP):
     """
     This function revokes a given profile.
     """
     try:
         # This is where we call the del-peer
+        os.system(f'/app/del-peer {CLIENT_IP}')
         return True
     except Exception as err:
         logging.info(f'Exception in revoke_profile: {err}')
@@ -192,10 +193,11 @@ if __name__ == '__main__':
                     # Parse CLIENT_NAME and PID from message
                     CLIENT_NAME=item['data'].split(':')[1]
                     CLIENT_PID=int(item['data'].split(':')[2])
-                    logging.info(f'Revoking profile {CLIENT_NAME} and stopping traffic capture ({CLIENT_PID})')
+                    CLIENT_IP=get_ip_for_profile(client_name,redis_client)
+                    logging.info(f'Revoking profile {CLIENT_NAME} ({CLIENT_IP}) and stopping traffic capture ({CLIENT_PID})')
 
                     # Revoke VPN profile
-                    if revoke_profile(CLIENT_NAME):
+                    if revoke_profile(CLIENT_IP):
                         # Stop the traffic capture by PID
                         status = stop_traffic_capture(CLIENT_PID)
                         logging.info(f'Result of stopping the traffic capture was {status}')
