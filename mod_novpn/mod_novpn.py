@@ -40,7 +40,7 @@ def configure_openvpn_server(SERVER_PUBLIC_URL,PKI_ADDRESS):
 
         # Attempt to run the OpenVPN server
         try:
-            logging.info("Setting up the environment variables for OpenVPN to run")
+            logging.info("Setting up the environment variables for the not encrypted OpenVPN to run")
             os.environ['OPENVPN']='/etc/openvpn'
             os.environ['EASYRSA']='/usr/share/easy-rsa'
             os.environ['EASYRSA_CRL_DAYS']='3650'
@@ -49,7 +49,7 @@ def configure_openvpn_server(SERVER_PUBLIC_URL,PKI_ADDRESS):
             subprocess.Popen(["/usr/local/bin/ovpn_run","--ncp-disable","--cipher","none"])
             return True
         except Exception as err:
-            logging.info(f'Exception attempting to run the OpenVPN server: {err}')
+            logging.info(f'Exception attempting to run the not encrypted OpenVPN server: {err}')
             return False
 
     except Exception as err:
@@ -188,9 +188,9 @@ if __name__ == '__main__':
         logging.info(f'Channel subscription failed: {err}')
         sys.exit(-1)
 
-    # Configuring the OpenVPN server
+    # Configuring the Not Encrypted OpenVPN server
     if configure_openvpn_server(SERVER_PUBLIC_URL,PKI_ADDRESS):
-        logging.info(f'OpenVPN Server is ready to be used at {SERVER_PUBLIC_URL}')
+        logging.info(f'Not Encrypted OpenVPN Server is ready to be used at {SERVER_PUBLIC_URL}')
 
     try:
         # Checking for messages
@@ -204,8 +204,8 @@ if __name__ == '__main__':
                     logging.info('Status Online')
                 elif 'new_profile' in item['data']:
                     account_error_message=""
-                    logging.info('Received a new request for an OpenVPN profile')
-                    redis_client.publish('services_status', 'MOD_NOVPN:processing a new OpenVPN profile')
+                    logging.info('Received a new request for an Not Encrypted OpenVPN profile')
+                    redis_client.publish('services_status', 'MOD_NOVPN:processing a new Not Encrypted OpenVPN profile')
 
                     # Obtaining an IP address for client is a must to move forward.
                     CLIENT_IP=get_openvpn_client_ip_address(redis_client)
@@ -227,7 +227,7 @@ if __name__ == '__main__':
                                     result = add_pid_profile_name_relationship(PID,CLIENT_NAME,redis_client)
                                     result = add_profile_name_pid_relationship(CLIENT_NAME,PID,redis_client)
                                     redis_client.publish('services_status','MOD_NOVPN:profile_creation_successful')
-                                    redis_client.publish('provision_openvpn','profile_creation_successful')
+                                    redis_client.publish('provision_novpn','profile_creation_successful')
                                     logging.info('profile_creation_successful')
                                 else:
                                     account_error_message="MOD_NOVPN: profile_creation_failed:cannot start tcpdump"
@@ -242,7 +242,7 @@ if __name__ == '__main__':
                     if account_error_message:
                         logging.info(account_error_message)
                         redis_client.publish('services_status',account_error_message)
-                        redis_client.publish('provision_openvpn',account_error_message)
+                        redis_client.publish('provision_novpn',account_error_message)
                 elif 'revoke_profile' in item['data']:
                     account_error_message=""
                     # Parse CLIENT_NAME and PID from message
@@ -258,7 +258,7 @@ if __name__ == '__main__':
                         if status:
                             # Account revoked successfully
                             redis_client.publish('services_status','MOD_NOVPN: profile_revocation_successful')
-                            redis_client.publish('deprovision_openvpn','profile_revocation_successful')
+                            redis_client.publish('deprovision_novpn','profile_revocation_successful')
                             logging.info('profile_revocation_successful')
                         else:
                             account_error_message='Unable to stop the traffic capture.'
@@ -269,7 +269,7 @@ if __name__ == '__main__':
                     if account_error_message:
                         logging.info(account_error_message)
                         redis_client.publish('services_status',account_error_message)
-                        redis_client.publish('deprovision_openvpn',account_error_message)
+                        redis_client.publish('deprovision_novpn',account_error_message)
 
         redis_client.publish('services_status', 'MOD_NOVPN:offline')
         logging.info("Terminating")
