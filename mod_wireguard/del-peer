@@ -9,3 +9,6 @@ fi
 
 echo "Removing $CLIENT_NAME from wg0.conf"
 sed -i '/'"$CLIENT_NAME"'/,+3d' /config/wg0.conf
+
+echo "Restarting the service to update the routes"
+s6-svc -t /var/run/s6/services/wireguard
