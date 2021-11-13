@@ -24,14 +24,15 @@ def revoke_profile(CLIENT_NAME):
         logging.info(f'Exception in revoke_profile: {err}')
         return err
 
-def generate_profile(CLIENT_NAME):
+def generate_profile(CLIENT_NAME,PATH,CLIENT_IP):
 
     """
     This function generates a new profile for a client_name.
     """
     try:
         # This is where we call the add-peer
-        pass
+        os.system(f'/app/add-peer {CLIENT_NAME} {PATH} {CLIENT_IP}')
+        return True
     except Exception as err:
         logging.info(f'Exception in generate_profile: {err}')
         return False
@@ -148,17 +149,18 @@ if __name__ == '__main__':
                     logging.info('Received a new request for an WireGuard profile')
                     redis_client.publish('services_status', 'MOD_WIREGUARD:processing a new WireGuard profile')
 
-                    # Obtaining an IP address for client is a must to move forward.
-                    CLIENT_IP=get_openvpn_client_ip_address(redis_client)
+                    # Get a client ip for wireguard
+                    CLIENT_IP = get_vpn_client_ip_address('wireguard',redis_client)
+
                     if not CLIENT_IP==False:
                         # Parse the name obtained in the request
                         CLIENT_NAME=item['data'].split(':')[1]
                         redis_client.publish('services_status',f'MOD_WIREGUARD: assigning IP ({CLIENT_IP}) to client ({CLIENT_NAME})')
-                        # Generate the openVPN profile for the client
-                        if generate_profile(CLIENT_NAME):
-                            # Write the new profile to disk
-                            #get_openvpn_profile(CLIENT_NAME,PATH)
-                            # Write the static IP address client configuration
+
+                        # Generate the Wireguard profile for the client
+                        logging.info(f'Generating WireGuard profile {CLIENT_NAME} with IP {CLIENT_IP}')
+                        status = generate_profile(CLIENT_NAME,PATH,CLIENT_IP)
+                        if status==True:
                             set_profile_static_ip(CLIENT_NAME,CLIENT_IP)
                             # Store client:ip relationship for the traffic capture
                             if add_profile_ip_relationship(CLIENT_NAME,CLIENT_IP,redis_client):
@@ -168,22 +170,23 @@ if __name__ == '__main__':
                                     result = add_pid_profile_name_relationship(PID,CLIENT_NAME,redis_client)
                                     result = add_profile_name_pid_relationship(CLIENT_NAME,PID,redis_client)
                                     redis_client.publish('services_status','MOD_WIREGUARD:profile_creation_successful')
-                                    redis_client.publish('provision_openvpn','profile_creation_successful')
+                                    redis_client.publish('provision_wireguard','profile_creation_successful')
                                     logging.info('profile_creation_successful')
                                 else:
-                                    account_error_message="MOD_WIREGUARD: profile_creation_failed:cannot start tcpdump"
+                                    account_error_message="MOD_OPENVPN: profile_creation_failed:cannot start tcpdump"
                             else:
-                                account_error_message="MOD_WIREGUARD: profile_creation_failed:cannot add profile_ip relationship to redis"
+                                account_error_message="MOD_OPENVPN: profile_creation_failed:cannot add profile_ip relationship to redis"
                         else:
-                            account_error_message="MOD_WIREGUARD: profile_creation_failed:failed to create a new profile"
+                            account_error_message="MOD_OPENVPN: profile_creation_failed:failed to create a new profile"
                     else:
-                        account_error_message="MOD_WIREGUARD: profile_creation_failed:no available IP addresses found"
+                        account_error_message="MOD_OPENVPN: profile_creation_failed:no available IP addresses found"
 
                     # Notify once if there is an error message
                     if account_error_message:
                         logging.info(account_error_message)
                         redis_client.publish('services_status',account_error_message)
                         redis_client.publish('provision_openvpn',account_error_message)
+
                 elif 'revoke_profile' in item['data']:
                     account_error_message=""
                     # Parse CLIENT_NAME and PID from message
