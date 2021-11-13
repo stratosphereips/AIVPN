@@ -78,6 +78,8 @@ DUDE"
 
 echo "Adding peer to wg0.conf"
 cat <<DUDE >> /config/wg0.conf
+
+#${PROFILE_NAME}
 [Peer]
 PublicKey = $(cat ${PROFILE_PATH}/${PROFILE_NAME}/${PROFILE_NAME}_public)
 AllowedIPs = ${CLIENT_IP}/32
