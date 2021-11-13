@@ -79,7 +79,7 @@ services:
         volumes:
             - ./logs:/logs/
             - ./data:/data/
-            - ./data/conf:/etc/openvpn
+            - ./data/conf_openvpn:/etc/openvpn
             - ./config:/code/config/:ro
             - ./common:/code/common/:ro
         deploy:
