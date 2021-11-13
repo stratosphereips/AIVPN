@@ -73,7 +73,7 @@ wg genkey | tee ${PROFILE_PATH}/${PROFILE_NAME}/${PROFILE_NAME}_private | wg pub
 echo "Generating .conf file"
 eval "`printf %s`
 cat <<DUDE > ${PROFILE_PATH}/${PROFILE_NAME}/${PROFILE_NAME}.conf
-`cat /config/templates/peer.conf`
+`cat /code/peer.conf`
 DUDE"
 
 echo "Adding peer to wg0.conf"
