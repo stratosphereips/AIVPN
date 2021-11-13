@@ -87,15 +87,7 @@ def provision_account(new_request,REDIS_CLIENT,ACTIVE_ACCOUNT_LIMIT):
     ## TODO: Check if we have enough storage to provision the new account.
 
     ## Check if we have enough IP addresses to provision new account.
-    ## TODO: refactor this code
-    if p_msg_request == "openvpn":
-        available_ips=get_openvpn_free_ip_address_space(REDIS_CLIENT)
-    elif p_msg_request == "wireguard":
-        # TODO: handle the IPs for wireguard
-        available_ips=100
-    elif p_msg_request == "novpn":
-        # TODO: handle the IPs for wireguard
-        available_ips=100
+    available_ips=get_vpn_free_ip_address_space(p_msg_request,REDIS_CLIENT)
 
     logging.info(f'Provisioning: number of available IPs: {available_ips}')
     if available_ips<1:
