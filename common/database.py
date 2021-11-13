@@ -214,64 +214,74 @@ def del_active_profile_counter(msg_addr,REDIS_CLIENT):
     except Exception as err:
         return err
 
-# OPEN VPN IP ADDRESS SPACE HANDLING
+# VPN IP ADDRESS SPACE HANDLING
 ## We want to quickly check if an IP address is in use
-hash_openvpn_blocked_ip_addresses = "mod_openvpn_blocked_ip_addresses"
+#hash_blocked_ip_addresses = "blocked_ip_addresses_mod_openvpn"
+#hash_blocked_ip_addresses = "blocked_ip_addresses_mod_wireguard"
+#hash_blocked_ip_addresses = "blocked_ip_addresses_mod_novpn"
+hash_blocked_ip_addresses = "blocked_ip_addresses_mod_"
 
-def add_ip_address(ip_address,REDIS_CLIENT):
+def add_ip_address(ip_address,vpn_type,REDIS_CLIENT):
     """ Adds a new IP address to the blocked IP addresses hash table. """
     try:
-        REDIS_CLIENT.hsetnx(hash_openvpn_blocked_ip_addresses,ip_address,0)
+        hash_blocked_ip_addresses = f'blocked_ip_addresses_mod_{vpn_type}'
+        REDIS_CLIENT.hsetnx(hash_blocked_ip_addresses,ip_address,0)
         return True
     except Exception as err:
         return err
 
-def exists_ip_address(ip_address,REDIS_CLIENT):
+def exists_ip_address(ip_address,vpn_type,REDIS_CLIENT):
     """ Checks if a given IP address exists in the blocked IP addresses hash table. """
 
     try:
-        status = REDIS_CLIENT.hexists(hash_openvpn_blocked_ip_addresses,ip_address)
+        hash_blocked_ip_addresses = f'blocked_ip_addresses_mod_{vpn_type}'
+        status = REDIS_CLIENT.hexists(hash_blocked_ip_addresses,ip_address)
         return status
     except Exception as err:
         return err
 
-def del_ip_address(ip_address,REDIS_CLIENT):
+def del_ip_address(ip_address,vpn_type,REDIS_CLIENT):
     """ Deletes an IP address from the blocked IP addresses hash table. """
     try:
-        REDIS_CLIENT.hdel(hash_openvpn_blocked_ip_addresses,ip_address)
+        hash_blocked_ip_addresses = f'blocked_ip_addresses_mod_{vpn_type}'
+        REDIS_CLIENT.hdel(hash_blocked_ip_addresses,ip_address)
         return True
     except Exception as err:
         return err
 
-def get_openvpn_client_ip_address(REDIS_CLIENT):
-    """ Obtains a valid IP address for an OpenVPN  client """
+def get_vpn_client_ip_address(vpn_type,REDIS_CLIENT):
+    """ Obtains a valid IP address for an VPN client """
     try:
         result=0
         config = configparser.ConfigParser()
         config.read('config/config.ini')
-        NETWORK_CIDR = config['OPENVPN']['NETWORK_CIDR']
+        NETWORK_CIDR = config[vpn_type.upper()]['NETWORK_CIDR']
 
         maximum_attempts=len([str(ip) for ip in ipaddress.IPv4Network(NETWORK_CIDR)])
         while result < maximum_attempts:
             IP_ADDRESS=random.choice([str(ip) for ip in ipaddress.IPv4Network(NETWORK_CIDR)])
-            if exists_ip_address(IP_ADDRESS,REDIS_CLIENT):
+            if exists_ip_address(IP_ADDRESS,vpn_type,REDIS_CLIENT):
                 result+=1
             else:
-                add_ip_address(IP_ADDRESS,REDIS_CLIENT)
+                add_ip_address(IP_ADDRESS,vpn_type,REDIS_CLIENT)
                 return IP_ADDRESS
         return False
     except Exception as err:
         return err
 
-def get_openvpn_free_ip_address_space(REDIS_CLIENT):
+def get_vpn_free_ip_address_space(vpn_type,REDIS_CLIENT):
     """ Returns True if there are free IPs to allocate. """
 
     try:
         config = configparser.ConfigParser()
         config.read('config/config.ini')
-        NETWORK_CIDR = config['OPENVPN']['NETWORK_CIDR']
+        NETWORK_CIDR = config[vpn_type.upper()]['NETWORK_CIDR']
+        hash_blocked_ip_addresses = f'blocked_ip_addresses_mod_{vpn_type}'
+
         maximum_addresses=len([str(ip) for ip in ipaddress.IPv4Network(NETWORK_CIDR)])
-        used_addresses=REDIS_CLIENT.hlen(hash_openvpn_blocked_ip_addresses)
+
+        used_addresses=REDIS_CLIENT.hlen(hash_blocked_ip_addresses)
+
         free_addresses=maximum_addresses-used_addresses
         return free_addresses
     except Exception as err:
