@@ -116,7 +116,7 @@ def send_plain_msg_via_email(msg_task,profile_name,msg_addr,config):
         logging.info(f'Exception in send_plain_msg_via_email: {err}')
         return False
 
-def send_message_via_telegram(msg_task,profile_name,msg_addr,config):
+def send_message_via_telegram(msg_task,profile_name,msg_addr,msg_vpn_type,config):
     """ Function to send a message to the user via Telegram. """
     try:
         # Load configuration
@@ -132,7 +132,13 @@ def send_message_via_telegram(msg_task,profile_name,msg_addr,config):
         # Different bodies based on the message type
         if 'send_vpn_profile' in msg_task:
             MSG_BODY = config.get('AIVPN','MESSAGE_NEW_PROFILE')
-            MSG_ATTACHMENT = f'{PATH}/{profile_name}/{profile_name}.ovpn'
+            if 'openvpn' in msg_vpn_type:
+                MSG_ATTACHMENT = f'{PATH}/{profile_name}/{profile_name}.ovpn'
+            elif 'novpn' in msg_vpn_type:
+                MSG_ATTACHMENT = f'{PATH}/{profile_name}/{profile_name}.ovpn'
+            elif 'wireguard' in msg_vpn_type:
+                MSG_ATTACHMENT = f'{PATH}/{profile_name}/{profile_name}.conf'
+                MSG_QR = f'{PATH}/{profile_name}/{profile_name}.png'
 
         if 'send_report_profile' in msg_task:
             MSG_BODY = f"Profile: {profile_name}\r\n"
@@ -148,14 +154,16 @@ def send_message_via_telegram(msg_task,profile_name,msg_addr,config):
             MSG_BODY += config.get('AIVPN','MESSAGE_REPORT_EMPTY')
 
         if 'error_limit_reached' in msg_task:
-            MSG_BODY += config.get('AIVPN','MESSAGE_MAX_LIMIT')
+            MSG_BODY = config.get('AIVPN','MESSAGE_MAX_LIMIT')
 
         if 'error_max_capacity' in msg_task:
-            MSG_BODY += config.get('AIVPN','MESSAGE_FULL_CAPACITY')
+            MSG_BODY = config.get('AIVPN','MESSAGE_FULL_CAPACITY')
 
         dispatcher.bot.send_message(chat_id=msg_addr, text=MSG_BODY)
         if MSG_ATTACHMENT:
             dispatcher.bot.send_document(chat_id=msg_addr,document=open(MSG_ATTACHMENT, 'rb'))
+            if 'wireguard' in msg_vpn_type:
+                dispatcher.bot.send_document(chat_id=msg_addr,document=open(MSG_QR, 'rb'))
         return True
     except Exception as err:
         logging.info(f'Exception in send_message_via_telegram: {err}')
@@ -213,18 +221,20 @@ if __name__ == '__main__':
                         profile_name = item['data'].split(':')[1]
                         msg_addr=get_profile_name_address(profile_name,redis_client)
                         msg_type=get_identity_type(msg_addr,redis_client)
+                        msg_vpn_type=get_profile_vpn_type(profile_name,redis_client)
+
                     elif 'error' in item['data']:
                         profile_name = ""
                         msg_addr=item['data'].split(':')[1]
                         msg_type=get_identity_type(msg_addr,redis_client)
 
-                    logging.info(f"Processing task: {msg_task} to {profile_name} ({msg_addr}, {msg_type})")
+                    logging.info(f"Processing task: {msg_task} ({msg_vpn_type}) to {profile_name} ({msg_addr}, {msg_type})")
 
                     status = ""
                     # We have different logic for different type of messages
                     # (email, telegram, etc).
                     if msg_type == 'telegram':
-                        status = send_message_via_telegram(msg_task,profile_name,msg_addr,config)
+                        status = send_message_via_telegram(msg_task,profile_name,msg_addr,msg_vpn_type,config)
                     elif msg_type == 'email':
                         # Messages with prefix 'error' require this module to send back
                         # error messages to the user
