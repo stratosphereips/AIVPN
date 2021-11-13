@@ -233,20 +233,23 @@ def deprovision_account(profile_name,REDIS_CLIENT):
         # Get account information
         logging.info('Deprovisioning: retrieving account information')
         acc_msg_addr = get_profile_name_address(profile_name,REDIS_CLIENT)
+        acc_msg_request = get_profile_vpn_type(profile_name,REDIS_CLIENT)
         acc_active_pid = get_profile_name_pid_relationship(profile_name,REDIS_CLIENT)
         acc_ip_addr = get_ip_for_profile(profile_name,REDIS_CLIENT)
         acc_creation_time = get_active_profile_creation_time(profile_name,REDIS_CLIENT)
 
-        # Send mod_openvpn message to deprovision an account
+        # Send message to deprovision an account to the corresponding
+        # VPN type.
         message = f'revoke_profile:{profile_name}:{acc_active_pid}'
-        REDIS_CLIENT.publish('mod_openvpn_check',message)
-        logging.info("Deprovisioning: requested mod_openvpn to revoke profile.")
+        REDIS_CLIENT.publish(f'mod_{acc_msg_request}_check',message)
+        logging.info(f'Deprovisioning: requested {acc_msg_request} to revoke profile {profile_name}.')
 
         # Wait for message from mod_openvpn that the account was revoked.
         # Wait in a dedicated pub/sub channel: deprovision_openvpn
-        openvpn_subscriber = redis_create_subscriber(REDIS_CLIENT)
-        redis_subscribe_to_channel(openvpn_subscriber,'deprovision_openvpn')
-        for item in openvpn_subscriber.listen():
+        vpn_subscriber = redis_create_subscriber(REDIS_CLIENT)
+        vpn_subscriber_channel = f'deprovision_{acc_msg_request}'
+        redis_subscribe_to_channel(vpn_subscriber,vpn_subscriber_channel)
+        for item in vpn_subscriber.listen():
             if item['type'] == 'message':
                 logging.info("Deprovisioning: {}".format(item['data']))
                 if 'profile_revocation_successful' in item['data']:
@@ -256,7 +259,7 @@ def deprovision_account(profile_name,REDIS_CLIENT):
                     # Bad. Try again.
                     return False
 
-        # Remove IP from list of OpenVPN blocked IPs
+        # Remove IP from list of VPN blocked IPs
         status = del_ip_address(acc_ip_addr,REDIS_CLIENT)
 
         # Remove PID<->Profile_Name relationships
@@ -276,7 +279,7 @@ def deprovision_account(profile_name,REDIS_CLIENT):
         status = del_active_profile(profile_name,REDIS_CLIENT)
 
         # Close the redis subscriber we created.
-        openvpn_subscriber.close()
+        vpn_subscriber.close()
         return True
     except Exception as err:
         logging.info(f'Exception in deprovision_account: {err}')
