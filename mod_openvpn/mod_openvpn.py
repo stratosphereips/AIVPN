@@ -13,7 +13,7 @@ import ipaddress
 from common.database import *
 import subprocess
 
-def configure_openvpn_server(SERVER_PUBLIC_URL,PKI_ADDRESS):
+def configure_openvpn_server(SERVER_PUBLIC_URL,PKI_ADDRESS,DNS_SERVER):
     """
     This function checks if an OpenVPN server is configured.
     If it is not, then it configures it.
@@ -22,11 +22,13 @@ def configure_openvpn_server(SERVER_PUBLIC_URL,PKI_ADDRESS):
               %s
               HERE""" % PKI_ADDRESS
     try:
+        if DNS_SERVER=="":
+            DNS_SERVER="172.16.1.2"
         # If a certificate is not in the PKI folder, then we need to configure
         # the OpenVPN server.
         if not os.path.exists('/etc/openvpn/pki/crl.pem'):
             try:
-                COMMAND='/usr/local/bin/ovpn_genconfig -u '+SERVER_PUBLIC_URL
+                COMMAND=f'/usr/local/bin/ovpn_genconfig -u {SERVER_PUBLIC_URL} -n {DNS_SERVER}'
                 logging.info(COMMAND)
                 os.system(COMMAND)
             except Exception as err:
@@ -157,12 +159,13 @@ def read_configuration():
     SERVER_PUBLIC_URL = config['OPENVPN']['SERVER_PUBLIC_URL']
     PKI_ADDRESS = config['OPENVPN']['PKI_ADDRESS']
     PATH = config['STORAGE']['PATH']
+    DNS_SERVER = config['OPENVPN']['DNS_SERVER']
 
-    return REDIS_SERVER,CHANNEL,LOG_FILE,SERVER_PUBLIC_URL,PKI_ADDRESS,PATH
+    return REDIS_SERVER,CHANNEL,LOG_FILE,SERVER_PUBLIC_URL,PKI_ADDRESS,PATH,DNS_SERVER
 
 if __name__ == '__main__':
     # Read configuration
-    REDIS_SERVER,CHANNEL,LOG_FILE,SERVER_PUBLIC_URL,PKI_ADDRESS,PATH = read_configuration()
+    REDIS_SERVER,CHANNEL,LOG_FILE,SERVER_PUBLIC_URL,PKI_ADDRESS,PATH,DNS_SERVER= read_configuration()
 
     logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG,format='%(asctime)s, MOD_OPENVPN, %(message)s')
 
@@ -189,7 +192,7 @@ if __name__ == '__main__':
         sys.exit(-1)
 
     # Configuring the OpenVPN server
-    if configure_openvpn_server(SERVER_PUBLIC_URL,PKI_ADDRESS):
+    if configure_openvpn_server(SERVER_PUBLIC_URL,PKI_ADDRESS,DNS_SERVER):
         logging.info(f'OpenVPN Server is ready to be used at {SERVER_PUBLIC_URL}')
 
     try:
