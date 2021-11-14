@@ -108,6 +108,7 @@ services:
         depends_on:
             - mod_redis
             - mod_manager
+            - mod_pihole
         networks:
             network:
                 ipv4_address: 172.16.1.9
@@ -142,6 +143,7 @@ services:
         depends_on:
             - mod_redis
             - mod_manager
+            - mod_pihole
         networks:
             network:
                 ipv4_address: 172.16.1.10
@@ -162,6 +164,7 @@ services:
         depends_on:
             - mod_redis
             - mod_manager
+            - mod_pihole
         networks:
             network:
                 ipv4_address: 172.16.1.11
@@ -182,9 +185,6 @@ services:
         depends_on: 
             - mod_redis
             - mod_manager
-            - mod_openvpn
-            - mod_wireguard
-            - mod_novpn
         networks:
             network:
                 ipv4_address: 172.16.1.2
