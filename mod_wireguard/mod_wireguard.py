@@ -60,7 +60,8 @@ def start_traffic_capture(CLIENT_NAME,CLIENT_IP,PATH):
         PCAP_NAME=f'{PATH}/{CLIENT_NAME}/{CLIENT_NAME}_{CLIENT_IP}_{NUMBER}.pcap'
 
         # Start the subprocess
-        process = subprocess.Popen(["tcpdump","-n","-s0","-i","wg0","host",CLIENT_IP,"-U","-w",PCAP_NAME],close_fds=True)
+        args=["/usr/sbin/tcpdump","-qq","-n","-U","-l","-s0","-i","any","host",CLIENT_IP,"-w",PCAP_NAME]
+        process = subprocess.Popen(args, start_new_session=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
 
         # Get the PID
         PID = process.pid
