@@ -10,6 +10,9 @@ services:
         deploy:
             restart_policy:
                 condition: on-failure
+        networks:
+            network:
+                ipv4_address: 172.16.1.3
     mod_manager:
         image: aivpn_mod_manager:latest
         volumes:
@@ -22,6 +25,9 @@ services:
                 condition: on-failure
         depends_on:
             - mod_redis
+        networks:
+            network:
+                ipv4_address: 172.16.1.4
     mod_comm_recv:
         image: aivpn_mod_comm_recv:latest
         volumes:
@@ -34,6 +40,9 @@ services:
         depends_on:
             - mod_redis
             - mod_manager
+        networks:
+            network:
+                ipv4_address: 172.16.1.5
     mod_comm_send:
         image: aivpn_mod_comm_send:latest
         volumes:
@@ -47,6 +56,9 @@ services:
         depends_on:
             - mod_redis
             - mod_manager
+        networks:
+            network:
+                ipv4_address: 172.16.1.6
     mod_report:
         image: aivpn_mod_report:latest
         volumes:
@@ -60,6 +72,9 @@ services:
         depends_on:
             - mod_redis
             - mod_manager
+        networks:
+            network:
+                ipv4_address: 172.16.1.7
     mod_slips:
         image: aivpn_mod_slips:latest
         volumes:
@@ -73,6 +88,9 @@ services:
         depends_on:
             - mod_redis
             - mod_manager
+        networks:
+            network:
+                ipv4_address: 172.16.1.8
     mod_openvpn:
         privileged: true
         image: aivpn_mod_openvpn:latest
@@ -90,6 +108,10 @@ services:
         depends_on:
             - mod_redis
             - mod_manager
+            - mod_pihole
+        networks:
+            network:
+                ipv4_address: 172.16.1.9
     mod_wireguard:
         image: aivpn_mod_wireguard:latest
         cap_add:
@@ -121,6 +143,10 @@ services:
         depends_on:
             - mod_redis
             - mod_manager
+            - mod_pihole
+        networks:
+            network:
+                ipv4_address: 172.16.1.10
     mod_novpn:
         privileged: true
         image: aivpn_mod_novpn:latest
@@ -134,10 +160,35 @@ services:
             restart_policy:
                 condition: on-failure
         ports:
-          - "80:1194/tcp"
+            - "80:1194/tcp"
         depends_on:
             - mod_redis
             - mod_manager
+            - mod_pihole
+        networks:
+            network:
+                ipv4_address: 172.16.1.11
+    mod_pihole:
+        image: pihole/pihole:latest
+        ports:
+            - "5900:80/tcp"
+        environment:
+            TZ: 'Europe/Prague'
+        volumes:
+            - './data/conf_pihole:/etc/pihole/'
+            - './data/conf_pihole/etc-dnsmasq.d/:/etc/dnsmasq.d/'
+        cap_add:
+            - NET_ADMIN
+        deploy:
+            restart_policy:
+                condition: on-failure
+        depends_on: 
+            - mod_redis
+            - mod_manager
+        networks:
+            network:
+                ipv4_address: 172.16.1.2
+
 volumes:
     mod_manager:
     mod_report:
@@ -148,3 +199,11 @@ volumes:
     mod_openvpn:
     mod_wireguard:
     mod_novpn:
+    mod_pihole:
+
+networks:
+  network:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.1.1/24
