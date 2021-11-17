@@ -54,7 +54,7 @@ def send_mime_msg_via_email(msg_task,profile_name,msg_addr,msg_vpn_type,config):
 
         if 'send_empty_capture' in msg_task:
             EMAIL_BODY = config.get('AIVPN','MESSAGE_REPORT_EMPTY')
-            email_message.add_header('Subject', f"{EMAIL_SUBJ_PREFIX} VPN Profile Report: {profile_name}\r\n"
+            email_message.add_header('Subject', f"{EMAIL_SUBJ_PREFIX} VPN Profile Report: {profile_name}\r\n")
 
         # Create text and HTML bodies for email
         email_body_text = MIMEText(EMAIL_BODY,'plain')
