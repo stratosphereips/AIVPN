@@ -48,6 +48,14 @@ def send_mime_msg_via_email(msg_task,profile_name,msg_addr,msg_vpn_type,config):
             EMAIL_FILENAME = f'{profile_name}.pdf'
             email_message.add_header('Subject', f"{EMAIL_SUBJ_PREFIX} VPN Profile Report: {profile_name}\r\n")
 
+        if 'send_expire_profile' in msg_task:
+            EMAIL_BODY = config.get('AIVPN','MESSAGE_EXPIRED_PROFILE')
+            email_message.add_header('Subject', f"{EMAIL_SUBJ_PREFIX} VPN Profile Expired: {profile_name}\r\n"
+
+        if 'send_empty_capture' in msg_task:
+            EMAIL_BODY = config.get('AIVPN','MESSAGE_REPORT_EMPTY')
+            email_message.add_header('Subject', f"{EMAIL_SUBJ_PREFIX} VPN Profile Report: {profile_name}\r\n"
+
         # Create text and HTML bodies for email
         email_body_text = MIMEText(EMAIL_BODY,'plain')
 
@@ -89,14 +97,6 @@ def send_plain_msg_via_email(msg_task,profile_name,msg_addr,config):
         headers += f"To: {msg_addr}\r\n"
 
         # Different content based on the message type
-        if 'send_expire_profile' in msg_task:
-            EMAIL_BODY = config.get('AIVPN','MESSAGE_EXPIRED_PROFILE')
-            headers += f"Subject: {EMAIL_SUBJ_PREFIX} VPN Profile Expired: {profile_name}\r\n"
-
-        if 'send_empty_capture' in msg_task:
-            EMAIL_BODY = config.get('AIVPN','MESSAGE_REPORT_EMPTY')
-            headers += f"Subject: {EMAIL_SUBJ_PREFIX} VPN Profile Report: {profile_name}\r\n"
-
         if 'error_limit_reached' in msg_task:
             EMAIL_BODY = config.get('AIVPN','MESSAGE_MAX_LIMIT')
             headers += f"Subject: {EMAIL_SUBJ_PREFIX} Account Limit Reached\r\n"
@@ -166,7 +166,7 @@ def send_message_via_telegram(msg_task,profile_name,msg_addr,msg_vpn_type,config
         dispatcher.bot.send_message(chat_id=msg_addr, text=MSG_BODY)
         if MSG_ATTACHMENT:
             dispatcher.bot.send_document(chat_id=msg_addr,document=open(MSG_ATTACHMENT, 'rb'))
-            if 'wireguard' in msg_vpn_type:
+            if 'wireguard' in msg_vpn_type and 'send_vpn_profile' in msg_task:
                 dispatcher.bot.send_document(chat_id=msg_addr,document=open(MSG_QR, 'rb'))
         return True
     except Exception as err:
