@@ -25,6 +25,7 @@ def send_mime_msg_via_email(msg_task,profile_name,msg_addr,msg_vpn_type,config):
         EMAIL_PASSWORD = config.get('IMAP','PASSWORD')
         EMAIL_SUBJ_PREFIX = config.get('AIVPN','MESSAGE_SUBJECT_PREFIX')
         PATH = config.get('STORAGE','PATH')
+        EMAIL_ATTACHMENT = ""
 
         # Create message
         email_message = MIMEMultipart()
@@ -59,15 +60,16 @@ def send_mime_msg_via_email(msg_task,profile_name,msg_addr,msg_vpn_type,config):
         # Create text and HTML bodies for email
         email_body_text = MIMEText(EMAIL_BODY,'plain')
 
-        # Create file attachment
-        attachment = MIMEBase("application", "octet-stream")
-        attachment.set_payload(open(EMAIL_ATTACHMENT, "rb").read())
-        encode_base64(attachment)
-        attachment.add_header("Content-Disposition", f"attachment; filename={EMAIL_FILENAME}")
-
         # Attach all the parts to the Multipart MIME email
         email_message.attach(email_body_text)
-        email_message.attach(attachment)
+
+        # Create file attachment
+        if EMAIL_ATTACHMENT != "":
+            attachment = MIMEBase("application", "octet-stream")
+            attachment.set_payload(open(EMAIL_ATTACHMENT, "rb").read())
+            encode_base64(attachment)
+            attachment.add_header("Content-Disposition", f"attachment; filename={EMAIL_FILENAME}")
+            email_message.attach(attachment)
 
         # Connect, authenticate, and send mail
         smtp_server = SMTP_SSL(EMAIL_SERVER, port=SMTP_SSL_PORT)
