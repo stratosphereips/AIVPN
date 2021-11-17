@@ -166,7 +166,7 @@ def send_message_via_telegram(msg_task,profile_name,msg_addr,msg_vpn_type,config
         dispatcher.bot.send_message(chat_id=msg_addr, text=MSG_BODY)
         if MSG_ATTACHMENT:
             dispatcher.bot.send_document(chat_id=msg_addr,document=open(MSG_ATTACHMENT, 'rb'))
-            if 'wireguard' in msg_vpn_type:
+            if 'wireguard' in msg_vpn_type and 'send_vpn_profile' in msg_task:
                 dispatcher.bot.send_document(chat_id=msg_addr,document=open(MSG_QR, 'rb'))
         return True
     except Exception as err:
