@@ -50,7 +50,7 @@ def send_mime_msg_via_email(msg_task,profile_name,msg_addr,msg_vpn_type,config):
 
         if 'send_expire_profile' in msg_task:
             EMAIL_BODY = config.get('AIVPN','MESSAGE_EXPIRED_PROFILE')
-            email_message.add_header('Subject', f"{EMAIL_SUBJ_PREFIX} VPN Profile Expired: {profile_name}\r\n"
+            email_message.add_header('Subject', f"{EMAIL_SUBJ_PREFIX} VPN Profile Expired: {profile_name}\r\n")
 
         if 'send_empty_capture' in msg_task:
             EMAIL_BODY = config.get('AIVPN','MESSAGE_REPORT_EMPTY')
