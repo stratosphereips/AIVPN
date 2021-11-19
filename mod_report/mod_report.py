@@ -50,6 +50,10 @@ def process_profile_traffic(profile_name,PATH,REDIS_CLIENT):
                             #Good. Continue.
                             SLIPS_RESULT = True
                             break
+                        else:
+                            #Bad. Continue. Do not retry.
+                            SLIPS_RESULT = False
+                            break
         return VALID_CAPTURE,SLIPS_RESULT
     except Exception as err:
         logging.info(f'Exception in process_profile_traffic: {err}')
