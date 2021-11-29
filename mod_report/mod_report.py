@@ -9,6 +9,7 @@ import sys
 import glob
 import json
 import redis
+import jinja2
 import logging
 import subprocess
 import configparser
@@ -34,8 +35,8 @@ def process_profile_traffic(profile_name,PATH,REDIS_CLIENT):
                 VALID_CAPTURE=True
                 process = subprocess.Popen(["/code/pcapsummarizer.sh",capture_file])
                 process.wait()
+
                 # If capture is meaningful, call Slips
-                ## Trigger generation of VPN profile using profile_name.
                 message=f'process_profile:{profile_name}'
                 REDIS_CLIENT.publish('mod_slips_check',message)
                 logging.info(f'Requested mod_slips to process the capture {capture_file}')
@@ -66,6 +67,15 @@ def generate_slips_report(profile_name,PATH,SLIPS_STATUS):
     except Exception as err:
         logging.info(f'Exception in generate_slips_report: {err}')
         return False
+
+def generate_profile_automatic_report(profile_name,PATH,SLIPS_STATUS):
+    """ Process all the outputs and assemble the report. """
+    try:
+        template=f'report-template.html'
+        report_source=f'{profile_name}.md'
+        report_build=f'{profile_name}.pdf'
+    except Exception as err:
+        logging.info(f'Exception in generate_profile_automatic_report: {err}')
 
 def generate_profile_report(profile_name,PATH,SLIPS_STATUS):
     """ Process all the outputs and assemble the report. """
