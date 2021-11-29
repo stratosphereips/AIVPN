@@ -60,14 +60,6 @@ def process_profile_traffic(profile_name,PATH,REDIS_CLIENT):
         logging.info(f'Exception in process_profile_traffic: {err}')
         return False
 
-def generate_slips_report(profile_name,PATH,SLIPS_STATUS):
-    try:
-        # Processing UNKNOWN_PORT Slips alerts
-        pass
-    except Exception as err:
-        logging.info(f'Exception in generate_slips_report: {err}')
-        return False
-
 def generate_profile_automatic_report(profile_name,PATH,SLIPS_STATUS):
     """ Process all the outputs and assemble the report. """
     try:
