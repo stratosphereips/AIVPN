@@ -1,0 +1,251 @@
+ .u-section-1 {
+  background-image: none;
+}
+
+.u-section-1 .u-sheet-1 {
+  min-height: 277px;
+}
+
+.u-section-1 .u-text-1 {
+  font-weight: 700;
+  font-size: 3rem;
+  margin: 44px -80px 0;
+}
+
+.u-section-1 .u-text-2 {
+  font-size: 1.125rem;
+  font-style: italic;
+  font-weight: 600;
+  margin: 25px 0 44px;
+}
+
+@media (max-width: 1199px) {
+  .u-section-1 .u-text-1 {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 575px) {
+  .u-section-1 .u-text-1 {
+    font-size: 1.5rem;
+  }
+}.u-section-2 .u-sheet-1 {
+  min-height: 411px;
+}
+
+.u-section-2 .u-text-1 {
+  margin: 28px 0 0;
+}
+
+.u-section-2 .u-table-1 {
+  margin-top: 28px;
+  margin-bottom: 28px;
+}
+
+.u-block-f305-8 {
+  border-style: double;
+}
+
+.u-block-f305-10 {
+  background-image: none;
+}
+
+.u-section-2 .u-table-body-1 {
+  font-size: 1.875rem;
+}
+
+.u-section-2 .u-table-cell-1 {
+  border-style: double;
+}
+
+.u-section-2 .u-table-cell-2 {
+  border-style: double;
+}
+
+.u-section-2 .u-table-cell-3 {
+  border-style: double;
+}
+
+.u-section-2 .u-table-cell-4 {
+  border-style: double;
+}
+
+.u-section-2 .u-table-cell-5 {
+  border-style: double;
+}
+
+.u-section-2 .u-table-cell-6 {
+  border-style: double;
+}
+
+.u-section-2 .u-table-cell-7 {
+  border-style: double;
+}
+
+.u-section-2 .u-table-cell-8 {
+  border-style: double;
+}.u-section-3 .u-sheet-1 {
+  min-height: 644px;
+}
+
+.u-section-3 .u-text-1 {
+  margin: 28px 0 0;
+}
+
+.u-section-3 .u-text-2 {
+  font-size: 1.125rem;
+  margin: 28px 0 0;
+}
+
+.u-section-3 .u-table-1 {
+  margin-top: 28px;
+  margin-bottom: 28px;
+}
+
+.u-block-d651-6 {
+  background-image: none;
+}
+
+.u-section-3 .u-table-header-1 {
+  font-weight: 700;
+  background-image: none;
+}
+
+.u-section-3 .u-table-cell-5 {
+  background-image: none;
+}
+
+.u-section-3 .u-table-cell-9 {
+  background-image: none;
+}
+
+.u-section-3 .u-table-cell-13 {
+  background-image: none;
+}
+
+.u-section-3 .u-table-cell-17 {
+  background-image: none;
+}
+
+.u-block-d651-33 {
+  background-image: none;
+}.u-section-4 .u-sheet-1 {
+  min-height: 505px;
+}
+
+.u-section-4 .u-text-1 {
+  margin: 28px auto 0 0;
+}
+
+.u-section-4 .u-text-2 {
+  font-size: 1.125rem;
+  margin: 28px 0 0;
+}
+
+.u-section-4 .u-list-1 {
+  width: 1130px;
+  margin: 28px auto 28px 0;
+}
+
+.u-section-4 .u-repeater-1 {
+  min-height: 270px;
+  grid-auto-columns: calc(33.3333% - 64.6667px);
+  grid-template-columns: calc(33.3333% - 64.6667px) calc(33.3333% - 64.6667px) calc(33.3333% - 64.6667px);
+  grid-gap: 97px 97px;
+}
+
+.u-section-4 .u-container-layout-1 {
+  padding: 10px;
+}
+
+.u-section-4 .u-text-3 {
+  margin: 0 auto 0 0;
+}
+
+.u-section-4 .u-container-layout-2 {
+  padding: 10px;
+}
+
+.u-section-4 .u-text-4 {
+  text-align: left;
+  margin: 0 auto 0 0;
+}
+
+.u-section-4 .u-container-layout-3 {
+  padding: 10px;
+}
+
+.u-section-4 .u-text-5 {
+  text-align: left;
+  margin: 0 auto 0 0;
+}
+
+@media (max-width: 1199px) {
+  .u-section-4 .u-list-1 {
+    width: 940px;
+  }
+
+  .u-section-4 .u-repeater-1 {
+    min-height: 225px;
+    grid-auto-columns: calc(33.333333333333336% - 64.6667px);
+    grid-template-columns: repeat(3, calc(33.333333333333336% - 64.6667px));
+  }
+}
+
+@media (max-width: 991px) {
+  .u-section-4 .u-list-1 {
+    width: 720px;
+  }
+
+  .u-section-4 .u-repeater-1 {
+    min-height: 517px;
+    grid-auto-columns: calc(50% - 48.50002500000001px);
+    grid-template-columns: repeat(2, calc(50% - 48.50002500000001px));
+  }
+}
+
+@media (max-width: 767px) {
+  .u-section-4 .u-list-1 {
+    width: 540px;
+  }
+
+  .u-section-4 .u-repeater-1 {
+    grid-auto-columns: calc(100% - 0px);
+    grid-template-columns: 100%;
+  }
+}
+
+@media (max-width: 575px) {
+  .u-section-4 .u-list-1 {
+    width: 340px;
+  }
+
+  .u-section-4 .u-repeater-1 {
+    grid-auto-columns: 100%;
+  }
+}.u-section-5 .u-sheet-1 {
+  min-height: 433px;
+}
+
+.u-section-5 .u-text-1 {
+  margin: 28px auto 0 0;
+}
+
+.u-section-5 .u-text-2 {
+  font-size: 1.125rem;
+  margin: 28px 0 0;
+}
+
+.u-section-5 .u-text-3 {
+  margin: 28px auto 0 0;
+}
+
+.u-section-5 .u-text-4 {
+  font-size: 1.125rem;
+  margin: 28px 0 0;
+}
+
+.u-section-5 .u-text-5 {
+  margin: 28px auto 53px 0;
+}

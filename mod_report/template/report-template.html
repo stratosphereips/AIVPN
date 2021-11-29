@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html style="font-size: 16px;" lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    <meta name="page_type" content="np-template-header-footer-from-plugin">
+    <title>Civilsphere Emergency VPN</title>
+    <link rel="stylesheet" href="nicepage.css" media="screen">
+    <link rel="stylesheet" href="report-template.css" media="screen">
+    <link id="u-theme-google-font" rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i|Open+Sans:300,300i,400,400i,600,600i,700,700i,800,800i">
+    <script type="application/ld+json">{
+		"@context": "http://schema.org",
+		"@type": "Organization",
+		"name": "AIVPN Report Template"
+    }</script>
+    <meta name="theme-color" content="#2f4ace">
+    <meta property="og:title" content="Civilsphere Emergency VPN">
+    <meta property="og:description" content="">
+    <meta property="og:type" content="website">
+  </head>
+  <body class="u-body"><header class="u-clearfix u-grey-75 u-header u-header" id="sec-91cc"><div class="u-clearfix u-sheet u-sheet-1"></div></header> 
+    <section class="u-align-center-lg u-align-center-md u-align-center-sm u-align-center-xl u-align-left-xs u-clearfix u-palette-3-base u-section-1" id="sec-1960">
+      <div class="u-clearfix u-sheet u-valign-middle u-sheet-1">
+        <h2 class="u-align-center u-text u-text-body-color u-text-1">Emergency VPN Automatic Report</h2>
+        <p class="u-align-center u-text u-text-2"> This is an automated report of your Emergency VPN session generated with the Civilsphere AI VPN technology (beta). One of our analysts will review your session and send a follow-up report within the next 30 days. If you are in need of immediate assistance, please contact AccessNow Helpline indicating that you already made the assessment with the Civilsphere Emergency VPN: https://www.accessnow.org/help/.</p>
+      </div>
+    </section>
+    <section class="u-clearfix u-section-2" id="sec-c50b">
+      <div class="u-clearfix u-sheet u-valign-middle u-sheet-1">
+        <h2 class="u-align-left u-text u-text-body-color u-text-1">General Session Information</h2>
+        <div class="u-expanded-width u-table u-table-responsive u-table-1">
+          <table class="u-table-entity">
+            <colgroup>
+              <col width="25%">
+              <col width="25%">
+              <col width="25%">
+              <col width="25%">
+            </colgroup>
+            <tbody class="u-align-center u-custom-font u-font-montserrat u-table-body u-table-body-1">
+              <tr style="height: 64px;">
+                <td class="u-border-3 u-border-grey-30 u-table-cell u-table-cell-1">{{ hours }}<br>Hours
+                </td>
+                <td class="u-border-3 u-border-grey-30 u-table-cell u-table-cell-2">{{ connections }}<br>Connections
+                </td>
+                <td class="u-border-3 u-border-grey-30 u-table-cell u-table-cell-3">{{ packets }}<br>Packets
+                </td>
+                <td class="u-border-3 u-border-grey-30 u-table-cell u-table-cell-4">{{ data }}<br>GB Transferred
+                </td>
+              </tr>
+              <tr style="height: 65px;">
+                <td class="u-border-3 u-border-grey-30 u-table-cell u-table-cell-5">{{ dns }}<br>DNS Connections
+                </td>
+                <td class="u-border-3 u-border-grey-30 u-table-cell u-table-cell-6">{{ trackers }}<br>Ad Trackers<br>Blocked
+                </td>
+                <td class="u-border-3 u-border-grey-30 u-table-cell u-table-cell-7">{{ encrypted }}<br>Encrypted Connections
+                </td>
+                <td class="u-border-3 u-border-grey-30 u-table-cell u-table-cell-8">{{ insecure }}<br>Insecure Connections
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+    <section class="u-clearfix u-section-3" id="sec-c41f">
+      <div class="u-clearfix u-sheet u-valign-middle u-sheet-1">
+        <h2 class="u-align-left u-text u-text-black u-text-1">Top Data Transfers</h2>
+        <p class="u-align-left u-text u-text-2"> Malicious applications usually steal data (photos, messages, files, voice recordings) from the device. The stolen
+data is uploaded to malicious servers. Recognizing which services the device is sending data to is important to
+identify possible malicious activity.<br>
+          <br>If you do not recognize any of the services listed below and you are a person at risk, we recommend factory
+resetting the device to remove any suspicious activity. Be advised that a factory reset will not fix a compromised
+account (email, iCloud, Google, etc.).&nbsp;
+        </p>
+        <div class="u-expanded-width u-table u-table-responsive u-table-1">
+          <table class="u-table-entity">
+            <colgroup>
+              <col width="25%">
+              <col width="25%">
+              <col width="25%">
+              <col width="25%">
+            </colgroup>
+            <thead class="u-palette-3-base u-table-header u-table-header-1">
+              <tr style="height: 45px;">
+                <th class="u-border-palette-5-base u-table-cell">Destination ASN</th>
+                <th class="u-border-1 u-border-palette-5-base u-table-cell">Uploaded</th>
+                <th class="u-border-1 u-border-palette-5-base u-table-cell">Total Transferred</th>
+                <th class="u-border-1 u-border-palette-5-base u-table-cell">Duration</th>
+              </tr>
+            </thead>
+            <tbody class="u-table-body">
+              <tr style="height: 75px;">
+                <td class="u-border-1 u-border-grey-30 u-first-column u-grey-5 u-table-cell u-table-cell-5">{ASN1}</td>
+                <td class="u-border-1 u-border-grey-30 u-table-cell">{{ uploaded1 }}</td>
+                <td class="u-border-1 u-border-grey-30 u-table-cell">{{ transferredtotal1 }}</td>
+                <td class="u-border-1 u-border-grey-30 u-table-cell">{{ duration1 }}</td>
+              </tr>
+              <tr style="height: 76px;">
+                <td class="u-border-1 u-border-grey-30 u-first-column u-grey-5 u-table-cell u-table-cell-9">{ASN2}</td>
+                <td class="u-border-1 u-border-grey-30 u-table-cell">{{ uploaded2 }}</td>
+                <td class="u-border-1 u-border-grey-30 u-table-cell"> {{ transferredtotal2 }}</td>
+                <td class="u-border-1 u-border-grey-30 u-table-cell"> {{ duration2 }}</td>
+              </tr>
+              <tr style="height: 76px;">
+                <td class="u-border-1 u-border-grey-30 u-first-column u-grey-5 u-table-cell u-table-cell-13">{ASN3}</td>
+                <td class="u-border-1 u-border-grey-30 u-table-cell">{{ uploaded3 }}</td>
+                <td class="u-border-1 u-border-grey-30 u-table-cell"> {{ transferredtotal3 }}</td>
+                <td class="u-border-1 u-border-grey-30 u-table-cell"> {{ duration3 }}</td>
+              </tr>
+              <tr style="height: 76px;">
+                <td class="u-border-1 u-border-grey-30 u-first-column u-grey-5 u-table-cell u-table-cell-17">{ASN4}</td>
+                <td class="u-border-1 u-border-grey-30 u-table-cell">{{ uploaded4 }}</td>
+                <td class="u-border-1 u-border-grey-30 u-table-cell"> {{ transferredtotal4 }}</td>
+                <td class="u-border-1 u-border-grey-30 u-table-cell"> {{ duration4 }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+    <section class="u-clearfix u-section-4" id="sec-b75b">
+      <div class="u-clearfix u-sheet u-valign-middle u-sheet-1">
+        <h2 class="u-text u-text-body-color u-text-default u-text-1">Top Resolved DNS Requests</h2>
+        <p class="u-align-left u-text u-text-2"> DNS is essential to network communications, and malware also relies on DNS to resolve addresses where to connect. DNS could also be used to tunnel data and steal information. Additionally, DNS helps identify the services the device is using. These are the top 30 DNS domains resolved in this session:</p>
+        <div class="u-list u-list-1">
+          <div class="u-repeater u-repeater-1">
+            <div class="u-container-style u-list-item u-repeater-item">
+              <div class="u-container-layout u-similar-container u-container-layout-1">
+                <ul class="u-align-left u-custom-item u-text u-text-3">
+                  <li>{{ dns1 }}</li>
+                  <li> {{ dns2 }}</li>
+                  <li>{{ dns3 }}<br>
+                  </li>
+                  <li>{{ dns4 }}<br>
+                  </li>
+                  <li>{{ dns5 }}<br>
+                  </li>
+                  <li>{{ dns6 }}<br>
+                  </li>
+                  <li>{{ dns7 }}<br>
+                  </li>
+                  <li>{{ dns8 }}<br>
+                  </li>
+                  <li>{{ dns9 }}<br>
+                  </li>
+                  <li>{{ dns10 }}<br>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div class="u-container-style u-list-item u-repeater-item">
+              <div class="u-container-layout u-similar-container u-container-layout-2">
+                <ul class="u-align-left u-custom-item u-text u-text-default u-text-4">
+                  <li>{{ dns11 }}</li>
+                  <li> {{ dns12 }}</li>
+                  <li>{{ dns13 }}<br>
+                  </li>
+                  <li>{{ dns14 }}<br>
+                  </li>
+                  <li>{{ dns15 }}<br>
+                  </li>
+                  <li>{{ dns16 }}<br>
+                  </li>
+                  <li>{{ dns17 }}<br>
+                  </li>
+                  <li>{{ dns18 }}<br>
+                  </li>
+                  <li>{{ dns19 }}<br>
+                  </li>
+                  <li>{{ dns20 }}<br>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div class="u-container-style u-list-item u-repeater-item">
+              <div class="u-container-layout u-similar-container u-container-layout-3">
+                <ul class="u-align-left u-custom-item u-text u-text-default u-text-5">
+                  <li> {{ dns21 }}<br>
+                  </li>
+                  <li>{{ dns22 }}<br>
+                  </li>
+                  <li>{{ dns23 }}<br>
+                  </li>
+                  <li>{{ dns24 }}<br>
+                  </li>
+                  <li>{{ dns25 }}<br>
+                  </li>
+                  <li>{{ dns26 }}<br>
+                  </li>
+                  <li>{{ dns27 }}<br>
+                  </li>
+                  <li>{{ dns28 }}<br>
+                  </li>
+                  <li>{{ dns29 }}<br>
+                  </li>
+                  <li>{{ dns30 }}<br>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="u-clearfix u-section-5" id="carousel_aa97">
+      <div class="u-clearfix u-sheet u-sheet-1">
+        <h2 class="u-text u-text-body-color u-text-default u-text-1">Slips Automatic Alerts</h2>
+        <p class="u-align-left u-text u-text-2"> Slips is a behavioral-based Python intrusion prevention system that uses machine learning to detect malicious
+behaviors in the network traﬀic. Slips is designed to focus on targeted attacks and detection of malware
+command and control channels. Slips is developed by the Stratosphere Research Laboratory and it is free
+software (https://stratospherelinuxips.readthedocs.io/en/develop/).&nbsp;</p>
+        <h3 class="u-text u-text-default u-text-3">Connections to Unknown Ports</h3>
+        <p class="u-align-left u-text u-text-4"> Connections to Unknown Ports
+							An unknown port may indicate the device is connecting to a new type of service, or it may be a sign of malware.
+If you do not recognize the connections below, seek help.&nbsp;</p>
+        <p class="u-text u-text-default u-text-5">{{ connectionsunknownports }}</p>
+      </div>
+    </section>
+    
+    <footer class="u-align-center u-clearfix u-footer u-grey-80 u-footer" id="sec-2260"><div class="u-align-left u-clearfix u-sheet u-sheet-1"></div></footer>
+  </body>
+</html>
