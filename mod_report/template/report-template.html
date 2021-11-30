@@ -96,39 +96,39 @@ account (email, iCloud, Google, etc.).&nbsp;
                 <th class="u-border-palette-5-base u-table-cell">Destination ASN</th>
                 <th class="u-border-1 u-border-palette-5-base u-table-cell">Uploaded</th>
                 <th class="u-border-1 u-border-palette-5-base u-table-cell">Total Transferred</th>
-                <th class="u-border-1 u-border-palette-5-base u-table-cell">Duration</th>
+                <th class="u-border-1 u-border-palette-5-base u-table-cell">Duration (hours)</th>
               </tr>
             </thead>
             <tbody class="u-table-body">
               <tr style="height: 75px;">
-                <td class="u-border-1 u-border-grey-30 u-first-column u-grey-5 u-table-cell u-table-cell-5">{{ ASN1 }}</td>
-                <td class="u-border-1 u-border-grey-30 u-table-cell">{{ uploaded1 }}</td>
-                <td class="u-border-1 u-border-grey-30 u-table-cell">{{ transferredtotal1 }}</td>
-                <td class="u-border-1 u-border-grey-30 u-table-cell">{{ duration1 }}</td>
+                <td class="u-border-1 u-border-grey-30 u-first-column u-grey-5 u-table-cell u-table-cell-5">{{ ASN0 }}</td>
+                <td class="u-border-1 u-border-grey-30 u-table-cell">{{ uploaded0 }}</td>
+                <td class="u-border-1 u-border-grey-30 u-table-cell">{{ transferredtotal0 }}</td>
+                <td class="u-border-1 u-border-grey-30 u-table-cell">{{ duration0 }}</td>
               </tr>
               <tr style="height: 76px;">
-                <td class="u-border-1 u-border-grey-30 u-first-column u-grey-5 u-table-cell u-table-cell-9"> {{ ASN2 }}</td>
-                <td class="u-border-1 u-border-grey-30 u-table-cell">{{ uploaded2 }}</td>
+                <td class="u-border-1 u-border-grey-30 u-first-column u-grey-5 u-table-cell u-table-cell-9"> {{ ASN1 }}</td>
+                <td class="u-border-1 u-border-grey-30 u-table-cell"> {{ uploaded1 }}</td>
+                <td class="u-border-1 u-border-grey-30 u-table-cell"> {{ transferredtotal1 }}</td>
+                <td class="u-border-1 u-border-grey-30 u-table-cell"> {{ duration1 }}</td>
+              </tr>
+              <tr style="height: 76px;">
+                <td class="u-border-1 u-border-grey-30 u-first-column u-grey-5 u-table-cell u-table-cell-13"> {{ ASN2 }}</td>
+                <td class="u-border-1 u-border-grey-30 u-table-cell"> {{ uploaded2 }}</td>
                 <td class="u-border-1 u-border-grey-30 u-table-cell"> {{ transferredtotal2 }}</td>
                 <td class="u-border-1 u-border-grey-30 u-table-cell"> {{ duration2 }}</td>
               </tr>
               <tr style="height: 76px;">
-                <td class="u-border-1 u-border-grey-30 u-first-column u-grey-5 u-table-cell u-table-cell-13"> {{ ASN3 }}</td>
-                <td class="u-border-1 u-border-grey-30 u-table-cell">{{ uploaded3 }}</td>
+                <td class="u-border-1 u-border-grey-30 u-first-column u-grey-5 u-table-cell u-table-cell-17"> {{ ASN3 }}</td>
+                <td class="u-border-1 u-border-grey-30 u-table-cell"> {{ uploaded3 }}</td>
                 <td class="u-border-1 u-border-grey-30 u-table-cell"> {{ transferredtotal3 }}</td>
                 <td class="u-border-1 u-border-grey-30 u-table-cell"> {{ duration3 }}</td>
               </tr>
               <tr style="height: 76px;">
-                <td class="u-border-1 u-border-grey-30 u-first-column u-grey-5 u-table-cell u-table-cell-17"> {{ ASN4 }}</td>
+                <td class="u-border-1 u-border-grey-30 u-grey-5 u-table-cell u-table-cell-21">{{ ASN4 }}</td>
                 <td class="u-border-1 u-border-grey-30 u-table-cell">{{ uploaded4 }}</td>
-                <td class="u-border-1 u-border-grey-30 u-table-cell"> {{ transferredtotal4 }}</td>
-                <td class="u-border-1 u-border-grey-30 u-table-cell"> {{ duration4 }}</td>
-              </tr>
-              <tr style="height: 76px;">
-                <td class="u-border-1 u-border-grey-30 u-grey-5 u-table-cell u-table-cell-21">{{ ASN5 }}</td>
-                <td class="u-border-1 u-border-grey-30 u-table-cell">{{ uploaded5 }}</td>
-                <td class="u-border-1 u-border-grey-30 u-table-cell">{{ transferredtotal5 }}</td>
-                <td class="u-border-1 u-border-grey-30 u-table-cell">{{ duration5 }}</td>
+                <td class="u-border-1 u-border-grey-30 u-table-cell">{{ transferredtotal4 }}</td>
+                <td class="u-border-1 u-border-grey-30 u-table-cell">{{ duration4 }}</td>
               </tr>
             </tbody>
           </table>
@@ -136,16 +136,18 @@ account (email, iCloud, Google, etc.).&nbsp;
       </div>
     </section>
     <section class="u-clearfix u-section-4" id="sec-b75b">
-      <div class="u-clearfix u-sheet u-valign-middle u-sheet-1">
+      <div class="u-clearfix u-sheet u-sheet-1">
         <h2 class="u-text u-text-body-color u-text-default u-text-1">Top Resolved DNS Requests</h2>
         <p class="u-align-left u-text u-text-2"> DNS is essential to network communications, and malware also relies on DNS to resolve addresses where to connect. DNS could also be used to tunnel data and steal information. Additionally, DNS helps identify the services the device is using. These are the top 30 DNS domains resolved in this session:</p>
         <div class="u-list u-list-1">
           <div class="u-repeater u-repeater-1">
             <div class="u-container-style u-list-item u-repeater-item">
-              <div class="u-container-layout u-similar-container u-valign-bottom u-container-layout-1">
+              <div class="u-container-layout u-similar-container u-container-layout-1">
                 <ul class="u-align-left u-custom-item u-text u-text-3">
-                  <li>{{ dns1 }}</li>
-                  <li> {{ dns2 }}</li>
+                  <li>{{ dns0 }}</li>
+                  <li> {{ dns1}}</li>
+                  <li>{{ dns2 }}<br>
+                  </li>
                   <li>{{ dns3 }}<br>
                   </li>
                   <li>{{ dns4 }}<br>
@@ -160,16 +162,11 @@ account (email, iCloud, Google, etc.).&nbsp;
                   </li>
                   <li>{{ dns9 }}<br>
                   </li>
-                  <li>{{ dns10 }}<br>
+                  <li>{{ dns10 }}</li>
+                  <li>{{ dns11 }}<br>
                   </li>
-                </ul>
-              </div>
-            </div>
-            <div class="u-container-style u-list-item u-repeater-item">
-              <div class="u-container-layout u-similar-container u-valign-bottom u-container-layout-2">
-                <ul class="u-align-left u-custom-item u-text u-text-default u-text-4">
-                  <li>{{ dns11 }}</li>
-                  <li> {{ dns12 }}</li>
+                  <li>{{ dns12 }}<br>
+                  </li>
                   <li>{{ dns13 }}<br>
                   </li>
                   <li>{{ dns14 }}<br>
@@ -186,14 +183,7 @@ account (email, iCloud, Google, etc.).&nbsp;
                   </li>
                   <li>{{ dns20 }}<br>
                   </li>
-                </ul>
-              </div>
-            </div>
-            <div class="u-container-style u-list-item u-repeater-item">
-              <div class="u-container-layout u-similar-container u-valign-bottom u-container-layout-3">
-                <ul class="u-align-left u-custom-item u-text u-text-default u-text-5">
-                  <li> {{ dns21 }}<br>
-                  </li>
+                  <li>{{ dns21 }}</li>
                   <li>{{ dns22 }}<br>
                   </li>
                   <li>{{ dns23 }}<br>
@@ -209,8 +199,6 @@ account (email, iCloud, Google, etc.).&nbsp;
                   <li>{{ dns28 }}<br>
                   </li>
                   <li>{{ dns29 }}<br>
-                  </li>
-                  <li>{{ dns30 }}<br>
                   </li>
                 </ul>
               </div>
