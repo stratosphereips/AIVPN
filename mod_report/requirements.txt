@@ -2,3 +2,4 @@ redis
 user-agents
 ipwhois
 jinja2    
+pdfkit
