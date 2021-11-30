@@ -63,9 +63,31 @@ def process_profile_traffic(profile_name,PATH,REDIS_CLIENT):
 def generate_profile_automatic_report(profile_name,PATH,SLIPS_STATUS):
     """ Process all the outputs and assemble the report. """
     try:
-        template=f'report-template.html'
+        report_template=f'report-template.html'
         report_source=f'{profile_name}.md'
         report_build=f'{profile_name}.pdf'
+
+        # Creating the jinja template object
+        templateLoader = jinja2.FileSystemLoader(searchpath="./template/")
+        templateEnv = jinja2.Environment(loader=templateLoader)
+        template = templateEnv.get_template(report_template)
+
+        # Loading data needed to render the new report
+        for capture_file in glob.glob("20*.pcap"):
+            capture_name = capture_file.split('.pcap')[0]
+            with open(f'{capture_name}.json','r') as file_source:
+                capture_data = json.load(file_source)
+
+        session_data = {
+                "hours": round(float(capture_data['capinfos']['Capture duration (seconds)'])/3600,3),
+                "connections": "",
+                "packets": capture_data['capinfos']['Number of packets'],
+                "data": round(float(capture_data['capinfos']['File size (bytes)'])/1073741824,3),
+                "dns": "",
+                "trackers": "",
+                "encrypted": "",
+                "insecure": "",
+                }
     except Exception as err:
         logging.info(f'Exception in generate_profile_automatic_report: {err}')
 
