@@ -82,16 +82,31 @@ def generate_profile_report_html(profile_name,PATH,SLIPS_STATUS):
             with open(f'{capture_name}.json','r') as file_source:
                 capture_data = json.load(file_source)
 
-        session_data = {
-                "hours": round(float(capture_data['capinfos']['Capture duration (seconds)'])/3600,3),
-                "connections": capture_data['zeek']['connections'],
-                "packets": capture_data['capinfos']['Number of packets'],
-                "data": round(float(capture_data['capinfos']['File size (bytes)'])/1073741824,3),
-                "dns": capture_data['zeek']['dns'],
-                "trackers": capture_data['zeek']['dns_blocked'],
-                "encrypted": capture_data['zeek']['ssl'],
-                "insecure": capture_data['zeek']['http'],
-                }
+        # Creating general overview dashboard
+        session_data = json.loads('{}')
+        session_data["hours"] = round(float(capture_data['capinfos']['Capture duration (seconds)'])/3600,3)
+        session_data["connections"] = capture_data['zeek']['connections']
+        session_data["packets"] = capture_data['capinfos']['Number of packets']
+        session_data["data"]  =round(float(capture_data['capinfos']['File size (bytes)'])/1073741824,3)
+        session_data["dns"] = capture_data['zeek']['dns']
+        session_data["trackers"] = capture_data['zeek']['dns_blocked']
+        session_data["encrypted"] = capture_data['zeek']['ssl']
+        session_data["insecure"] = capture_data['zeek']['http']
+
+        # Creating top uploads
+        for NUM in range(1,6):
+            try:
+                SRCIP=capture_data['top_uploads'][NUM]['Source-Destination'].split()[0]
+                ASN=IPWhois(SRCIP).lookup_whois()['asn_description'].replace('_','\_').replace('^','\^').replace('&','\&').replace('$','\$').replace('#','\#')[:20]
+                session_data[f'ASN{NUM}']=ASN
+                session_data[f'uploaded{NUM}']=capture_data['top_uploads'][NUM]['Total Upload']
+                session_data[f'transferredtotal{NUM}']=capture_data['top_uploads'][NUM]['Total Transferred']
+                session_data[f'duration{NUM}']=capture_data['top_uploads'][NUM]['Duration']
+            except:
+                session_data[f'ASN{NUM}']="-"
+                session_data[f'uploaded{NUM}']="-"
+                session_data[f'transferredtotal{NUM}']="-"
+                session_data[f'duration{NUM}']="-"
 
         # Render the template with the session data
         template_rendered = template.render(session_data)
