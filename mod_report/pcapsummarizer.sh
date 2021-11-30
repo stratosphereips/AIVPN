@@ -35,7 +35,8 @@ tshark -qzconv,ipv4 -r $PCAP 2>/dev/null |grep -v "|\|IPv4\|Filter\|=" |sort -n 
 
 # Get Slips ZEEK stats
 ZEEK=$(echo "$DIRNAME/slips_$BASENAME.pcap/zeek_files")
-CONN=0 ; DNS=0; HTTP=0; SSL=0
+CONN=0 ; DNS=0; HTTP=0; SSL=0; DNS_BLOCKED=0
+
 if [ -d "$ZEEK" ];
 then
         CONN=$(cat $ZEEK/conn.log | grep -v "#" | wc -l)
@@ -46,14 +47,14 @@ then
 
         if [ -f "$ZEEK/dns.log" ]; then
                 DNS=$(cat $ZEEK/dns.log | grep -v "#" | wc -l)
+                DNS_BLOCKED=$(cat $ZEEK/dns.log | grep "\"rejected\":true"| wc -l)
         fi
 
         if [ -f "$ZEEK/ssl.log" ]; then
                 SSL=$(cat $ZEEK/ssl.log | grep -v "#" | wc -l)
         fi
-
-        zeek_json=$(echo '{ "connections": '$CONN', "dns": '$DNS', "http": '$HTTP', "ssl": '$SSL' }')
 fi
+zeek_json=$(echo '{ "connections": '$CONN', "dns": '$DNS', "dns_blocked": '$DNS_BLOCKED', "http": '$HTTP', "ssl": '$SSL' }')
 
 # Create unique JSON
 echo "{ \"capinfos\": $(cat $FILENAME.capinfos),\"top_dns\":$(cat $FILENAME.dns),\"top_uploads\":$(cat $FILENAME.uploads),\"insecure_http\":$(cat $FILENAME.http), \"zeek\": $zeek_json}" > $FILENAME".json"
