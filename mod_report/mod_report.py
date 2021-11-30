@@ -10,6 +10,7 @@ import glob
 import json
 import redis
 import jinja2
+import pdfkit
 import logging
 import subprocess
 import configparser
@@ -100,8 +101,17 @@ def generate_profile_report_html(profile_name,PATH,SLIPS_STATUS):
             f.write(template_rendered)
 
         # Generate PDF from HTML
+        css = ['/code/template/nicepage.css', '/code/template/report-template.css']
+        options = { 'page-size':'A4', 'dpi': 96 }
+        try:
+            pdfkit.from_file(report_source,report_build,css=css,options=options)
+        except Exception as err:
+            logging.info(f'Exception in generate_profile_report_html: {err}')
+            pass
+        return True
     except Exception as err:
         logging.info(f'Exception in generate_profile_report_html: {err}')
+        return False
 
 def generate_profile_report(profile_name,PATH,SLIPS_STATUS):
     """ Process all the outputs and assemble the report. """
@@ -314,8 +324,9 @@ if __name__ == '__main__':
                         upd_reported_time_to_expired_profile(profile_name,redis_client)
                         continue
                     if status:
-                        generate_profile_report_html(profile_name,PATH,slips_status)
-                        status = generate_profile_report(profile_name,PATH,slips_status)
+                        status = generate_profile_report_html(profile_name,PATH,slips_status)
+                        #if not status:
+                        #    status = generate_profile_report(profile_name,PATH,slips_status)
                         logging.info(f'Status of report on profile {profile_name}: {status}')
                         if status:
                             logging.info('Processing of associated captures completed')
