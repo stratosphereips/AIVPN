@@ -71,7 +71,7 @@ def generate_profile_report_html(profile_name,PATH,SLIPS_STATUS):
         os.chdir(f'{PATH}/{profile_name}')
 
         # Creating the jinja template object
-        templateLoader = jinja2.FileSystemLoader(searchpath="./template/")
+        templateLoader = jinja2.FileSystemLoader(searchpath="/code/template/")
         templateEnv = jinja2.Environment(loader=templateLoader)
         template = templateEnv.get_template(report_template)
 
