@@ -62,11 +62,11 @@ def process_profile_traffic(profile_name,PATH,REDIS_CLIENT):
         logging.info(f'Exception in process_profile_traffic: {err}')
         return False
 
-def generate_profile_automatic_report(profile_name,PATH,SLIPS_STATUS):
+def generate_profile_report_html(profile_name,PATH,SLIPS_STATUS):
     """ Process all the outputs and assemble the report. """
     try:
         report_template=f'report-template.html'
-        report_source=f'{profile_name}.md'
+        report_source=f'{profile_name}.html'
         report_build=f'{profile_name}.pdf'
 
         # Creating the jinja template object
@@ -86,12 +86,21 @@ def generate_profile_automatic_report(profile_name,PATH,SLIPS_STATUS):
                 "packets": capture_data['capinfos']['Number of packets'],
                 "data": round(float(capture_data['capinfos']['File size (bytes)'])/1073741824,3),
                 "dns": capture_data['zeek']['dns'],
-                "trackers": "",
+                "trackers": capture_data['zeek']['dns_blocked'],
                 "encrypted": capture_data['zeek']['ssl'],
                 "insecure": capture_data['zeek']['http'],
                 }
+
+        # Render the template with the session data
+        template_rendered = template.render(session_data)
+
+        # Store the rendered session template to disk
+        with open(report_source,'w') as f:
+            f.write(template_rendered)
+
+        # Generate PDF from HTML
     except Exception as err:
-        logging.info(f'Exception in generate_profile_automatic_report: {err}')
+        logging.info(f'Exception in generate_profile_report_html: {err}')
 
 def generate_profile_report(profile_name,PATH,SLIPS_STATUS):
     """ Process all the outputs and assemble the report. """
@@ -304,6 +313,7 @@ if __name__ == '__main__':
                         upd_reported_time_to_expired_profile(profile_name,redis_client)
                         continue
                     if status:
+                        generate_profile_report_html(profile_name,PATH,slips_status)
                         status = generate_profile_report(profile_name,PATH,slips_status)
                         logging.info(f'Status of report on profile {profile_name}: {status}')
                         if status:
