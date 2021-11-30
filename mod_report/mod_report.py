@@ -94,7 +94,7 @@ def generate_profile_report_html(profile_name,PATH,SLIPS_STATUS):
         session_data["insecure"] = capture_data['zeek']['http']
 
         # Creating top uploads
-        for NUM in range(1,6):
+        for NUM in range(0,5):
             try:
                 SRCIP=capture_data['top_uploads'][NUM]['Source-Destination'].split()[0]
                 ASN=IPWhois(SRCIP).lookup_whois()['asn_description'].replace('_','\_').replace('^','\^').replace('&','\&').replace('$','\$').replace('#','\#')[:20]
@@ -107,6 +107,34 @@ def generate_profile_report_html(profile_name,PATH,SLIPS_STATUS):
                 session_data[f'uploaded{NUM}']="-"
                 session_data[f'transferredtotal{NUM}']="-"
                 session_data[f'duration{NUM}']="-"
+
+        # Creating the Top DNS Requests
+        dns_queries = []
+        for qry in capture_data['top_dns']:
+            dns_queries.append(qry['_source']['layers']['dns.qry.name'][0].replace('.','[.]'))
+
+        dns_counter = Counter(dns_queries)
+        top_dns = sorted(dns_counter.items(), key=lambda x: x[1], reverse=True)[:30]
+        for NUM in range(0,29):
+            try:
+                session_data[f'dns{NUM}'] = f'{qry[1]} {qry[0]}'
+            except:
+                session_data[f'dns{NUM}'] = "-"
+
+        # Generating Slips report
+        slips = []
+        try:
+            with open(f'slips_{capture_file}/alerts.json','r') as slips_alerts:
+                for alert in slips_alerts.readlines():
+                    if re.search('UnknownPort', alert, re.I):
+                        jsonalert = json.loads(alert)
+                        slips.append(f'{jsonalert["timestamp"]}: {jsonalert["description"]}')
+        except Exception as err:
+            logging.info("Unable to process Slips results")
+            pass
+
+        if len(slips)>0:
+            session_data['connectionsunknownports'] = slips
 
         # Render the template with the session data
         template_rendered = template.render(session_data)
