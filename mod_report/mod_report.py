@@ -82,13 +82,13 @@ def generate_profile_automatic_report(profile_name,PATH,SLIPS_STATUS):
 
         session_data = {
                 "hours": round(float(capture_data['capinfos']['Capture duration (seconds)'])/3600,3),
-                "connections": "",
+                "connections": capture_data['zeek']['connections'],
                 "packets": capture_data['capinfos']['Number of packets'],
                 "data": round(float(capture_data['capinfos']['File size (bytes)'])/1073741824,3),
-                "dns": "",
+                "dns": capture_data['zeek']['dns'],
                 "trackers": "",
-                "encrypted": "",
-                "insecure": "",
+                "encrypted": capture_data['zeek']['ssl'],
+                "insecure": capture_data['zeek']['http'],
                 }
     except Exception as err:
         logging.info(f'Exception in generate_profile_automatic_report: {err}')
