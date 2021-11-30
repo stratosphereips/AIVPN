@@ -33,8 +33,6 @@ def process_profile_traffic(profile_name,PATH,REDIS_CLIENT):
             # If capture is not empty: process it
             if capture_size > 25:
                 VALID_CAPTURE=True
-                process = subprocess.Popen(["/code/pcapsummarizer.sh",capture_file])
-                process.wait()
 
                 # If capture is meaningful, call Slips
                 message=f'process_profile:{profile_name}'
@@ -55,6 +53,10 @@ def process_profile_traffic(profile_name,PATH,REDIS_CLIENT):
                             #Bad. Continue. Do not retry.
                             SLIPS_RESULT = False
                             break
+                # Run the pcap summarizer that will generate the JSON to fill the report template
+                process = subprocess.Popen(["/code/pcapsummarizer.sh",capture_file])
+                process.wait()
+
         return VALID_CAPTURE,SLIPS_RESULT
     except Exception as err:
         logging.info(f'Exception in process_profile_traffic: {err}')
