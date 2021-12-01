@@ -137,6 +137,7 @@ def generate_profile_report_html(profile_name,PATH,SLIPS_STATUS):
                         jsonalert = json.loads(alert)
                         slips.append(f'{jsonalert["timestamp"]}: {jsonalert["description"]} <br>')
         except Exception as err:
+            slips.append(" No connections to Unknown Ports observed in this session <br>")
             logging.info("Unable to process Slips results")
             pass
 
