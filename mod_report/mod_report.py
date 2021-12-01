@@ -97,7 +97,14 @@ def generate_profile_report_html(profile_name,PATH,SLIPS_STATUS):
         for NUM in range(0,5):
             try:
                 SRCIP=capture_data['top_uploads'][NUM]['Source-Destination'].split()[0]
-                ASN=IPWhois(SRCIP).lookup_whois()['asn_description'].replace('_','\_').replace('^','\^').replace('&','\&').replace('$','\$').replace('#','\#')[:20]
+                DSTIP=capture_data['top_uploads'][NUM]['Source-Destination'].split()[0]
+                try:
+                    ASN=IPWhois(SRCIP).lookup_whois()['asn_description'].replace('_','\_').replace('^','\^').replace('&','\&').replace('$','\$').replace('#','\#')[:20]
+                except:
+                    try:
+                        ASN=IPWhois(DSTIP).lookup_whois()['asn_description'].replace('_','\_').replace('^','\^').replace('&','\&').replace('$','\$').replace('#','\#')[:20]
+                    except:
+                        ASN="Unknown"
                 session_data[f'ASN{NUM}']=ASN
                 session_data[f'uploaded{NUM}']=capture_data['top_uploads'][NUM]['Total Upload']
                 session_data[f'transferredtotal{NUM}']=capture_data['top_uploads'][NUM]['Total Transferred']
@@ -117,7 +124,7 @@ def generate_profile_report_html(profile_name,PATH,SLIPS_STATUS):
         top_dns = sorted(dns_counter.items(), key=lambda x: x[1], reverse=True)[:30]
         for NUM in range(0,29):
             try:
-                session_data[f'dns{NUM}'] = f'{qry[1]} {qry[0]}'
+                session_data[f'dns{NUM}'] = f'{top_dns[NUM][1]} {top_dns[NUM][0]}'
             except:
                 session_data[f'dns{NUM}'] = "-"
 
@@ -128,7 +135,7 @@ def generate_profile_report_html(profile_name,PATH,SLIPS_STATUS):
                 for alert in slips_alerts.readlines():
                     if re.search('UnknownPort', alert, re.I):
                         jsonalert = json.loads(alert)
-                        slips.append(f'{jsonalert["timestamp"]}: {jsonalert["description"]}')
+                        slips.append(f'{jsonalert["timestamp"]}: {jsonalert["description"]} <br>')
         except Exception as err:
             logging.info("Unable to process Slips results")
             pass
