@@ -2,6 +2,7 @@ FROM stratosphereips/slips:latest
 LABEL Description="This image is used to analyze the AI VPN network traffic with Slips." Vendor="Civilsphere Project" Version="0.1" Maintainer="civilsphere@aic.fel.cvut.cz"
 ADD . /code
 RUN cd /StratosphereLinuxIPS/ && git checkout develop
+RUN git pull
 WORKDIR /code
 RUN pip install -r requirements.txt
 RUN cp slips_configuration.conf /StratosphereLinuxIPS/slips.conf
