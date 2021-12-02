@@ -67,13 +67,5 @@
         service.privileged = true;
         service.restart = "on-failure";
       };
-      mod_pihole = {
-        service.image = "pihole/pihole:latest";
-        service.volumes = [ "${toString ./.}/data/conf_pihole:/etc/pihole" "${toString ./.}/data/conf_pihole/etc-dnsmasq.d/:/etc/dnsmasq.d/" "${toString ./.}/config:/code/config:ro"  "${toString ./.}/common:/code/common"];
-        service.ports = [ "5900:80/tcp" ];
-        service.environment.TZ="Europe/Prague";
-        service.depends_on = [ "mod_redis" "mod_manager" ];
-        service.restart = "on-failure";
-      };
   };
 }
