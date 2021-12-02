@@ -18,13 +18,20 @@ has five different sections:
       will store their log files. Note: if the root directory (/logs) is
       changed, the docker-compose.yml file will also need to be updated to
       reflect that change.
+    * STORAGE: this configuration specifies where the user data will be stored,
+      including packet captures, network logs, and incident reports.
     * IMAP: this section contains the credentials for the email address to be
       used to receive automated email VPN requests and send back the VPN
       profiles for users to connect. Note: we recommend to use a dedicated 
       email account and not your personal account to run this service.
-    * STORAGE: this configuration specifies where the user data will be stored,
-      including packet captures, network logs, and incident reports.
+    * TELEGRAM: this section contains the credentials for the telegram bot that
+      will receive VPN requests. The configuration also includes the start and
+      waiting messages that will be sent back to the users.
     * OPENVPN: this section gives the OpenVPN module the basic information
+      needed to run the VPN service.
+    * WIREGUARD: this section gives the WireGuard VPN module the basic information
+      needed to run the VPN service.
+    * NOVPN: this section gives the unencrypted OpenVPN module the basic information
       needed to run the VPN service.
     * AIVPN: this section provides application level configurations, including
       when profiles expire, maximum profiles per account, etc.
@@ -73,10 +80,58 @@ Find the public IPv4 address of the host machine::
 
 Use this IP address to replace the placeholder in the configuration file::
 
+    $ SERVER_PUBLIC_URL = tcp://x.x.x.x
+    $ PKI_ADDRESS = x.x.x.x
+    $ NETWORK_CIDR = 192.168.254.0/24
+    $ DNS_SERVER = <pi-hole ip address here>
+
+Setting up the WIREGUARD VPN Configuration
+------------------------------------------
+
+The next step is to replace the example values of the WireGuard VPN service with
+the IP address or host of the host machine.
+
+Find the public IPv4 address of the host machine::
+
+    $ curl -4 icanhazip.com
+
+Use this IP address to replace the placeholder in the configuration file::
+
     $ SERVER_PUBLIC_URL = udp://x.x.x.x
     $ PKI_ADDRESS = x.x.x.x
+    $ NETWORK_CIDR = 192.168.254.0/24
 
-The next section will cover how to deploy the AI VPN using docker-compose.
+
+The WireGuard VPN also needs to configure certain parameters in a file called '.ENV'.
+First copy the file `.env_TEMPLATE` to `.env`::
+
+    $ cp .env_TEMPLATE .env
+
+Then replace the server adress and server port with the parameters for your server
+(this has to match the config.ini file)::
+
+    $ ENV_SERVERURL=<server_ip>
+    $ ENV_SERVERPORT=<server_port>
+
+Save and exit. You are ready to run this module.
+    
+Setting up the NOVPN Configuration
+------------------------------------
+
+The next step is to replace the example values of the OPEN VPN service without
+encryption with the IP address or host of the host machine.
+
+Find the public IPv4 address of the host machine::
+
+    $ curl -4 icanhazip.com
+
+Use this IP address to replace the placeholder in the configuration file::
+
+    $ SERVER_PUBLIC_URL = tcp://x.x.x.x:port
+    $ PKI_ADDRESS = x.x.x.x
+    $ NETWORK_CIDR = 192.168.254.0/24
+    $ DNS_SERVER = <pi-hole ip address here>
+
 
 Setting up the AIVPN Configuration
 ----------------------------------
