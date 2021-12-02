@@ -24,3 +24,4 @@ Contents
    configuration
    telegrambot
    deployment
+   nixarion
