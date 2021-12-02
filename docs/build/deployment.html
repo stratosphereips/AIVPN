@@ -1,0 +1,271 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Deployment &mdash; AI VPN 2021 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Configuration" href="configuration.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> AI VPN
+          
+
+          
+            
+            <img src="_static/aivpn.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="motivation.html">Motivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Deployment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#build-the-ai-vpn-container-modules">Build the AI VPN Container Modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#deploy-the-ai-vpn-service">Deploy the AI VPN service</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#check-the-ai-vpn-service-health">Check the AI VPN Service Health</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">AI VPN</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Deployment</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/deployment.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="deployment">
+<h1>Deployment<a class="headerlink" href="#deployment" title="Permalink to this headline">¶</a></h1>
+<p>This section explains how to build the AI VPN modules docker images and how to
+deploy the AI VPN service using docker-compose.</p>
+<div class="section" id="build-the-ai-vpn-container-modules">
+<h2>Build the AI VPN Container Modules<a class="headerlink" href="#build-the-ai-vpn-container-modules" title="Permalink to this headline">¶</a></h2>
+<p>The AI VPN comes with a bash script that builds the images automatically. The
+script <cite>build.sh</cite> contains three main sections:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Cleaning up the docker images.</p></li>
+<li><p>Cleaning up the AI VPN log files.</p></li>
+<li><p>Building the AI VPN container images using docker commands.</p></li>
+</ul>
+</div></blockquote>
+<p>NOTE: The cleaning up of the docker images will remove all dangling docker images,
+that is, docker images that have no links or relationships with images that are
+tagged. Cleaning dangling images frees space. If you do not want to perform
+this step, comment the following line from the <cite>build.sh</cite> script:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ docker rmi -f $(docker images -f &quot;dangling=true&quot; -q)
+</pre></div>
+</div>
+<p>Run the build script to build the container images:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ cd AIVPN/
+$ sudo ./build.sh
+</pre></div>
+</div>
+</div>
+<div class="section" id="deploy-the-ai-vpn-service">
+<h2>Deploy the AI VPN service<a class="headerlink" href="#deploy-the-ai-vpn-service" title="Permalink to this headline">¶</a></h2>
+<p>The deployment of the AI VPN is done using docker-compose:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ cd AIVPN/
+$ sudo docker-compose -f docker-compose.yml up
+</pre></div>
+</div>
+</div>
+<div class="section" id="check-the-ai-vpn-service-health">
+<h2>Check the AI VPN Service Health<a class="headerlink" href="#check-the-ai-vpn-service-health" title="Permalink to this headline">¶</a></h2>
+<p>Check the AI VPN modules are running using Docker:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo docker ps
+</pre></div>
+</div>
+<p>Check the AI VPN modules are working using the logs:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ cd AIVPN/
+$ tail -f logs/*.log
+</pre></div>
+</div>
+<p>Check the AI VPN email configuratio works:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Send an email to the email address used for the service with the word:
+<cite>VPN</cite> in the body or subject of the email.</p></li>
+<li><p>After a few minutes a new VPN profile should be received.</p></li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="configuration.html" class="btn btn-neutral float-left" title="Configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Civilsphere Project.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

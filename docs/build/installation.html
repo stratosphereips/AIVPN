@@ -1,0 +1,268 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Installation &mdash; AI VPN 2021 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Configuration" href="configuration.html" />
+    <link rel="prev" title="Motivation" href="motivation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> AI VPN
+          
+
+          
+            
+            <img src="_static/aivpn.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="motivation.html">Motivation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installing-docker-docker-compose">Installing Docker &amp; Docker Compose</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installing-the-ai-vpn-from-source">Installing the AI VPN from Source</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deployment.html">Deployment</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">AI VPN</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Installation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/installation.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<p>This section explains how to install the components needed to run the AI VPN.
+Once the code is downloaded, please refer to the next section: Configuration.</p>
+<div class="section" id="installing-docker-docker-compose">
+<h2>Installing Docker &amp; Docker Compose<a class="headerlink" href="#installing-docker-docker-compose" title="Permalink to this headline">¶</a></h2>
+<p>The AI VPN follows a micro-services design based on Docker and uses Docker
+Compose to manage the multi-container application. The first step is therefore
+to install Docker and Docker Compose in the host machine.</p>
+<p>To install Docker we recommend following the installation steps instructed in:
+<a class="reference external" href="https://docs.docker.com/engine/install/">https://docs.docker.com/engine/install/</a></p>
+<p>To install Docker Compose we recommend following the installation steps as
+instructed in: <a class="reference external" href="https://docs.docker.com/compose/install/">https://docs.docker.com/compose/install/</a></p>
+<p>After the installation is successful, check the services are installed:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo docker --version
+$ sudo docker-compose --version
+</pre></div>
+</div>
+<p>The AI VPN was developed for:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Docker version 20.10.5</p></li>
+<li><p>docker-compose version 1.25.0</p></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="installing-the-ai-vpn-from-source">
+<h2>Installing the AI VPN from Source<a class="headerlink" href="#installing-the-ai-vpn-from-source" title="Permalink to this headline">¶</a></h2>
+<p>Download the source code of the AI VPN from GitHub:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/stratosphereips/AIVPN.git
+$ cd AIVPN/
+</pre></div>
+</div>
+<p>The AI VPN is a multi-container application. The modules are managed by Docker
+Compose using the docker-compose.yml file. Each module plays a specific role
+in the application. The current supported modules are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>mod_redis: module that uses Redis as the core database for data storage.</p></li>
+<li><p>mod_manager: module responsible for the core functionality of the AI VPN.</p></li>
+<li><p>mod_comm_recv: module capable of receiving VPN requests from users.</p></li>
+<li><p>mod_comm_send: module responsible for sending data and files to users.</p></li>
+<li><p>mod_slips: module that runs the Stratosphere IPS for threat detection.</p></li>
+<li><p>mod_report: module responsible for reporting the threats found to users.</p></li>
+<li><p>mod_openvpn: module provides the OpenVPN service.</p></li>
+<li><p>mod_wireguard: module provides the WireGuard VPN service.</p></li>
+<li><p>mod_novpn: module provides a special configuration of the OpenVPN service without encryption. This special configuration is to be used only when in places where the use of encryption or VPNs in particular are illegal or can endanger users’ life.</p></li>
+<li><p>mod_pihole: module provides the AI VPN with protection against trackers and other malicious domains through DNS blocking capabilities.</p></li>
+</ul>
+</div></blockquote>
+<p>The next section will cover the configurations needed to run the AI VPN.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="configuration.html" class="btn btn-neutral float-right" title="Configuration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="motivation.html" class="btn btn-neutral float-left" title="Motivation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Civilsphere Project.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
