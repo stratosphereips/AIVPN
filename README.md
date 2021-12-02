@@ -17,13 +17,16 @@ The AI VPN is under active development. The functionality of the AI VPN is provi
 
 |   Module      | Version | Status | Description                                    |
 |   ------      | ------- | ------ | -----------                                    |
-| mod_manager   |     0.1 | active | Coordinates the operation of the AI VPN        |
-| mod_redis     |     0.1 | active | Data storage and messaging system for modules  |
-| mod_comm_recv |     0.1 | active | Responsible of receiving new VPN requests      |
-| mod_comm_send |     0.1 | active | Responsible of sending messages back to users  |
+| mod_manager   |     0.2 | active | Coordinates the operation of the AI VPN        |
+| mod_redis     |     0.2 | active | Data storage and messaging system for modules  |
+| mod_comm_recv |     0.2 | active | Responsible of receiving new VPN requests      |
+| mod_comm_send |     0.2 | active | Responsible of sending messages back to users  |
+| mod_report    |     0.2 | active | Responsible for traffic analysis and reporting |
+| mod_slips     |     0.1 | active | Threat detection                               |
 | mod_openvpn   |     0.1 | active | Provides the VPN service using OpenVPN         |
-| mod_report    |     0.1 | active | Responsible for traffic analysis and reporting |
-| mod_slips     |     0.1 | planned| Threat detection and blocking                  |
+| mod_wireguard |     0.1 | active | Provides the VPN service using WireGuard       |
+| mod_novpn     |     0.1 | active | Provides the unencrypted tunel using OpenVPN   |
+| mod_pihole    |     0.1 | active | Provides DNS real time blocking using Pi-Hooe  | 
 
 # Acknowledgements
 
@@ -35,5 +38,8 @@ The AI VPN threat detection is provided by the [Stratosphere Linux IPS](https://
 
 We would like to specially acknowledge the contributions of the following individuals:
 
+* Veronica Valeros
+* Sebastian Garcia
 * Maria Rigaki
 * Joaquin Bogado
+* Alya Gomaa
