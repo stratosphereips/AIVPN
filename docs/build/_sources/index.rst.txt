@@ -22,4 +22,5 @@ Contents
    motivation
    installation
    configuration
+   telegrambot
    deployment

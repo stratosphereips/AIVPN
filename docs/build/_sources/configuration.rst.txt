@@ -27,6 +27,7 @@ has five different sections:
     * TELEGRAM: this section contains the credentials for the telegram bot that
       will receive VPN requests. The configuration also includes the start and
       waiting messages that will be sent back to the users.
+      See reference guide at: <telegrambot.rst>
     * OPENVPN: this section gives the OpenVPN module the basic information
       needed to run the VPN service.
     * WIREGUARD: this section gives the WireGuard VPN module the basic information
