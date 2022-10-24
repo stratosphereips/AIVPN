@@ -32,6 +32,11 @@ if __name__ == '__main__':
     manage.add_argument('--extend', help='extend the expiration of a profile (add default expiration on top of current date)', type=str, required=True)
     manage.add_argument('--whois', help='retrieve identity associated with a profile', type=str, required=True)
 
+    # provision arguments
+    provision.add_argument('--new-openvpn', help='create a new openvpn profile for a given identity (email|telegram)', type=str, required=True)
+    provision.add_argument('--new-wireguard', help='create a new wireguard profile for a given identity (email|telegram)', type=str, required=True)
+    provision.add_argument('--new-novpn', help='create a new novpn profile for a given identity (email|telegram)', type=str, required=True)
+
     args = parser.parse_args()
 
     # Setup logging
