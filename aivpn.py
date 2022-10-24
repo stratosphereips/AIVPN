@@ -26,6 +26,12 @@ if __name__ == '__main__':
     provision = subparser.add_parser('provision')
     audit = subparser.add_parser('audit')
 
+    # manage arguments
+    manage.add_argument('--info', help='retrieve information of a profile', type=str, required=True)
+    manage.add_argument('--expire', help='expire a profile', type=str, required=True)
+    manage.add_argument('--extend', help='extend the expiration of a profile (add default expiration on top of current date)', type=str, required=True)
+    manage.add_argument('--whois', help='retrieve identity associated with a profile', type=str, required=True)
+
     args = parser.parse_args()
 
     # Setup logging
