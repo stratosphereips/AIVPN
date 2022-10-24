@@ -38,6 +38,8 @@ if __name__ == '__main__':
     provision.add_argument('--new-novpn', help='create a new novpn profile for a given identity (email|telegram)', type=str, required=True)
 
     # audit actions
+    audit.add_argument('--active-profiles', help='list all AI VPN active profiles', type=str, required=True)
+    audit.add_argument('--expired-profiles', help='list all AI VPN expired profiles', type=str, required=True)
 
     args = parser.parse_args()
 
