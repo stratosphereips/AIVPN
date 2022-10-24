@@ -20,6 +20,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = "AI VPN Command Line Tool")
     parser.add_argument( "-v", "--verbose", help="increase output verbosity", action="store_true")
 
+    # Configure subparsers
+    subparser = parser.add_subparsers(dest='command')
+    manage = subparser.add_parser('manage')
+    provision = subparser.add_parser('provision')
+    audit = subparser.add_parser('audit')
+
     args = parser.parse_args()
 
     # Setup logging
