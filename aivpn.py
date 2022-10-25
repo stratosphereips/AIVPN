@@ -126,17 +126,32 @@ def provision_openvpn(REDIS_CLIENT, identity):
     except Exception as err:
         print(f'Exception in provision_new_openvpn: {err}')
 
-def provision_wireguard(identity):
+def provision_wireguard(REDIS_CLIENT,identity):
     """
+    Trigger the provisioning of a new Wireguard profile for a client
     """
     try:
         logging.debug(f'Provision Wireguard: {identity}')
+        msg_id = 1
+        msg_request = "wireguard"
+        msg_addr = identity
+        msg_type = validate_identity(identity)
+
+        if msg_id and msg_request and msg_addr and msg_type:
+            # Add to privisioning queue
+            logging.debug(f"Adding item to provisioning queue. Msg ID: {msg_id}, msg_type: {msg_type}, msg_addr: {msg_addr}, msg_request: {msg_request}")
+            status = add_item_provisioning_queue(REDIS_CLIENT,msg_id,msg_type,msg_addr,msg_request)
+            redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
+            print(f"Provisioning triggered: {status}. Number of items in the queue: {list_items_provisioning_queue(REDIS_CLIENT)}")
+        else:
+            print('Provisioning process failed, try again')
         pass
     except Exception as err:
         print(f'Exception in provision_new_wireguard: {err}')
 
 def provision_novpn(identity):
     """
+    Trigger the provisioning of a new not encrypted vpn profile for a client
     """
     try:
         logging.debug(f'Provision No VPN: {identity}')
