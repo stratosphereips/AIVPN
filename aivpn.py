@@ -4,6 +4,8 @@
 # Author: Veronica Valeros, vero.valeros@gmail.com, veronica.valeros@aic.fel.cvut.cz
 
 import sys
+import json
+import datetime
 import argparse
 import logging
 import configparser
@@ -11,13 +13,45 @@ from common.database import *
 
 def manage_info(REDIS_CLIENT,profile_name):
     """
+    Retrieve information about an AI VPN profile_name
     """
+    profile_information={}
     try:
-        identity=get_profile_name_address(profile_name,REDIS_CLIENT)
-        print('Profile information:')
-        print(f' - Profile name: {profile_name}')
-        print(f' - User identity: {identity}')
         logging.debug('Manage info: {profile_name}')
+        identity=get_profile_name_address(profile_name,REDIS_CLIENT)
+        vpn_type=get_profile_vpn_type(profile_name,REDIS_CLIENT)
+
+        if exists_active_profile(profile_name,REDIS_CLIENT):
+            profile_active='active'
+            profile_creation_time = get_active_profile_creation_time(profile_name,REDIS_CLIENT)
+        else:
+            profile_active='expired'
+            profile_information=json.loads(get_expired_profile_information(profile_name,REDIS_CLIENT))
+            if profile_information['creation_time']:
+                profile_creation_time = datetime.datetime.fromtimestamp(profile_information['creation_time'])
+            else:
+                profile_creation_time = "n/a"
+            if profile_information['expiration_time']:
+                profile_expiration_time = datetime.datetime.fromtimestamp(profile_information['expiration_time'])
+            else:
+                profile_expiration_time = "n/a"
+            if profile_information['reported_time']:
+                profile_reported_time = datetime.datetime.fromtimestamp(profile_information['reported_time'])
+            else:
+                profile_reported_time = "n/a"
+            if profile_information['deletion_time']:
+                profile_deletion_time = datetime.datetime.fromtimestamp(profile_information['deletion_time'])
+            else:
+                profile_deletion_time = "n/a"
+
+        print(f"[+] Profile information for: {profile_name}")
+        print(f"   [-] Profile status: {profile_active}")
+        print(f"   [-] VPN requested: {vpn_type}")
+        print(f"   [-] User identity: {identity}")
+        print(f"   [-] Profile creation time: {profile_creation_time}")
+        print(f"   [-] Profile expiration time: {profile_expiration_time}")
+        print(f"   [-] Profile reported time: {profile_reported_time}")
+        print(f"   [-] Profile deletion time: {profile_deletion_time}")
         pass
     except Exception as err:
         print(f'Exception in manage_info: {err}')
