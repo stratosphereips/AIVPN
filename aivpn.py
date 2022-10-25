@@ -16,6 +16,7 @@ if __name__ == '__main__':
 
     REDIS_SERVER = config['REDIS']['REDIS_SERVER']
     MOD_CHANNELS = json.loads(config['REDIS']['REDIS_MODULES'])
+    LOG_FILE = config['LOGS']['LOG_CLI']
 
     parser = argparse.ArgumentParser(description = "AI VPN Command Line Tool")
     parser.add_argument( "-v", "--verbose", help="increase output verbosity", action="store_true")
@@ -27,10 +28,10 @@ if __name__ == '__main__':
     audit = subparser.add_parser('audit')
 
     # manage actions
-    manage.add_argument('--info', help='retrieve information of a profile', type=str, required=True)
-    manage.add_argument('--expire', help='expire a profile', type=str, required=True)
-    manage.add_argument('--extend', help='extend the expiration of a profile (add default expiration on top of current date)', type=str, required=True)
-    manage.add_argument('--whois', help='retrieve identity associated with a profile', type=str, required=True)
+    manage.add_argument('--info', help='retrieve information of a profile', type=str, required=False)
+    manage.add_argument('--expire', help='expire a profile', type=str, required=False)
+    manage.add_argument('--extend', help='extend the expiration of a profile (add default expiration on top of current date)', type=str, required=False)
+    manage.add_argument('--whois', help='retrieve identity associated with a profile', type=str, required=False)
 
     # provision actions
     provision.add_argument('--new-openvpn', help='create a new openvpn profile for a given identity (email|telegram)', type=str, required=True)
@@ -45,6 +46,21 @@ if __name__ == '__main__':
 
     # Setup logging
     if args.verbose:
-        loglevel = logging.DEBUG
+        log_level=logging.INFO
     else:
-        loglevel = logging.INFO
+        log_level=logging.DEBUG
+
+    logging.basicConfig(filename=LOG_FILE, level=log_level,format='%(asctime)s, AIVPN_CLI, %(message)s')
+
+    # parsing commands
+    if args.command == 'manage':
+        logging.info('Managing profile')
+    if args.command == 'provision':
+        logging.info('Provisioning account')
+    if args.command == 'audit':
+        logging.info('audit mode')
+
+
+
+
+
