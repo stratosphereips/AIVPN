@@ -460,6 +460,46 @@ def del_profile_vpn_type(profile_name,REDIS_CLIENT):
     except Exception as err:
         return err
 
+# FORCE EXPIRE QUEUE
+## The force expire queue is a special redis queue where profiles get placed
+## when we want to force them to expire before the expiration date arrived.
+
+## We store simply the profile_name
+
+def add_profile_to_force_expire(REDIS_CLIENT,profile_name):
+    """ Function to add a new profile to the force expiration queue """
+
+    try:
+        redis_set = "force_expire_profile"
+        score = time.time()
+
+        # If new_request exists, ignore and do not update score.
+        REDIS_CLIENT.zadd(redis_set,{profile_name:score},nx=True)
+        return True
+    except Exception as err:
+        return err
+
+def get_profile_to_force_expire(REDIS_CLIENT):
+    """ Function to get a profile to expire from the queue """
+
+    try:
+        redis_set = "force_expire_profile"
+
+        request = REDIS_CLIENT.zpopmin(redis_set,1)
+        return request[0]
+    except Exception as err:
+        return err
+
+def list_profiles_to_force_expire(REDIS_CLIENT):
+    """ Function to list all profiles to expire from the queue """
+
+    try:
+        redis_set = "force_expire_profile"
+        items_force_expire_queue = REDIS_CLIENT.zcard(redis_set)
+        return items_force_expire_queue
+    except Exception as err:
+        return err
+
 # PROVISIONING QUEUE
 ## The provisioning queue is where new requests are queued before being handled.
 ## We receive many types of requests, through many types of messaging apps.
@@ -505,6 +545,7 @@ def list_items_provisioning_queue(REDIS_CLIENT):
         return items_provisioning_queue
     except Exception as err:
         return err
+
 # ACTIVE PROFILES
 ## After the provisioning of profiles is completed, the active profiles are
 ## stored in the Redis hash table of 'active_profiles'. The profiles remain in
