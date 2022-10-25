@@ -57,10 +57,16 @@ def manage_info(REDIS_CLIENT,profile_name):
 
 def manage_expire(REDIS_CLIENT,profile_name):
     """
+    Add a profile to the force expire queue to deprovision
     """
     try:
         logging.debug(f'Manage expire: {profile_name}')
-        pass
+        if exists_active_profile(profile_name,REDIS_CLIENT):
+            status = add_profile_to_force_expire(REDIS_CLIENT,profile_name)
+            redis_client.publish('services_status', 'MOD_CLI:FORCE_EXPIRE')
+            print(f"[+] Forced expiration on profile '{profile_name}' was '{status}'")
+        else:
+            print(f'[+] Profile already expired and processed')
     except Exception as err:
         print(f'Exception in manage_expire: {err}')
 
@@ -118,7 +124,7 @@ def provision_openvpn(REDIS_CLIENT, identity):
             # Add to privisioning queue
             logging.debug(f"Adding item to provisioning queue. Msg ID: {msg_id}, msg_type: {msg_type}, msg_addr: {msg_addr}, msg_request: {msg_request}")
             status = add_item_provisioning_queue(REDIS_CLIENT,msg_id,msg_type,msg_addr,msg_request)
-            redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
+            redis_client.publish('services_status', 'MOD_CLI:NEW_REQUEST')
             print(f"Provisioning triggered: {status}. Number of items in the queue: {list_items_provisioning_queue(REDIS_CLIENT)}")
         else:
             print('Provisioning process failed, try again')
