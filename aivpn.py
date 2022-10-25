@@ -80,7 +80,6 @@ def manage_whois(REDIS_CLIENT,profile_name):
         identity=get_profile_name_address(profile_name,REDIS_CLIENT)
         logging.debug(f'Manage whois: {profile_name}')
         print(f"[+] User identity for {profile_name} is {identity}")
-        pass
     except Exception as err:
         print(f'Exception in manage_whois: {err}')
 
@@ -111,12 +110,17 @@ def provision_novpn(identity):
     except Exception as err:
         print(f'Exception in provision_new_novpn: {err}')
 
-def audit_active_profiles(*_):
+def audit_active_profiles(REDIS_CLIENT,action):
     """
+    Retrieve a list of active VPN profiles
     """
     try:
         logging.debug('Audit active profiles')
-        pass
+        active_profiles = get_active_profiles_keys(REDIS_CLIENT)
+        print(f"[+] Number of active profiles: {len(active_profiles)}")
+        if len(active_profiles)>0:
+            for profile in active_profiles:
+                print(f"   [-] {profile}")
     except Exception as err:
         print(f'Exception in audit_active_profiles: {err}')
 
