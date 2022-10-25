@@ -91,27 +91,6 @@ services:
         networks:
             network:
                 ipv4_address: 172.16.1.8
-    mod_openvpn:
-        privileged: true
-        image: aivpn_mod_openvpn:latest
-        volumes:
-            - ./logs:/logs/
-            - ./data:/data/
-            - ./data/conf_openvpn:/etc/openvpn
-            - ./config:/code/config/:ro
-            - ./common:/code/common/:ro
-        deploy:
-            restart_policy:
-                condition: on-failure
-        ports:
-            - "1194:1194/tcp"
-        depends_on:
-            - mod_redis
-            - mod_manager
-            - mod_pihole
-        networks:
-            network:
-                ipv4_address: 172.16.1.9
     mod_wireguard:
         image: aivpn_mod_wireguard:latest
         cap_add:
