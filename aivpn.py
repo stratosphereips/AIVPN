@@ -41,6 +41,47 @@ def manage_whois():
     except Exception as err:
         print(f'Exception in manage_whois: {err}')
 
+def provision_new_openvpn():
+    """
+    """
+    try:
+        pass
+    except Exception as err:
+        print(f'Exception in provision_new_openvpn: {err}')
+
+def provision_new_wireguard():
+    """
+    """
+    try:
+        pass
+    except Exception as err:
+        print(f'Exception in provision_new_wireguard: {err}')
+
+def provision_new_novpn():
+    """
+    """
+    try:
+        pass
+    except Exception as err:
+        print(f'Exception in provision_new_novpn: {err}')
+
+def audit_active_profiles():
+    """
+    """
+    try:
+        pass
+    except Exception as err:
+        print(f'Exception in audit_active_profiles: {err}')
+
+def audit_expired_profiles():
+    """
+    """
+    try:
+        pass
+    except Exception as err:
+        print(f'Exception in audit_expired_profiles: {err}')
+
+
 if __name__ == '__main__':
     # Read configuration
     config = configparser.ConfigParser()
@@ -59,26 +100,27 @@ if __name__ == '__main__':
                          'extend': manage_extend,
                          'whois': manage_whois
                          },
-               'provision':{'new-openvpn': provision_new-openvpn,
-                            'new-wireguard': provision_new-wireguard,
-                            'new-novpn': provision_new-novpn
+               'provision':{'new_openvpn': provision_new_openvpn,
+                            'new_wireguard': provision_new_wireguard,
+                            'new_novpn': provision_new_novpn
                             },
-               'audit':{'active-profiles': audit_active-profiles,
-                        'expired-profiles': audit_expired-profiles
+               'audit':{'active_profiles': audit_active_profiles,
+                        'expired_profiles': audit_expired_profiles
                         }
                }
 
     # Configure commands
     subparser = parser.add_subparsers(dest='command')
-    manage = subparser.add_parser('manage', help='Manage an AI VPN profile')
+    manage = subparser.add_parser('manage', help=f'Manage an AI VPN profile {list(ACTIONS["manage"].keys())}')
     provision = subparser.add_parser('provision', help='Provision a new AI VPN account')
     audit = subparser.add_parser('audit', help='Audit AI VPN activities')
 
     # manage actions
-    manage.add_argument('--info', help='retrieve information of a profile', type=str, required=False)
-    manage.add_argument('--expire', help='expire a profile', type=str, required=False)
-    manage.add_argument('--extend', help='extend the expiration of a profile (add default expiration on top of current date)', type=str, required=False)
-    manage.add_argument('--whois', help='retrieve identity associated with a profile', type=str, required=False)
+    manage.add_argument('manage', choices=ACTIONS['manage'].keys())
+    #manage.add_argument('--info', help='retrieve information of a profile', type=str, required=False)
+    #manage.add_argument('--expire', help='expire a profile', type=str, required=False)
+    #manage.add_argument('--extend', help='extend the expiration of a profile (add default expiration on top of current date)', type=str, required=False)
+    #manage.add_argument('--whois', help='retrieve identity associated with a profile', type=str, required=False)
 
     # provision actions
     provision.add_argument('--new-openvpn', help='create a new openvpn profile for a given identity (email|telegram)', type=str, required=True)
