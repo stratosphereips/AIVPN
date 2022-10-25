@@ -153,7 +153,7 @@ def read_configuration():
     config = configparser.ConfigParser()
     config.read('config/config.ini')
 
-    REDIS_SERVER = config['EDUVPN']['REDIS_SERVER']
+    REDIS_SERVER = config['EDUVPN']['REDIS_SERVER_IP']
     CHANNEL = config['REDIS']['REDIS_EDUVPN_CHECK']
     LOG_FILE = config['LOGS']['LOG_EDUVPN']
     return REDIS_SERVER,CHANNEL,LOG_FILE
