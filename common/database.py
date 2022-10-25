@@ -496,6 +496,15 @@ def get_item_provisioning_queue(REDIS_CLIENT):
     except Exception as err:
         return err
 
+def list_items_provisioning_queue(REDIS_CLIENT):
+    """ Retrieve all the items in the provisioning queue"""
+
+    try:
+        redis_set = "provisioning_queue"
+        items_provisioning_queue = REDIS_CLIENT.zcard(redis_set)
+        return items_provisioning_queue
+    except Exception as err:
+        return err
 # ACTIVE PROFILES
 ## After the provisioning of profiles is completed, the active profiles are
 ## stored in the Redis hash table of 'active_profiles'. The profiles remain in
