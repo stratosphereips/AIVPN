@@ -72,18 +72,20 @@ def provision_novpn(identity):
     except Exception as err:
         print(f'Exception in provision_new_novpn: {err}')
 
-def audit_active_profiles():
+def audit_active_profiles(*_):
     """
     """
     try:
+        logging.debug('Audit active profiles')
         pass
     except Exception as err:
         print(f'Exception in audit_active_profiles: {err}')
 
-def audit_expired_profiles():
+def audit_expired_profiles(*_):
     """
     """
     try:
+        logging.debug('Audit expired profiles')
         pass
     except Exception as err:
         print(f'Exception in audit_expired_profiles: {err}')
@@ -119,16 +121,17 @@ if __name__ == '__main__':
     provision.add_argument('--novpn', help='create a new novpn profile for a given identity', type=str, required=True, metavar='<user email | user telegram>')
 
     # audit actions
-    audit.add_argument('--active-profiles', help='list all AI VPN active profiles', type=str, required=True, metavar='')
-    audit.add_argument('--expired-profiles', help='list all AI VPN expired profiles', type=str, required=True, metavar='')
+    audit.add_argument('--profiles', choices=['active','expired'], help='Audit profiles by type')
+    #audit.add_argument('--profiles', help='list all AI VPN active profiles', type=str, required=True, metavar='')
+    #audit.add_argument('--expired-profiles', help='list all AI VPN expired profiles', type=str, required=True, metavar='')
 
     args = parser.parse_args()
 
     # Setup logging
     if args.verbose:
-        log_level=logging.INFO
-    else:
         log_level=logging.DEBUG
+    else:
+        log_level=logging.INFO
 
     logging.basicConfig(filename=LOG_FILE, level=log_level,format='%(asctime)s, AIVPN_CLI, %(message)s')
 
@@ -161,9 +164,11 @@ if __name__ == '__main__':
             params = args.novpn
 
     if args.command == 'audit':
-        logging.info('audit mode')
+        logging.info('Auditing AIVPN')
+        if args.profiles == 'active':
+            cli_action = audit_active_profiles
+        elif args.profiles == 'expired':
+            cli_action = audit_expired_profiles
+        params = args.profiles
 
     cli_action(params)
-
-
-
