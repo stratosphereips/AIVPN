@@ -146,12 +146,17 @@ if __name__ == '__main__':
     # parsing commands
     if args.command == 'manage':
         logging.info('Managing profile')
+        cli_action = ACTIONS['manage'][args.manage]
+
     if args.command == 'provision':
         logging.info('Provisioning account')
+        cli_action = ACTIONS['provision'][args.manage]
+
     if args.command == 'audit':
         logging.info('audit mode')
+        cli_action = ACTIONS['audit'][args.manage]
 
-
+    cli_action()
 
 
 
