@@ -5,10 +5,11 @@ REDIS_COMM_SEND_CHECK = mod_comm_send_check
 REDIS_REPORT_CHECK = mod_report_check
 REDIS_SLIPS_CHECK = mod_slips_check
 REDIS_OPENVPN_CHECK = mod_openvpn_check
+REDIS_EDUVPN_CHECK = mod_eduvpn_check
 REDIS_WIREGUARD_CHECK = mod_wireguard_check
 REDIS_NOVPN_CHECK = mod_novpn_check
 REDIS_MANAGER_CHECK = services_status
-REDIS_MODULES = ["mod_comm_recv_check","mod_comm_send_check","mod_report_check","mod_openvpn_check","mod_slips_check","mod_wireguard_check","mod_novpn_check"]
+REDIS_MODULES = ["mod_comm_recv_check","mod_comm_send_check","mod_report_check","mod_openvpn_check","mod_slips_check","mod_wireguard_check","mod_novpn_check", "mod_openvpn_check"]
 
 [LOGS]
 LOG_COMM_RECV = /logs/mod_comm_recv.log
@@ -19,6 +20,7 @@ LOG_SLIPS = /logs/mod_slips.log
 LOG_OPENVPN = /logs/mod_openvpn.log
 LOG_WIREGUARD = /logs/mod_wireguard.log
 LOG_NOVPN = /logs/mod_novpn.log
+LOG_EDUVPN =  /logs/mod_eduvpn.log
 
 [STORAGE]
 PATH = /data
@@ -46,6 +48,10 @@ SERVER_PUBLIC_URL = udp://example-server.com:port
 PKI_ADDRESS = vpn.example-server.com
 NETWORK_CIDR = 192.168.254.0/24
 DNS_SERVER=172.16.1.2
+
+
+[EDUVPN]
+
 
 [WIREGUARD]
 SERVER_PUBLIC_URL = tcp://example-server.com
