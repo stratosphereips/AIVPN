@@ -615,6 +615,14 @@ def is_expired(profile_name,REDIS_CLIENT):
     except Exception as err:
         return err
 
+def get_expired_profiles_keys(REDIS_CLIENT):
+    """ Retrieve all the expired profiles """
+
+    try:
+        list_of_expired_profiles = REDIS_CLIENT.hkeys(hash_expired_profiles)
+        return list_of_expired_profiles
+    except Exception as err:
+        return err
 # PROFILES TO REPORT
 # Redis hash that keeps a list of profiles to report. Once reported, the report
 # time is added to the expired_profiles information and the profile name is

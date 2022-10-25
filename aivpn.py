@@ -124,11 +124,17 @@ def audit_active_profiles(REDIS_CLIENT,action):
     except Exception as err:
         print(f'Exception in audit_active_profiles: {err}')
 
-def audit_expired_profiles(*_):
+def audit_expired_profiles(REDIS_CLIENT,action):
     """
+    Retrieve a list of expired profiles
     """
     try:
         logging.debug('Audit expired profiles')
+        expired_profiles = get_expired_profiles_keys(REDIS_CLIENT)
+        print(f"[+] Number of expired profiles: {len(expired_profiles)}")
+        if len(expired_profiles)>0:
+            for profile in expired_profiles:
+                print(f"   [-] {profile}")
         pass
     except Exception as err:
         print(f'Exception in audit_expired_profiles: {err}')
