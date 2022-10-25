@@ -3,6 +3,7 @@
 # See the file 'LICENSE' for copying permission.
 # Author: Veronica Valeros, vero.valeros@gmail.com, veronica.valeros@aic.fel.cvut.cz
 
+import re
 import sys
 import json
 import datetime
@@ -83,12 +84,45 @@ def manage_whois(REDIS_CLIENT,profile_name):
     except Exception as err:
         print(f'Exception in manage_whois: {err}')
 
-def provision_openvpn(identity):
+def validate_identity(identity):
     """
+    Verify the provided identity matches an email or telegram ID
+    """
+    try:
+        email_regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+        telegram_regex = r'\b[0-9]{8,}\b'
+        if(re.fullmatch(email_regex, identity)):
+            msg_type = "email"
+        elif (re.fullmatch(telegram_regex, identity)):
+            msg_type = "telegram"
+        else:
+            print(f"Identity must be a valid format (email or telegram ID): {identity}")
+            return False
+        return msg_type
+    except Exception as err:
+        print(f'Exception in validate_identity: {err}')
+
+def provision_openvpn(REDIS_CLIENT, identity):
+    """
+    Trigger the provisioning of a new OpenVPN profile for a client
     """
     try:
         logging.debug(f'Provision OpenVPN: {identity}')
-        pass
+
+        msg_id = 1
+        msg_request = "openvpn"
+        msg_addr = identity
+        msg_type = validate_identity(identity)
+
+        if msg_id and msg_request and msg_addr and msg_type:
+            # Add to privisioning queue
+            logging.debug(f"Adding item to provisioning queue. Msg ID: {msg_id}, msg_type: {msg_type}, msg_addr: {msg_addr}, msg_request: {msg_request}")
+            status = add_item_provisioning_queue(REDIS_CLIENT,msg_id,msg_type,msg_addr,msg_request)
+            redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
+            print(f"Provisioning triggered: {status}. Number of items in the queue: {list_items_provisioning_queue(REDIS_CLIENT)}")
+        else:
+            print('Provisioning process failed, try again')
+
     except Exception as err:
         print(f'Exception in provision_new_openvpn: {err}')
 
@@ -165,9 +199,9 @@ if __name__ == '__main__':
     manage.add_argument('--whois', help='retrieve identity associated with a profile', type=str, required=False, metavar='<profile_name>')
 
     # provision actions
-    provision.add_argument('--openvpn', help='create a new openvpn profile for a given identity', type=str, required=True, metavar='<user email | user telegram>')
-    provision.add_argument('--wireguard', help='create a new wireguard profile for a given identity', type=str, required=True, metavar='<user email | user telegram>')
-    provision.add_argument('--novpn', help='create a new novpn profile for a given identity', type=str, required=True, metavar='<user email | user telegram>')
+    provision.add_argument('--openvpn', help='create a new openvpn profile for a given identity', type=str, required=False, metavar='<user email | user telegram>')
+    provision.add_argument('--wireguard', help='create a new wireguard profile for a given identity', type=str, required=False, metavar='<user email | user telegram>')
+    provision.add_argument('--novpn', help='create a new novpn profile for a given identity', type=str, required=False, metavar='<user email | user telegram>')
 
     # audit actions
     audit.add_argument('--profiles', choices=['active','expired'], help='Audit profiles by type')
