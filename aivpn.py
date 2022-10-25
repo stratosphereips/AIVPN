@@ -9,6 +9,7 @@ import logging
 import configparser
 from common.database import *
 
+
 if __name__ == '__main__':
     # Read configuration
     config = configparser.ConfigParser()
@@ -20,6 +21,11 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description = "AI VPN Command Line Tool")
     parser.add_argument( "-v", "--verbose", help="increase output verbosity", action="store_true")
+
+    # Configure action functions
+    ACTIONS = {'manage':{},
+               'provision':{},
+               'audit':{}}
 
     # Configure commands
     subparser = parser.add_subparsers(dest='command')
