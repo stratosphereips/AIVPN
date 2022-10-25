@@ -18,7 +18,6 @@ def manage_info(REDIS_CLIENT,profile_name):
     profile_information={}
     try:
         logging.debug('Manage info: {profile_name}')
-        identity=get_profile_name_address(profile_name,REDIS_CLIENT)
         vpn_type=get_profile_vpn_type(profile_name,REDIS_CLIENT)
 
         if exists_active_profile(profile_name,REDIS_CLIENT):
@@ -47,7 +46,6 @@ def manage_info(REDIS_CLIENT,profile_name):
         print(f"[+] Profile information for: {profile_name}")
         print(f"   [-] Profile status: {profile_active}")
         print(f"   [-] VPN requested: {vpn_type}")
-        print(f"   [-] User identity: {identity}")
         print(f"   [-] Profile creation time: {profile_creation_time}")
         print(f"   [-] Profile expiration time: {profile_expiration_time}")
         print(f"   [-] Profile reported time: {profile_reported_time}")
@@ -76,9 +74,12 @@ def manage_extend(REDIS_CLIENT,profile_name):
 
 def manage_whois(REDIS_CLIENT,profile_name):
     """
+    Retrieve identity associated with a profile
     """
     try:
+        identity=get_profile_name_address(profile_name,REDIS_CLIENT)
         logging.debug(f'Manage whois: {profile_name}')
+        print(f"[+] User identity for {profile_name} is {identity}")
         pass
     except Exception as err:
         print(f'Exception in manage_whois: {err}')
