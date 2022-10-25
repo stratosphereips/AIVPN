@@ -195,7 +195,17 @@ def audit_expired_profiles(REDIS_CLIENT,action):
         if len(expired_profiles)>0:
             for profile in expired_profiles:
                 print(f"   [-] {profile}")
-        pass
+    except Exception as err:
+        print(f'Exception in audit_expired_profiles: {err}')
+
+def audit_queued_profiles(REDIS_CLIENT,action):
+    """
+    Retrieve a list of profiles in provisioning queue
+    """
+    try:
+        logging.debug('Audit queued profiles')
+        queued_profiles = list_items_provisioning_queue(REDIS_CLIENT)
+        print(f"[+] Number of queued profiles to provision: {queued_profiles}")
     except Exception as err:
         print(f'Exception in audit_expired_profiles: {err}')
 
@@ -230,9 +240,7 @@ if __name__ == '__main__':
     provision.add_argument('--novpn', help='create a new novpn profile for a given identity', type=str, required=False, metavar='<user email | user telegram>')
 
     # audit actions
-    audit.add_argument('--profiles', choices=['active','expired'], help='Audit profiles by type')
-    #audit.add_argument('--profiles', help='list all AI VPN active profiles', type=str, required=True, metavar='')
-    #audit.add_argument('--expired-profiles', help='list all AI VPN expired profiles', type=str, required=True, metavar='')
+    audit.add_argument('--profiles', choices=['active','expired','queued'], help='Audit profiles by type')
 
     args = parser.parse_args()
 
@@ -278,6 +286,8 @@ if __name__ == '__main__':
             cli_action = audit_active_profiles
         elif args.profiles == 'expired':
             cli_action = audit_expired_profiles
+        elif args.profiles == 'queued':
+            cli_action = audit_queued_profiles
         params = args.profiles
 
     # Connecting to the Redis database
