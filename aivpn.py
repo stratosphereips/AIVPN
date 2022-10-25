@@ -45,26 +45,29 @@ def manage_whois(profile_name):
     except Exception as err:
         print(f'Exception in manage_whois: {err}')
 
-def provision_new_openvpn():
+def provision_openvpn(identity):
     """
     """
     try:
+        logging.debug(f'Provision OpenVPN: {identity}')
         pass
     except Exception as err:
         print(f'Exception in provision_new_openvpn: {err}')
 
-def provision_new_wireguard():
+def provision_wireguard(identity):
     """
     """
     try:
+        logging.debug(f'Provision Wireguard: {identity}')
         pass
     except Exception as err:
         print(f'Exception in provision_new_wireguard: {err}')
 
-def provision_new_novpn():
+def provision_novpn(identity):
     """
     """
     try:
+        logging.debug(f'Provision No VPN: {identity}')
         pass
     except Exception as err:
         print(f'Exception in provision_new_novpn: {err}')
@@ -147,11 +150,18 @@ if __name__ == '__main__':
 
     if args.command == 'provision':
         logging.info('Provisioning account')
-        cli_action = ''
+        if args.openvpn:
+            cli_action = provision_openvpn
+            params = args.openvpn
+        elif args.wireguard:
+            cli_action = provision_wireguard
+            params = args.wireguard
+        elif args.novpn:
+            cli_action = provision_novpn
+            params = args.novpn
 
     if args.command == 'audit':
         logging.info('audit mode')
-        cli_action = ''
 
     cli_action(params)
 
