@@ -112,8 +112,8 @@ if __name__ == '__main__':
     # Configure commands
     subparser = parser.add_subparsers(dest='command')
     manage = subparser.add_parser('manage', help=f'Manage an AI VPN profile {list(ACTIONS["manage"].keys())}')
-    provision = subparser.add_parser('provision', help='Provision a new AI VPN account')
-    audit = subparser.add_parser('audit', help='Audit AI VPN activities')
+    provision = subparser.add_parser('provision', help=f'Provision a new AI VPN account {list(ACTIONS["provision"].keys())}')
+    audit = subparser.add_parser('audit', help=f'Audit AI VPN activities {list(ACTIONS["audit"].keys())}')
 
     # manage actions
     manage.add_argument('manage', choices=ACTIONS['manage'].keys())
@@ -123,13 +123,15 @@ if __name__ == '__main__':
     #manage.add_argument('--whois', help='retrieve identity associated with a profile', type=str, required=False)
 
     # provision actions
-    provision.add_argument('--new-openvpn', help='create a new openvpn profile for a given identity (email|telegram)', type=str, required=True)
-    provision.add_argument('--new-wireguard', help='create a new wireguard profile for a given identity (email|telegram)', type=str, required=True)
-    provision.add_argument('--new-novpn', help='create a new novpn profile for a given identity (email|telegram)', type=str, required=True)
+    manage.add_argument('provision', choices=ACTIONS['provision'].keys())
+    #provision.add_argument('--new-openvpn', help='create a new openvpn profile for a given identity (email|telegram)', type=str, required=True)
+    #provision.add_argument('--new-wireguard', help='create a new wireguard profile for a given identity (email|telegram)', type=str, required=True)
+    #provision.add_argument('--new-novpn', help='create a new novpn profile for a given identity (email|telegram)', type=str, required=True)
 
     # audit actions
-    audit.add_argument('--active-profiles', help='list all AI VPN active profiles', type=str, required=True)
-    audit.add_argument('--expired-profiles', help='list all AI VPN expired profiles', type=str, required=True)
+    manage.add_argument('audit', choices=ACTIONS['audit'].keys())
+    #audit.add_argument('--active-profiles', help='list all AI VPN active profiles', type=str, required=True)
+    #audit.add_argument('--expired-profiles', help='list all AI VPN expired profiles', type=str, required=True)
 
     args = parser.parse_args()
 
