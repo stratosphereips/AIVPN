@@ -9,16 +9,20 @@ import logging
 import configparser
 from common.database import *
 
-def manage_info(profile_name):
+def manage_info(REDIS_CLIENT,profile_name):
     """
     """
     try:
+        identity=get_profile_name_address(profile_name,REDIS_CLIENT)
+        print('Profile information:')
+        print(f' - Profile name: {profile_name}')
+        print(f' - User identity: {identity}')
         logging.debug('Manage info: {profile_name}')
         pass
     except Exception as err:
         print(f'Exception in manage_info: {err}')
 
-def manage_expire(profile_name):
+def manage_expire(REDIS_CLIENT,profile_name):
     """
     """
     try:
@@ -27,7 +31,7 @@ def manage_expire(profile_name):
     except Exception as err:
         print(f'Exception in manage_expire: {err}')
 
-def manage_extend(profile_name):
+def manage_extend(REDIS_CLIENT,profile_name):
     """
     """
     try:
@@ -36,7 +40,7 @@ def manage_extend(profile_name):
     except Exception as err:
         print(f'Exception in manage_extend: {err}')
 
-def manage_whois(profile_name):
+def manage_whois(REDIS_CLIENT,profile_name):
     """
     """
     try:
@@ -96,12 +100,12 @@ if __name__ == '__main__':
     config = configparser.ConfigParser()
     config.read('config/config.ini')
 
-    REDIS_SERVER = config['REDIS']['REDIS_SERVER']
     MOD_CHANNELS = json.loads(config['REDIS']['REDIS_MODULES'])
     LOG_FILE = config['LOGS']['LOG_CLI']
 
     parser = argparse.ArgumentParser(description = "AI VPN Command Line Tool")
     parser.add_argument( "-v", "--verbose", help="increase output verbosity", action="store_true")
+    parser.add_argument('--redis', help="Redis IP address", required=True)
 
     # Configure commands
     subparser = parser.add_subparsers(dest='command')
@@ -171,4 +175,11 @@ if __name__ == '__main__':
             cli_action = audit_expired_profiles
         params = args.profiles
 
-    cli_action(params)
+    # Connecting to the Redis database
+    try:
+        redis_client = redis_connect_to_db(args.redis)
+    except Exception as err:
+        logging.info(f'Unable to connect to Redis ({args.redis}): {err}')
+        sys.exit(-1)
+
+    cli_action(redis_client,params)
