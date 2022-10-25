@@ -54,9 +54,19 @@ if __name__ == '__main__':
     parser.add_argument( "-v", "--verbose", help="increase output verbosity", action="store_true")
 
     # Configure action functions
-    ACTIONS = {'manage':{},
-               'provision':{},
-               'audit':{}}
+    ACTIONS = {'manage':{'info':manage_info,
+                         'expire': manage_expire,
+                         'extend': manage_extend,
+                         'whois': manage_whois
+                         },
+               'provision':{'new-openvpn': provision_new-openvpn,
+                            'new-wireguard': provision_new-wireguard,
+                            'new-novpn': provision_new-novpn
+                            },
+               'audit':{'active-profiles': audit_active-profiles,
+                        'expired-profiles': audit_expired-profiles
+                        }
+               }
 
     # Configure commands
     subparser = parser.add_subparsers(dest='command')
