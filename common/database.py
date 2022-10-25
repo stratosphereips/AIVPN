@@ -598,7 +598,7 @@ def del_expired_profile(profile_name,REDIS_CLIENT):
     except Exception as err:
         return err
 
-def get_expired_profile_information(profile_name,creation_time,REDIS_CLIENT):
+def get_expired_profile_information(profile_name,REDIS_CLIENT):
     """ Function to get a profile creation and expiration times from the list of expired profiles. """
     try:
         expiration_data = REDIS_CLIENT.hget(hash_expired_profiles,profile_name)
