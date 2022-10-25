@@ -23,9 +23,9 @@ if __name__ == '__main__':
 
     # Configure commands
     subparser = parser.add_subparsers(dest='command')
-    manage = subparser.add_parser('manage')
-    provision = subparser.add_parser('provision')
-    audit = subparser.add_parser('audit')
+    manage = subparser.add_parser('manage', help='Manage an AI VPN profile')
+    provision = subparser.add_parser('provision', help='Provision a new AI VPN account')
+    audit = subparser.add_parser('audit', help='Audit AI VPN activities')
 
     # manage actions
     manage.add_argument('--info', help='retrieve information of a profile', type=str, required=False)
