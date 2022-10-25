@@ -26,7 +26,7 @@ def redis_channel_monitoring(CHANNEL,db_subscriber,redis_client,ACTIVE_ACCOUNT_L
             for item in db_subscriber.listen():
                 if item['type'] == 'message':
                     logging.info(f"New message received in channel {item['channel']}: {item['data']}")
-                    if item['data'] == 'MOD_COMM_RECV:NEW_REQUEST':
+                    if item['data'] == 'MOD_COMM_RECV:NEW_REQUEST' or item['data'] == 'MOD_CLI:NEW_REQUEST':
                         try:
                             new_request = get_item_provisioning_queue(redis_client)
                             logging.info(f'Provisioning new request: {new_request[0]}')
@@ -34,6 +34,20 @@ def redis_channel_monitoring(CHANNEL,db_subscriber,redis_client,ACTIVE_ACCOUNT_L
                             logging.info(f'Provisioning result: {result}')
                         except Exception as err:
                             logging.info(f'Exception in handling new request: {err}')
+                    if item['data'] == 'MOD_CLI:FORCE_EXPIRE':
+                        try:
+                            profile_to_force_expire = get_profile_to_force_expire(redis_client)
+                            logging.info(f'Expired account to process: {profile_to_force_expire}')
+                            status = deprovision_account(profile_to_force_expire[0],redis_client)
+                            if status:
+                                # If deprovision was successful, add to queue to report.
+                                add_profile_to_report(profile_to_force_expire,redis_client)
+                                # Notify mod_report of pending report
+                                message = f'report_profile:{profile_to_force_expire}'
+                                redis_client.publish('mod_report_check',message)
+                            logging.info(f'The result of deprovision {profile_to_force_expire} was {status}')
+                        except Exception as err:
+                            logging.info(f'Exception in forcing expiration on profile {profile_to_force_expire}: {err}')
         except Exception as err:
             logging.info(f'Error in loop in thread services_status_monitor: {err}')
             db_subscriber = redis_create_subscriber(redis_client)
