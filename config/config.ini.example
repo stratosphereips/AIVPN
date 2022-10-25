@@ -43,7 +43,7 @@ TELEGRAM_START_MSG = Welcome to the Civilsphere Emergency VPN service.
 TELEGRAM_WAIT_MSG = Thank you for your request. Your VPN profile is being generated and activated. Please wait.
 
 [EDUVPN]
-
+REDIS_SERVER = 127.0.0.1
 
 [OPENVPN]
 SERVER_PUBLIC_URL = udp://example-server.com:port
