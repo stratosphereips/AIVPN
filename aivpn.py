@@ -9,6 +9,37 @@ import logging
 import configparser
 from common.database import *
 
+def manage_info():
+    """
+    """
+    try:
+        pass
+    except Exception as err:
+        print(f'Exception in manage_info: {err}')
+
+def manage_expire():
+    """
+    """
+    try:
+        pass
+    except Exception as err:
+        print(f'Exception in manage_expire: {err}')
+
+def manage_extend():
+    """
+    """
+    try:
+        pass
+    except Exception as err:
+        print(f'Exception in manage_extend: {err}')
+
+def manage_whois():
+    """
+    """
+    try:
+        pass
+    except Exception as err:
+        print(f'Exception in manage_whois: {err}')
 
 if __name__ == '__main__':
     # Read configuration
