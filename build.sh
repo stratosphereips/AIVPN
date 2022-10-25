@@ -12,35 +12,35 @@ echo "" > logs/mod_wireguard.log
 
 echo "Starting building modules"
 cd mod_comm_recv
-docker build -t aivpn_mod_comm_recv:latest .
+docker build --network=host  -t aivpn_mod_comm_recv:latest .
 cd ..
 
 cd mod_comm_send
-docker build -t aivpn_mod_comm_send:latest .
+docker build --network=host  -t aivpn_mod_comm_send:latest .
 cd ..
 
 cd mod_manager
-docker build -t aivpn_mod_manager:latest .
+docker build --network=host  -t aivpn_mod_manager:latest .
 cd ..
 
 cd mod_openvpn
-docker build -t aivpn_mod_openvpn:latest .
+docker build --network=host  -t aivpn_mod_openvpn:latest .
 cd ..
 
 cd mod_novpn
-docker build -t aivpn_mod_novpn:latest .
+docker build --network=host  -t aivpn_mod_novpn:latest .
 cd ..
 
 cd mod_wireguard
-docker build -t aivpn_mod_wireguard:latest .
+docker build --network=host  -t aivpn_mod_wireguard:latest .
 cd ..
 
 cd mod_report
-docker build -t aivpn_mod_report:latest .
+docker build --network=host  -t aivpn_mod_report:latest .
 cd ..
 
 cd mod_slips
-docker build -t aivpn_mod_slips:latest .
+docker build --network=host  -t aivpn_mod_slips:latest .
 cd ..
 
 docker rmi -f $(docker images -f "dangling=true" -q)
