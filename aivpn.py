@@ -9,34 +9,38 @@ import logging
 import configparser
 from common.database import *
 
-def manage_info():
+def manage_info(profile_name):
     """
     """
     try:
+        logging.debug('Manage info: {profile_name}')
         pass
     except Exception as err:
         print(f'Exception in manage_info: {err}')
 
-def manage_expire():
+def manage_expire(profile_name):
     """
     """
     try:
+        logging.debug(f'Manage expire: {profile_name}')
         pass
     except Exception as err:
         print(f'Exception in manage_expire: {err}')
 
-def manage_extend():
+def manage_extend(profile_name):
     """
     """
     try:
+        logging.debug(f'Manage extend: {profile_name}')
         pass
     except Exception as err:
         print(f'Exception in manage_extend: {err}')
 
-def manage_whois():
+def manage_whois(profile_name):
     """
     """
     try:
+        logging.debug(f'Manage whois: {profile_name}')
         pass
     except Exception as err:
         print(f'Exception in manage_whois: {err}')
@@ -94,44 +98,26 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = "AI VPN Command Line Tool")
     parser.add_argument( "-v", "--verbose", help="increase output verbosity", action="store_true")
 
-    # Configure action functions
-    ACTIONS = {'manage':{'info':manage_info,
-                         'expire': manage_expire,
-                         'extend': manage_extend,
-                         'whois': manage_whois
-                         },
-               'provision':{'new_openvpn': provision_new_openvpn,
-                            'new_wireguard': provision_new_wireguard,
-                            'new_novpn': provision_new_novpn
-                            },
-               'audit':{'active_profiles': audit_active_profiles,
-                        'expired_profiles': audit_expired_profiles
-                        }
-               }
-
     # Configure commands
     subparser = parser.add_subparsers(dest='command')
-    manage = subparser.add_parser('manage', help=f'Manage an AI VPN profile {list(ACTIONS["manage"].keys())}')
-    provision = subparser.add_parser('provision', help=f'Provision a new AI VPN account {list(ACTIONS["provision"].keys())}')
-    audit = subparser.add_parser('audit', help=f'Audit AI VPN activities {list(ACTIONS["audit"].keys())}')
+    manage = subparser.add_parser('manage', help=f'Manage an AI VPN profile')
+    provision = subparser.add_parser('provision', help=f'Provision a new AI VPN account')
+    audit = subparser.add_parser('audit', help=f'Audit AI VPN activities')
 
     # manage actions
-    manage.add_argument('manage', choices=ACTIONS['manage'].keys())
-    #manage.add_argument('--info', help='retrieve information of a profile', type=str, required=False)
-    #manage.add_argument('--expire', help='expire a profile', type=str, required=False)
-    #manage.add_argument('--extend', help='extend the expiration of a profile (add default expiration on top of current date)', type=str, required=False)
-    #manage.add_argument('--whois', help='retrieve identity associated with a profile', type=str, required=False)
+    manage.add_argument('--info', help='retrieve information of a profile', type=str, required=False, metavar='<profile_name>')
+    manage.add_argument('--expire', help='expire a profile', type=str, required=False, metavar='<profile_name>')
+    manage.add_argument('--extend', help='extend the expiration of a profile (add default expiration on top of current date)', type=str, required=False, metavar='<profile_name>')
+    manage.add_argument('--whois', help='retrieve identity associated with a profile', type=str, required=False, metavar='<profile_name>')
 
     # provision actions
-    manage.add_argument('provision', choices=ACTIONS['provision'].keys())
-    #provision.add_argument('--new-openvpn', help='create a new openvpn profile for a given identity (email|telegram)', type=str, required=True)
-    #provision.add_argument('--new-wireguard', help='create a new wireguard profile for a given identity (email|telegram)', type=str, required=True)
-    #provision.add_argument('--new-novpn', help='create a new novpn profile for a given identity (email|telegram)', type=str, required=True)
+    provision.add_argument('--openvpn', help='create a new openvpn profile for a given identity', type=str, required=True, metavar='<user email | user telegram>')
+    provision.add_argument('--wireguard', help='create a new wireguard profile for a given identity', type=str, required=True, metavar='<user email | user telegram>')
+    provision.add_argument('--novpn', help='create a new novpn profile for a given identity', type=str, required=True, metavar='<user email | user telegram>')
 
     # audit actions
-    manage.add_argument('audit', choices=ACTIONS['audit'].keys())
-    #audit.add_argument('--active-profiles', help='list all AI VPN active profiles', type=str, required=True)
-    #audit.add_argument('--expired-profiles', help='list all AI VPN expired profiles', type=str, required=True)
+    audit.add_argument('--active-profiles', help='list all AI VPN active profiles', type=str, required=True, metavar='')
+    audit.add_argument('--expired-profiles', help='list all AI VPN expired profiles', type=str, required=True, metavar='')
 
     args = parser.parse_args()
 
@@ -146,17 +132,28 @@ if __name__ == '__main__':
     # parsing commands
     if args.command == 'manage':
         logging.info('Managing profile')
-        cli_action = ACTIONS['manage'][args.manage]
+        if args.info:
+            cli_action = manage_info
+            params = args.info
+        elif args.expire:
+            cli_action = manage_expire
+            params = args.expire
+        elif args.extend:
+            cli_action = manage_extend
+            params = args.extend
+        elif args.whois:
+            cli_action = manage_whois
+            params = args.whois
 
     if args.command == 'provision':
         logging.info('Provisioning account')
-        cli_action = ACTIONS['provision'][args.manage]
+        cli_action = ''
 
     if args.command == 'audit':
         logging.info('audit mode')
-        cli_action = ACTIONS['audit'][args.manage]
+        cli_action = ''
 
-    cli_action()
+    cli_action(params)
 
 
 
