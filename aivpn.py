@@ -16,32 +16,37 @@ def manage_info(REDIS_CLIENT,profile_name):
     """
     Retrieve information about an AI VPN profile_name
     """
-    profile_information={}
+    profile_information = {}
     try:
         logging.debug('Manage info: {profile_name}')
-        vpn_type=get_profile_vpn_type(profile_name,REDIS_CLIENT)
+        vpn_type = get_profile_vpn_type(profile_name,REDIS_CLIENT)
+        profile_creation_time = 'n/a'
+        profile_expiration_time = 'n/a'
+        profile_reported_time = 'n/a'
+        profile_deletion_time = 'n/a'
 
         if exists_active_profile(profile_name,REDIS_CLIENT):
-            profile_creation_time = get_active_profile_creation_time(profile_name,REDIS_CLIENT)
+            profile_creation_time = datetime.datetime.fromtimestamp(float(get_active_profile_creation_time(profile_name,REDIS_CLIENT)))
+            profile_active = 'active'
         else:
-            profile_active='expired'
-            profile_information=json.loads(get_expired_profile_information(profile_name,REDIS_CLIENT))
+            profile_active = 'expired'
+            profile_information = json.loads(get_expired_profile_information(profile_name,REDIS_CLIENT))
             try:
-                profile_creation_time = datetime.datetime.fromtimestamp(profile_information['creation_time'])
+                profile_creation_time = datetime.datetime.fromtimestamp(float(profile_information['creation_time']))
             except:
-                profile_creation_time = "n/a"
+                pass
             try:
-                profile_expiration_time = datetime.datetime.fromtimestamp(profile_information['expiration_time'])
+                profile_expiration_time = datetime.datetime.fromtimestamp(float(profile_information['expiration_time']))
             except:
-                profile_expiration_time = "n/a"
+                pass
             try:
-                profile_reported_time = datetime.datetime.fromtimestamp(profile_information['reported_time'])
+                profile_reported_time = datetime.datetime.fromtimestamp(float(profile_information['reported_time']))
             except:
-                profile_reported_time = "n/a"
+                pass
             try:
-                profile_deletion_time = datetime.datetime.fromtimestamp(profile_information['deletion_time'])
+                profile_deletion_time = datetime.datetime.fromtimestamp(float(profile_information['deletion_time']))
             except:
-                profile_deletion_time = "n/a"
+                pass
 
         print(f"[+] Profile information for: {profile_name}")
         print(f"   [-] Profile status: {profile_active}")

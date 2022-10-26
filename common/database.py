@@ -573,7 +573,7 @@ def get_active_profiles_keys(REDIS_CLIENT):
 def get_active_profile_creation_time(profile_name,REDIS_CLIENT):
     """ Retrive the creation time (value) of a given profile name. """
     try:
-        creation_time = REDIS_CLIENT.hget(hash_Active_profiles,profile_name)
+        creation_time = REDIS_CLIENT.hget(hash_active_profiles,profile_name)
         return creation_time
     except Exception as err:
         return err
@@ -618,12 +618,12 @@ def add_expired_profile(profile_name,creation_time,REDIS_CLIENT):
     try:
         expiration_time=time.time()
         expiration_object = json.loads(expired_profiles_template)
-        expiration_object['creation_time']=creation_time
-        expiration_object['expiration_time']=expiration_time
+        expiration_object['creation_time'] = str(creation_time)
+        expiration_object['expiration_time'] = str(expiration_time)
         expiration_value=json.dumps(expiration_object)
         status = REDIS_CLIENT.hset(hash_expired_profiles,profile_name,expiration_value)
 
-        return status
+        return expiration_value,expiration_object,status
     except Exception as err:
         return err
 

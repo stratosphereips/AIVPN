@@ -243,6 +243,7 @@ def deprovision_account(profile_name,REDIS_CLIENT):
         acc_active_pid = get_profile_name_pid_relationship(profile_name,REDIS_CLIENT)
         acc_ip_addr = get_ip_for_profile(profile_name,REDIS_CLIENT)
         acc_creation_time = get_active_profile_creation_time(profile_name,REDIS_CLIENT)
+        logging.info(f'Deprovisioning {profile_name} ({acc_msg_addr}), {acc_msg_request} with PID {acc_active_pid} and IP address {acc_ip_addr} created on {acc_creation_time}')
 
         # Send message to deprovision an account to the corresponding
         # VPN type.
@@ -279,7 +280,7 @@ def deprovision_account(profile_name,REDIS_CLIENT):
         REDIS_CLIENT.publish('mod_comm_send_check',f'send_expire_profile:{profile_name}')
 
         # Add profile to expired_profiles 
-        add_expired_profile(profile_name,acc_creation_time,REDIS_CLIENT)
+        expiration_value,expiration_object,status = add_expired_profile(profile_name,acc_creation_time,REDIS_CLIENT)
 
         # Remove profile from the list of active profiles
         status = del_active_profile(profile_name,REDIS_CLIENT)
