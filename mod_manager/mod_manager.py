@@ -203,6 +203,12 @@ def provision_account(new_request,REDIS_CLIENT,ACTIVE_ACCOUNT_LIMIT):
 
     # Close the redis subscriber we created
     vpn_subscriber.close()
+
+    if SLACK_WEBHOOK:
+        try:
+            slack_notifier.send(text=f'AIVPN mod_manager::provisioned new {p_msg_request} account {acc_profile_name}::{prov_status}')
+        except:
+            pass
     return True
 
 def process_expired_accounts(REDIS_CLIENT,EXPIRATION_THRESHOLD):
@@ -287,6 +293,13 @@ def deprovision_account(profile_name,REDIS_CLIENT):
 
         # Close the redis subscriber we created.
         vpn_subscriber.close()
+
+        # Send slack notification after provisioning
+        if SLACK_WEBHOOK:
+            try:
+                slack_notifier.send(text=f'AIVPN mod_manager::deprovisioned account {profile_name}')
+            except:
+                pass
         return True
     except Exception as err:
         logging.info(f'Exception in deprovision_account: {err}')
@@ -306,6 +319,7 @@ if __name__ == '__main__':
     ACTIVE_ACCOUNT_LIMIT = int(config['AIVPN']['ACTIVE_ACCOUNT_LIMIT'])
     CHECK_STATUS_TIME = int(config['AIVPN']['CHECK_STATUS_TIME'])
     CHECK_EXPIRED_TIME = int(config['AIVPN']['CHECK_EXPIRED_TIME'])
+    SLACK_WEBHOOK = config['SLACK']['WEBHOOK']
 
     logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s, MOD_MANAGER, %(message)s')
 
@@ -329,6 +343,16 @@ if __name__ == '__main__':
     except Exception as err:
         logging.info(f'Channel subscription failed: {err}')
         sys.exit(-1)
+
+    # Configuring Slack notifications
+    if SLACK_WEBHOOK:
+        try:
+            from slack_sdk.webhook import WebhookClient
+            slack_notifier = WebhookClient(SLACK_WEBHOOK)
+            slack_response = slack_notifier.send(text="AIVPN mod_manager::initializing")
+        except Exception as err:
+            SLACK_WEBHOOK=False
+            logging.info(f'Unable to configure Slack notifications: {err}')
 
     # Main manager module logic starts here
     try:
