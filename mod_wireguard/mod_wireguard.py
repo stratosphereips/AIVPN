@@ -53,6 +53,9 @@ def start_traffic_capture(CLIENT_NAME,CLIENT_IP,PATH):
     pcap for a given client and IP.
     """
     try:
+        # Identify which tcpdump to run
+        cmd_tcpdump = os.popen('which tcpdump').read().strip()
+
         # Number used to differentiate pcaps if there's more than one
         NUMBER=str(time.monotonic()).split('.')[1]
 
@@ -60,7 +63,7 @@ def start_traffic_capture(CLIENT_NAME,CLIENT_IP,PATH):
         PCAP_NAME=f'{PATH}/{CLIENT_NAME}/{CLIENT_NAME}_{CLIENT_IP}_{NUMBER}.pcap'
 
         # Start the subprocess
-        args=["/usr/bin/tcpdump","-qq","-n","-U","-l","-s0","-i","any","host",CLIENT_IP,"-w",PCAP_NAME]
+        args=[cmd_tcpdump,"-qq","-n","-U","-l","-s0","-i","any","host",CLIENT_IP,"-w",PCAP_NAME]
         process = subprocess.Popen(args, start_new_session=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
 
         # Get the PID
