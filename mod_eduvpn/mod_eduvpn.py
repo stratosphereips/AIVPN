@@ -120,13 +120,14 @@ if __name__ == '__main__':
     with open(LOG_FILE, "w") as f:
         f.write("")
 
-    print(f"Read Channel: {CHANNEL} LOG_FILE: {LOG_FILE}")
     logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG,format='%(asctime)s, MOD_OPENVPN, %(message)s')
-    print("Done setting up logging")
 
+    # connect to redis server
+    REDIS_SERVER = os.system("docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' aivpn_mod_redis_1")
     # Connecting to the Redis database
     try:
         redis_client = redis_connect_to_db(REDIS_SERVER)
+        print("done connecting to redis! ... ")
     except Exception as err:
         logging.info(f'Unable to connect to the Redis database ({REDIS_SERVER}): {err}')
         sys.exit(-1)
@@ -134,6 +135,8 @@ if __name__ == '__main__':
     # Creating a Redis subscriber
     try:
         db_subscriber = redis_create_subscriber(redis_client)
+        print("done creating a redis subscriber! ... ")
+
     except Exception as err:
         logging.info(f'Unable to create a Redis subscriber: {err}')
         sys.exit(-1)
@@ -142,6 +145,7 @@ if __name__ == '__main__':
     try:
         redis_subscribe_to_channel(db_subscriber,CHANNEL)
         logging.info("Connection and channel subscription to redis successful.")
+        print("Connection and channel subscription to redis successful... check the logs")
     except Exception as err:
         logging.info(f'Channel subscription failed: {err}')
         sys.exit(-1)
