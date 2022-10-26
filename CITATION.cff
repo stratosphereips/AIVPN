@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+title: >-
+  Civilsphere AI VPN: Automated Framework For Network
+  Traffic Analysis
+message: 'If you use this software, please cite it as below.'
+type: software
+authors:
+  - given-names: Veronica
+    family-names: Valeros
+    email: valerver@fel.cvut.cz
+    affiliation: >-
+      Stratosphere Laboratory, AIC, FEL, Czech
+      Technical University in Prague
+    orcid: 'https://orcid.org/0000-0003-2554-3231'
+  - given-names: Sebastian
+    family-names: Garcia
+    email: garciseb@fel.cvut.cz
+    affiliation: >-
+      Stratosphere Laboratory, AIC, FEL, Czech
+      Technical University in Prague
+    orcid: 'https://orcid.org/0000-0001-6238-9910'
