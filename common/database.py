@@ -460,6 +460,46 @@ def del_profile_vpn_type(profile_name,REDIS_CLIENT):
     except Exception as err:
         return err
 
+# FORCE EXPIRE QUEUE
+## The force expire queue is a special redis queue where profiles get placed
+## when we want to force them to expire before the expiration date arrived.
+
+## We store simply the profile_name
+
+def add_profile_to_force_expire(REDIS_CLIENT,profile_name):
+    """ Function to add a new profile to the force expiration queue """
+
+    try:
+        redis_set = "force_expire_profile"
+        score = time.time()
+
+        # If new_request exists, ignore and do not update score.
+        REDIS_CLIENT.zadd(redis_set,{profile_name:score},nx=True)
+        return True
+    except Exception as err:
+        return err
+
+def get_profile_to_force_expire(REDIS_CLIENT):
+    """ Function to get a profile to expire from the queue """
+
+    try:
+        redis_set = "force_expire_profile"
+
+        request = REDIS_CLIENT.zpopmin(redis_set,1)
+        return request[0]
+    except Exception as err:
+        return err
+
+def list_profiles_to_force_expire(REDIS_CLIENT):
+    """ Function to list all profiles to expire from the queue """
+
+    try:
+        redis_set = "force_expire_profile"
+        items_force_expire_queue = REDIS_CLIENT.zcard(redis_set)
+        return items_force_expire_queue
+    except Exception as err:
+        return err
+
 # PROVISIONING QUEUE
 ## The provisioning queue is where new requests are queued before being handled.
 ## We receive many types of requests, through many types of messaging apps.
@@ -496,6 +536,16 @@ def get_item_provisioning_queue(REDIS_CLIENT):
     except Exception as err:
         return err
 
+def list_items_provisioning_queue(REDIS_CLIENT):
+    """ Retrieve all the items in the provisioning queue"""
+
+    try:
+        redis_set = "provisioning_queue"
+        items_provisioning_queue = REDIS_CLIENT.zcard(redis_set)
+        return items_provisioning_queue
+    except Exception as err:
+        return err
+
 # ACTIVE PROFILES
 ## After the provisioning of profiles is completed, the active profiles are
 ## stored in the Redis hash table of 'active_profiles'. The profiles remain in
@@ -523,7 +573,7 @@ def get_active_profiles_keys(REDIS_CLIENT):
 def get_active_profile_creation_time(profile_name,REDIS_CLIENT):
     """ Retrive the creation time (value) of a given profile name. """
     try:
-        creation_time = REDIS_CLIENT.hget(hash_Active_profiles,profile_name)
+        creation_time = REDIS_CLIENT.hget(hash_active_profiles,profile_name)
         return creation_time
     except Exception as err:
         return err
@@ -568,12 +618,12 @@ def add_expired_profile(profile_name,creation_time,REDIS_CLIENT):
     try:
         expiration_time=time.time()
         expiration_object = json.loads(expired_profiles_template)
-        expiration_object['creation_time']=creation_time
-        expiration_object['expiration_time']=expiration_time
+        expiration_object['creation_time'] = str(creation_time)
+        expiration_object['expiration_time'] = str(expiration_time)
         expiration_value=json.dumps(expiration_object)
         status = REDIS_CLIENT.hset(hash_expired_profiles,profile_name,expiration_value)
 
-        return status
+        return expiration_value,expiration_object,status
     except Exception as err:
         return err
 
@@ -598,7 +648,7 @@ def del_expired_profile(profile_name,REDIS_CLIENT):
     except Exception as err:
         return err
 
-def get_expired_profile_information(profile_name,creation_time,REDIS_CLIENT):
+def get_expired_profile_information(profile_name,REDIS_CLIENT):
     """ Function to get a profile creation and expiration times from the list of expired profiles. """
     try:
         expiration_data = REDIS_CLIENT.hget(hash_expired_profiles,profile_name)
@@ -615,6 +665,14 @@ def is_expired(profile_name,REDIS_CLIENT):
     except Exception as err:
         return err
 
+def get_expired_profiles_keys(REDIS_CLIENT):
+    """ Retrieve all the expired profiles """
+
+    try:
+        list_of_expired_profiles = REDIS_CLIENT.hkeys(hash_expired_profiles)
+        return list_of_expired_profiles
+    except Exception as err:
+        return err
 # PROFILES TO REPORT
 # Redis hash that keeps a list of profiles to report. Once reported, the report
 # time is added to the expired_profiles information and the profile name is
