@@ -38,7 +38,7 @@ def redis_channel_monitoring(CHANNEL,db_subscriber,redis_client,ACTIVE_ACCOUNT_L
                         try:
                             profile_to_force_expire = get_profile_to_force_expire(redis_client)
                             logging.info(f'Expired account to process: {profile_to_force_expire}')
-                            status = deprovision_account(profile_to_force_expire[0],redis_client)
+                            status = deprovision_account(profile_to_force_expire,redis_client)
                             if status:
                                 # If deprovision was successful, add to queue to report.
                                 add_profile_to_report(profile_to_force_expire,redis_client)
