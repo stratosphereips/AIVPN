@@ -319,7 +319,7 @@ if __name__ == '__main__':
     ACTIVE_ACCOUNT_LIMIT = int(config['AIVPN']['ACTIVE_ACCOUNT_LIMIT'])
     CHECK_STATUS_TIME = int(config['AIVPN']['CHECK_STATUS_TIME'])
     CHECK_EXPIRED_TIME = int(config['AIVPN']['CHECK_EXPIRED_TIME'])
-    SLACK_WEBHOOK = config['SLACK']['WEBHOOK']
+    SLACK_WEBHOOK = config['SLACK']['SLACK_WEBHOOK']
 
     logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s, MOD_MANAGER, %(message)s')
 
