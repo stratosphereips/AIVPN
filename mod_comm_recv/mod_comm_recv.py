@@ -23,7 +23,7 @@ def send_request_to_redis(msg_id, msg_addr, msg_type, msg_request, logging, redi
     """
     try:
         logging.debug(f'Sending {msg_request} request to Redis: ({str(msg_id)}) {msg_addr} on {msg_type}')
-        logging.log(f'**** [send_request_to_redis] Sending {msg_request} request to Redis: ({str(msg_id)}) {msg_addr} on {msg_type}')
+        logging.info(f'**** [send_request_to_redis] Sending {msg_request} request to Redis: ({str(msg_id)}) {msg_addr} on {msg_type}')
         add_item_provisioning_queue(redis_client,msg_id,msg_type,msg_addr,msg_request)
         return True
     except Exception as err:
