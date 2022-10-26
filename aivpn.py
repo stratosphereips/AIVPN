@@ -22,26 +22,25 @@ def manage_info(REDIS_CLIENT,profile_name):
         vpn_type=get_profile_vpn_type(profile_name,REDIS_CLIENT)
 
         if exists_active_profile(profile_name,REDIS_CLIENT):
-            profile_active='active'
             profile_creation_time = get_active_profile_creation_time(profile_name,REDIS_CLIENT)
         else:
             profile_active='expired'
             profile_information=json.loads(get_expired_profile_information(profile_name,REDIS_CLIENT))
-            if profile_information['creation_time']:
+            try:
                 profile_creation_time = datetime.datetime.fromtimestamp(profile_information['creation_time'])
-            else:
+            except:
                 profile_creation_time = "n/a"
-            if profile_information['expiration_time']:
+            try:
                 profile_expiration_time = datetime.datetime.fromtimestamp(profile_information['expiration_time'])
-            else:
+            except:
                 profile_expiration_time = "n/a"
-            if profile_information['reported_time']:
+            try:
                 profile_reported_time = datetime.datetime.fromtimestamp(profile_information['reported_time'])
-            else:
+            except:
                 profile_reported_time = "n/a"
-            if profile_information['deletion_time']:
+            try:
                 profile_deletion_time = datetime.datetime.fromtimestamp(profile_information['deletion_time'])
-            else:
+            except:
                 profile_deletion_time = "n/a"
 
         print(f"[+] Profile information for: {profile_name}")
@@ -226,7 +225,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description = "AI VPN Command Line Tool")
     parser.add_argument( "-v", "--verbose", help="increase output verbosity", action="store_true")
-    parser.add_argument('--redis', help="Redis IP address", required=True)
+    parser.add_argument('--redis', help="AI VPN redis module IP address", required=True)
 
     # Configure commands
     subparser = parser.add_subparsers(dest='command')
