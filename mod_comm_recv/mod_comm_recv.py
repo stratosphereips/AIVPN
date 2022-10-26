@@ -101,6 +101,7 @@ def get_email_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
     This function connects to an email server and retrieves all new emails to
     identify new VPN requests.
     """
+    logging.setLevel(logging.DEBUG) #### *** temporarily ***
 
     email_requests = []
     msg_type = "email"
@@ -168,12 +169,12 @@ def get_email_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
                         try:
                             email_subject = re.search(r'EDUVPN', msg['subject'],re.IGNORECASE).group(0)
                             msg_request="eduvpn"
-                            logging.info('*********FOUND EDUVPN REQUEST IN MAIL subject *************')
+                            logging.debug('*********FOUND EDUVPN REQUEST IN MAIL subject *************')
                         except:
                             try:
                                 email_subject = re.search(r'VPN', msg['subject'],re.IGNORECASE).group(0)
                                 msg_request="openvpn"
-                                logging.info('*********FOUND openvpn REQUEST IN MAIL subject*************')
+                                logging.debug('*********FOUND openvpn REQUEST IN MAIL subject*************')
 
                             except:
                                 pass
@@ -203,12 +204,12 @@ def get_email_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
                         try:
                             email_body = re.search(r'EDUVPN',email_body,re.IGNORECASE).group(0)
                             msg_request="eduvpn"
-                            logging.info('*********FOUND EDUVPN REQUEST IN MAIL BODY*************')
+                            logging.debug('*********FOUND EDUVPN REQUEST IN MAIL BODY*************')
                         except:
                             try:
                                 email_body = re.search(r'VPN',email_body,re.IGNORECASE).group(0)
                                 msg_request="openvpn"
-                                logging.info('*********FOUND openvpn REQUEST IN MAIL BODY*************')
+                                logging.debug('*********FOUND openvpn REQUEST IN MAIL BODY*************')
                             except:
                                 pass
 
