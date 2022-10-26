@@ -144,7 +144,7 @@ def get_email_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
 
             # Parse email receiver
             email_to = re.search(r'[\w\.-]+@[\w\.-]+', msg['to']).group(0)
-            logging.debug(f"Processing email receiver {email_to}")
+            logging.info(f"Processing email receiver {email_to}")
 
             # Do not process messages where we are not the receivers
             if not email_to == IMAP_USERNAME:
@@ -154,18 +154,24 @@ def get_email_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
             email_subject = ""
             msg_request=""
             try:
+                logging.info(f"looking for   NOENCRYPTEDVPN IN MAIL  subject: {msg['subject']}")
                 email_subject = re.search(r'NOENCRYPTEDVPN', msg['subject'],re.IGNORECASE).group(0)
                 msg_request="novpn"
             except:
                 try:
+                    logging.info(f"looking for   NOTENCRYPTEDVPN IN MAIL  subject: {msg['subject']}")
+
                     email_subject = re.search(r'NOTENCRYPTEDVPN', msg['subject'],re.IGNORECASE).group(0)
                     msg_request="novpn"
                 except:
                     try:
+                        logging.info(f"looking for   WIREGUARD IN MAIL  subject: {msg['subject']}")
+
                         email_subject = re.search(r'WIREGUARD', msg['subject'],re.IGNORECASE).group(0)
                         msg_request="wireguard"
                     except:
                         try:
+
                             logging.info(f'*********looking for EDUVPN REQUEST IN MAIL  subject: {msg["subject"]}*************')
 
                             email_subject = re.search(r'EDUVPN', msg['subject'],re.IGNORECASE).group(0)
@@ -173,11 +179,14 @@ def get_email_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
                             logging.info('*********FOUND EDUVPN REQUEST IN MAIL subject *************')
                         except:
                             try:
+                                logging.info(f'*********looking for openvpn REQUEST IN MAIL  subject: {msg["subject"]}*************')
+
                                 email_subject = re.search(r'VPN', msg['subject'],re.IGNORECASE).group(0)
                                 msg_request="openvpn"
                                 logging.info('*********FOUND openvpn REQUEST IN MAIL subject*************')
 
-                            except:
+                            except Exception as ex:
+                                logging.info(f"@@@@@@@@@@@@@@@@@@  exception??: {ex} {msg['subject']}*************")
                                 pass
 
             logging.info(f"Extracted email subject: {email_subject} ({msg_request})")
@@ -191,14 +200,21 @@ def get_email_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
                 email_body = msg.get_payload()
 
             try:
+
+                logging.info(f'*********looking for NOENCRYPTEDVPN REQUEST IN MAIL BODY: {email_body}*************')
+
                 email_body = re.search(r'NOENCRYPTEDVPN',email_body,re.IGNORECASE).group(0)
                 msg_request="novpn"
             except:
                 try:
+                    logging.info(f'*********looking for NOTENCRYPTEDVPN REQUEST IN MAIL BODY: {email_body}*************')
+
                     email_body = re.search(r'NOTENCRYPTEDVPN',email_body,re.IGNORECASE).group(0)
                     msg_request="novpn"
                 except:
                     try:
+                        logging.info(f'*********looking for WIREGUARD REQUEST IN MAIL BODY: {email_body}*************')
+
                         email_body = re.search(r'WIREGUARD',email_body,re.IGNORECASE).group(0)
                         msg_request="wireguard"
                     except:
@@ -210,6 +226,8 @@ def get_email_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
                             logging.info('*********FOUND EDUVPN REQUEST IN MAIL BODY*************')
                         except:
                             try:
+                                logging.info(f'*********looking for VPN REQUEST IN MAIL BODY: {email_body}*************')
+
                                 email_body = re.search(r'VPN',email_body,re.IGNORECASE).group(0)
                                 msg_request="openvpn"
                                 logging.info('*********FOUND openvpn REQUEST IN MAIL BODY*************')
@@ -258,11 +276,11 @@ def get_email_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
         mail.logout()
         return True
     except Exception as e:
-        print(e)
+        logging.info(e)
         return False
 
 if __name__ == '__main__':
-    # Read cofiguration file 
+    # Read cofiguration file
     config = configparser.ConfigParser()
     config.read('config/config.ini')
 
