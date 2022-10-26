@@ -155,84 +155,88 @@ if __name__ == '__main__':
     # try:
     # Checking for messages
     logging.info("Listening for messages")
+    while True:
+        for item in db_subscriber.listen():
+            # Every new message is processed and acted upon
+            if item['type'] == 'message':
+                logging.info(f"New message received in channel {item['channel']}: {item['data']}")
+                if item['data'] == 'report_status':
+                    redis_client.publish('services_status', 'MOD_EDUVPN:online')
+                    logging.info('Status Online')
+                elif 'new_profile' in item['data']:
+                    account_error_message=""
+                    logging.info('Received a new request for an EDUVPN profile')
+                    redis_client.publish('services_status', 'MOD_EDUVPN:processing a new EDUVPN profile')
 
+                    # Obtaining an IP address for client is a must to move forward.
+                    CLIENT_IP=get_vpn_client_ip_address('EDUvpn',redis_client)
+                    if not CLIENT_IP==False:
+                        # Parse the name obtained in the request
+                        CLIENT_NAME=item['data'].split(':')[1]
+                        redis_client.publish('services_status',f'MOD_EDUVPN: assigning IP ({CLIENT_IP}) to client ({CLIENT_NAME})')
+                        print(f'MOD_EDUVPN: assigning IP ({CLIENT_IP}) to client ({CLIENT_NAME})')
 
-    #
-    # for item in db_subscriber.listen():
-    #     # Every new message is processed and acted upon
-    #     if item['type'] == 'message':
-    #         logging.info(f"New message received in channel {item['channel']}: {item['data']}")
-    #         if item['data'] == 'report_status':
-    #             redis_client.publish('services_status', 'MOD_OPENVPN:online')
-    #             logging.info('Status Online')
-    #         elif 'new_profile' in item['data']:
-    #             account_error_message=""
-    #             logging.info('Received a new request for an OpenVPN profile')
-    #             redis_client.publish('services_status', 'MOD_OPENVPN:processing a new OpenVPN profile')
-    #
-    #             # Obtaining an IP address for client is a must to move forward.
-    #             CLIENT_IP=get_vpn_client_ip_address('openvpn',redis_client)
-    #             if not CLIENT_IP==False:
-    #                 # Parse the name obtained in the request
-    #                 CLIENT_NAME=item['data'].split(':')[1]
-    #                 redis_client.publish('services_status',f'MOD_OPENVPN: assigning IP ({CLIENT_IP}) to client ({CLIENT_NAME})')
-    #                 # Generate the openVPN profile for the client
-    #                 if generate_eduvpn_profile(CLIENT_NAME):
-    #                     # Write the new profile to disk
-    #                     get_eduvpn_profile(CLIENT_NAME, PATH)
-    #                     # Write the static IP address client configuration
-    #                     set_profile_static_ip(CLIENT_NAME,CLIENT_IP)
-    #                     # Store client:ip relationship for the traffic capture
-    #                     if add_profile_ip_relationship(CLIENT_NAME,CLIENT_IP,redis_client):
-    #                         PID = start_traffic_capture(CLIENT_NAME,CLIENT_IP,PATH)
-    #                         if not PID == False:
-    #                             logging.info(f'Tcpdump started successfully (PID:{PID})')
-    #                             result = add_pid_profile_name_relationship(PID,CLIENT_NAME,redis_client)
-    #                             result = add_profile_name_pid_relationship(CLIENT_NAME,PID,redis_client)
-    #                             redis_client.publish('services_status','MOD_OPENVPN:profile_creation_successful')
-    #                             redis_client.publish('provision_openvpn','profile_creation_successful')
-    #                             logging.info('profile_creation_successful')
-    #                         else:
-    #                             account_error_message="MOD_OPENVPN: profile_creation_failed:cannot start tcpdump"
-    #                     else:
-    #                         account_error_message="MOD_OPENVPN: profile_creation_failed:cannot add profile_ip relationship to redis"
-    #                 else:
-    #                     account_error_message="MOD_OPENVPN: profile_creation_failed:failed to create a new profile"
-    #             else:
-    #                 account_error_message="MOD_OPENVPN: profile_creation_failed:no available IP addresses found"
-    #
-    #             # Notify once if there is an error message
-    #             if account_error_message:
-    #                 logging.info(account_error_message)
-    #                 redis_client.publish('services_status',account_error_message)
-    #                 redis_client.publish('provision_openvpn',account_error_message)
-    #         elif 'revoke_profile' in item['data']:
-    #             account_error_message=""
-    #             # Parse CLIENT_NAME and PID from message
-    #             CLIENT_NAME=item['data'].split(':')[1]
-    #             CLIENT_PID=int(item['data'].split(':')[2])
-    #             logging.info(f'Revoking profile {CLIENT_NAME} and stopping traffic capture ({CLIENT_PID})')
-    #
-    #             # Revoke VPN profile
-    #             if revoke_eduvpn_profile(CLIENT_NAME):
-    #                 # Stop the traffic capture by PID
-    #                 status = stop_traffic_capture(CLIENT_PID)
-    #                 logging.info(f'Result of stopping the traffic capture was {status}')
-    #                 if status:
-    #                     # Account revoked successfully
-    #                     redis_client.publish('services_status','MOD_OPENVPN: profile_revocation_successful')
-    #                     redis_client.publish('deprovision_openvpn','profile_revocation_successful')
-    #                     logging.info('profile_revocation_successful')
-    #                 else:
-    #                     account_error_message='Unable to stop the traffic capture.'
-    #             else:
-    #                 account_error_message='Unable to revoke the VPN profile.'
-    #
-    #             # Notify once if there is an error message
-    #             if account_error_message:
-    #                 logging.info(account_error_message)
-    #                 redis_client.publish('services_status',account_error_message)
-    #                 redis_client.publish('deprovision_openvpn',account_error_message)
+                        # Generate the EDUVPN profile for the client
+                        if generate_eduvpn_profile(CLIENT_NAME):
+                            # Write the new profile to disk
+                            PATH = os.getcwd()
+                            print(f"writing new profile to {PATH}")
+                            get_eduvpn_profile(CLIENT_NAME, PATH)
+                            # Write the static IP address client configuration
+                            set_profile_static_ip(CLIENT_NAME,CLIENT_IP)
+                            # Store client:ip relationship for the traffic capture
+                            if add_profile_ip_relationship(CLIENT_NAME,CLIENT_IP,redis_client):
+                                PID = start_traffic_capture(CLIENT_NAME,CLIENT_IP,PATH)
+                                if not PID == False:
+                                    logging.info(f'Tcpdump started successfully (PID:{PID})')
+                                    result = add_pid_profile_name_relationship(PID,CLIENT_NAME,redis_client)
+                                    result = add_profile_name_pid_relationship(CLIENT_NAME,PID,redis_client)
+                                    redis_client.publish('services_status','MOD_EDUVPN:profile_creation_successful')
+                                    redis_client.publish('provision_eduvpn','profile_creation_successful')
+                                    logging.info('profile_creation_successful')
+                                else:
+                                    account_error_message="MOD_EDUVPN: profile_creation_failed:cannot start tcpdump"
+                            else:
+                                account_error_message="MOD_EDUVPN: profile_creation_failed:cannot add profile_ip relationship to redis"
+                        else:
+                            account_error_message="MOD_EDUVPN: profile_creation_failed:failed to create a new profile"
+                    else:
+                        account_error_message="MOD_EDUVPN: profile_creation_failed:no available IP addresses found"
+
+                    # Notify once if there is an error message
+                    if account_error_message:
+                        logging.info(account_error_message)
+                        redis_client.publish('services_status',account_error_message)
+                        redis_client.publish('provision_eduvpn',account_error_message)
+                elif 'revoke_profile' in item['data']:
+                    # todo
+                    pass
+                    # account_error_message=""
+                    # # Parse CLIENT_NAME and PID from message
+                    # CLIENT_NAME=item['data'].split(':')[1]
+                    # CLIENT_PID=int(item['data'].split(':')[2])
+                    # logging.info(f'Revoking profile {CLIENT_NAME} and stopping traffic capture ({CLIENT_PID})')
+                    #
+                    # # Revoke VPN profile
+                    # if revoke_eduvpn_profile(CLIENT_NAME):
+                    #     # Stop the traffic capture by PID
+                    #     status = stop_traffic_capture(CLIENT_PID)
+                    #     logging.info(f'Result of stopping the traffic capture was {status}')
+                    #     if status:
+                    #         # Account revoked successfully
+                    #         redis_client.publish('services_status','MOD_EDUVPN: profile_revocation_successful')
+                    #         redis_client.publish('deprovision_eduvpn','profile_revocation_successful')
+                    #         logging.info('profile_revocation_successful')
+                    #     else:
+                    #         account_error_message='Unable to stop the traffic capture.'
+                    # else:
+                    #     account_error_message='Unable to revoke the VPN profile.'
+                    #
+                    # # Notify once if there is an error message
+                    # if account_error_message:
+                    #     logging.info(account_error_message)
+                    #     redis_client.publish('services_status',account_error_message)
+                    #     redis_client.publish('deprovision_eduvpn',account_error_message)
 
     redis_client.publish('services_status', 'MOD_EDUVPN:offline')
     logging.info("Terminating")
