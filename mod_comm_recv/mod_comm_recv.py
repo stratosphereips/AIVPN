@@ -166,10 +166,18 @@ def get_email_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
                         msg_request="wireguard"
                     except:
                         try:
-                            email_subject = re.search(r'VPN', msg['subject'],re.IGNORECASE).group(0)
-                            msg_request="openvpn"
+                            email_subject = re.search(r'EDUVPN', msg['subject'],re.IGNORECASE).group(0)
+                            msg_request="eduvpn"
+                            logging.info('*********FOUND EDUVPN REQUEST IN MAIL subject *************')
                         except:
-                            pass
+                            try:
+                                email_subject = re.search(r'VPN', msg['subject'],re.IGNORECASE).group(0)
+                                msg_request="openvpn"
+                                logging.info('*********FOUND openvpn REQUEST IN MAIL subject*************')
+
+                            except:
+                                pass
+
             logging.debug(f"Extracted email subject: {email_subject} ({msg_request})")
 
             # Parse email body and find matches for keyword VPN
@@ -195,13 +203,14 @@ def get_email_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
                         try:
                             email_body = re.search(r'EDUVPN',email_body,re.IGNORECASE).group(0)
                             msg_request="eduvpn"
-                            logging.info('*********FOUND EDUVPN REQUEST IN MAIL*************')
+                            logging.info('*********FOUND EDUVPN REQUEST IN MAIL BODY*************')
                         except:
-                            email_body = re.search(r'VPN',email_body,re.IGNORECASE).group(0)
-                            msg_request="openvpn"
-                            logging.info('*********FOUND openvpn REQUEST IN MAIL*************')
-
-
+                            try:
+                                email_body = re.search(r'VPN',email_body,re.IGNORECASE).group(0)
+                                msg_request="openvpn"
+                                logging.info('*********FOUND openvpn REQUEST IN MAIL BODY*************')
+                            except:
+                                pass
 
             logging.debug(f"Extracted email body: {email_body} ({msg_request})")
 
