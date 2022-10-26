@@ -505,9 +505,13 @@ def list_profiles_to_force_expire(REDIS_CLIENT):
 ## We receive many types of requests, through many types of messaging apps.
 ## One client can do many requests.
 ## We store { "msg_id":45, "msg_type":"email", "msg_addr":"email@email.com", "msg_request":"openvpn" }
+#  or "msg_request":"eduvpn"
 
 def add_item_provisioning_queue(REDIS_CLIENT,msg_id,msg_type,msg_addr,msg_request):
-    """ Function to add an item to the provisioning_queue Redis SET"""
+    """
+    Function to add an item to the provisioning_queue Redis SET
+    :param msg_request: can be 'openvpn' or 'eduvpn'
+    """
 
     try:
         redis_set = "provisioning_queue"

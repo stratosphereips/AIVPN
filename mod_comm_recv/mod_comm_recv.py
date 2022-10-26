@@ -196,7 +196,10 @@ def get_email_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
                             email_body = re.search(r'VPN',email_body,re.IGNORECASE).group(0)
                             msg_request="openvpn"
                         except:
-                            email_body = ""
+                            email_body = re.search(r'EDUVPN',email_body,re.IGNORECASE).group(0)
+                            msg_request="eduvpn"
+
+
             logging.debug(f"Extracted email body: {email_body} ({msg_request})")
 
             # We only parse messages that contain VPN in subject or body

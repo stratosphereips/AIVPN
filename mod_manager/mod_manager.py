@@ -158,7 +158,7 @@ def provision_account(new_request,REDIS_CLIENT,ACTIVE_ACCOUNT_LIMIT):
     REDIS_CLIENT.publish(f'mod_{p_msg_request}_check',message)
     logging.info(f'Provisioning: requested mod_{p_msg_request} a new profile.')
 
-    # Wait for message from mod_openvpn that the generation is done
+    # Wait for message from mod_openvpn or mod_eduvpn that the generation is done
     # This wait is from a pub/sub channel dedicate for this step
     vpn_subscriber = redis_create_subscriber(REDIS_CLIENT)
     vpn_provision_channel = f'provision_{p_msg_request}'
