@@ -108,21 +108,16 @@ def read_configuration():
     config = configparser.ConfigParser()
     config.read('config/config.ini')
 
-    REDIS_SERVER = config['REDIS']['REDIS_SERVER']
-    CHANNEL = config['REDIS']['REDIS_OPENVPN_CHECK']
-    LOG_FILE = config['LOGS']['LOG_OPENVPN']
-    SERVER_PUBLIC_URL = config['OPENVPN']['SERVER_PUBLIC_URL']
-    PKI_ADDRESS = config['OPENVPN']['PKI_ADDRESS']
-    PATH = config['STORAGE']['PATH']
-    DNS_SERVER = config['OPENVPN']['DNS_SERVER']
-
-    return REDIS_SERVER,CHANNEL,LOG_FILE,SERVER_PUBLIC_URL,PKI_ADDRESS,PATH,DNS_SERVER
+    CHANNEL = config['REDIS']['REDIS_EDUVPN_CHECK']
+    LOG_FILE = config['LOGS']['LOG_EDUVPN']
+    return CHANNEL,LOG_FILE
 
 if __name__ == '__main__':
     # Read configuration
-    REDIS_SERVER,CHANNEL,LOG_FILE,SERVER_PUBLIC_URL,PKI_ADDRESS,PATH,DNS_SERVER= read_configuration()
-
+    CHANNEL,LOG_FILE =  read_configuration()
+    print(f"Read Channel: {CHANNEL} LOG_FILE: {LOG_FILE}")
     logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG,format='%(asctime)s, MOD_OPENVPN, %(message)s')
+    print("Done setting up logging")
 
     # Connecting to the Redis database
     try:

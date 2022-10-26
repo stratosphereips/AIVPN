@@ -153,13 +153,19 @@ def read_configuration():
     config = configparser.ConfigParser()
     config.read('config/config.ini')
 
-    CHANNEL = config['REDIS']['REDIS_EDUVPN_CHECK']
-    LOG_FILE = config['LOGS']['LOG_EDUVPN']
-    return CHANNEL,LOG_FILE
+    REDIS_SERVER = config['REDIS']['REDIS_SERVER']
+    CHANNEL = config['REDIS']['REDIS_OPENVPN_CHECK']
+    LOG_FILE = config['LOGS']['LOG_OPENVPN']
+    SERVER_PUBLIC_URL = config['OPENVPN']['SERVER_PUBLIC_URL']
+    PKI_ADDRESS = config['OPENVPN']['PKI_ADDRESS']
+    PATH = config['STORAGE']['PATH']
+    DNS_SERVER = config['OPENVPN']['DNS_SERVER']
+
+    return REDIS_SERVER,CHANNEL,LOG_FILE,SERVER_PUBLIC_URL,PKI_ADDRESS,PATH,DNS_SERVER
 
 if __name__ == '__main__':
     # Read configuration
-    CHANNEL,LOG_FILE =  read_configuration()
+    REDIS_SERVER,CHANNEL,LOG_FILE,SERVER_PUBLIC_URL,PKI_ADDRESS,PATH,DNS_SERVER= read_configuration()
 
     logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG,format='%(asctime)s, MOD_OPENVPN, %(message)s')
 
