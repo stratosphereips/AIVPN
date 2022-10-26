@@ -9,7 +9,7 @@ REDIS_EDUVPN_CHECK = mod_eduvpn_check
 REDIS_WIREGUARD_CHECK = mod_wireguard_check
 REDIS_NOVPN_CHECK = mod_novpn_check
 REDIS_MANAGER_CHECK = services_status
-REDIS_MODULES = ["mod_comm_recv_check","mod_comm_send_check","mod_report_check","mod_openvpn_check","mod_slips_check","mod_wireguard_check","mod_novpn_check"]
+REDIS_MODULES = ["mod_comm_recv_check","mod_comm_send_check","mod_report_check","mod_openvpn_check","mod_slips_check","mod_wireguard_check","mod_novpn_check", "mod_eduvpn_check"]
 
 [LOGS]
 LOG_COMM_RECV = /logs/mod_comm_recv.log
