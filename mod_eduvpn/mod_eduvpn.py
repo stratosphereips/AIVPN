@@ -120,10 +120,12 @@ if __name__ == '__main__':
     with open(LOG_FILE, "w") as f:
         f.write("")
 
-    logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG,format='%(asctime)s, MOD_OPENVPN, %(message)s')
+    logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG,format='%(asctime)s, MOD_EDUVPN, %(message)s')
 
     # connect to redis server
-    REDIS_SERVER = os.system("docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' aivpn_mod_redis_1")
+    cmd = "docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' aivpn_mod_redis_1"
+    REDIS_SERVER = subprocess.check_output(cmd.split())
+
     # Connecting to the Redis database
     try:
         redis_client = redis_connect_to_db(REDIS_SERVER)
