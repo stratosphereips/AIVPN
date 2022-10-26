@@ -20,7 +20,7 @@ LOG_SLIPS = /logs/mod_slips.log
 LOG_OPENVPN = /logs/mod_openvpn.log
 LOG_WIREGUARD = /logs/mod_wireguard.log
 LOG_NOVPN = /logs/mod_novpn.log
-LOG_EDUVPN =  /logs/mod_eduvpn.log
+LOG_EDUVPN =  /opt/AIVPN/logs/mod_eduvpn.log
 LOG_CLI = /opt/AIVPN/logs/cli.log
 
 [STORAGE]

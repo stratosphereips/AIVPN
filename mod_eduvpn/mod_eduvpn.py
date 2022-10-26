@@ -115,6 +115,11 @@ def read_configuration():
 if __name__ == '__main__':
     # Read configuration
     CHANNEL,LOG_FILE =  read_configuration()
+    # create logfile if it doesn't exist
+    os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
+    with open(LOG_FILE, "w") as f:
+        f.write("")
+
     print(f"Read Channel: {CHANNEL} LOG_FILE: {LOG_FILE}")
     logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG,format='%(asctime)s, MOD_OPENVPN, %(message)s')
     print("Done setting up logging")
