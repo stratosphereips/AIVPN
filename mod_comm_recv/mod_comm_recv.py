@@ -201,9 +201,6 @@ def get_email_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
                 email_body = msg.get_payload()
 
             try:
-
-                logging.info(f'*********looking for NOENCRYPTEDVPN REQUEST IN MAIL BODY: {email_body}*************')
-
                 email_body = re.search(r'NOENCRYPTEDVPN',email_body,re.IGNORECASE).group(0)
                 msg_request="novpn"
             except:
