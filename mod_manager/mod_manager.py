@@ -26,7 +26,7 @@ def redis_channel_monitoring(CHANNEL,db_subscriber,redis_client,ACTIVE_ACCOUNT_L
             for item in db_subscriber.listen():
                 if item['type'] == 'message':
                     logging.info(f"New message received in channel {item['channel']}: {item['data']}")
-                    if item['data'] == 'MOD_COMM_RECV:NEW_REQUEST':
+                    if item['data'] == 'MOD_COMM_RECV:NEW_REQUEST' or item['data'] == 'MOD_CLI:NEW_REQUEST':
                         try:
                             new_request = get_item_provisioning_queue(redis_client)
                             logging.info(f'Provisioning new request: {new_request[0]}')
@@ -34,6 +34,20 @@ def redis_channel_monitoring(CHANNEL,db_subscriber,redis_client,ACTIVE_ACCOUNT_L
                             logging.info(f'Provisioning result: {result}')
                         except Exception as err:
                             logging.info(f'Exception in handling new request: {err}')
+                    if item['data'] == 'MOD_CLI:FORCE_EXPIRE':
+                        try:
+                            profile_to_force_expire = get_profile_to_force_expire(redis_client)
+                            logging.info(f'Expired account to process: {profile_to_force_expire}')
+                            status = deprovision_account(profile_to_force_expire,redis_client)
+                            if status:
+                                # If deprovision was successful, add to queue to report.
+                                add_profile_to_report(profile_to_force_expire,redis_client)
+                                # Notify mod_report of pending report
+                                message = f'report_profile:{profile_to_force_expire}'
+                                redis_client.publish('mod_report_check',message)
+                            logging.info(f'The result of deprovision {profile_to_force_expire} was {status}')
+                        except Exception as err:
+                            logging.info(f'Exception in forcing expiration on profile {profile_to_force_expire}: {err}')
         except Exception as err:
             logging.info(f'Error in loop in thread services_status_monitor: {err}')
             db_subscriber = redis_create_subscriber(redis_client)
@@ -189,6 +203,12 @@ def provision_account(new_request,REDIS_CLIENT,ACTIVE_ACCOUNT_LIMIT):
 
     # Close the redis subscriber we created
     vpn_subscriber.close()
+
+    if SLACK_WEBHOOK:
+        try:
+            slack_notifier.send(text=f'AIVPN mod_manager::provisioned new {p_msg_request} account {acc_profile_name}::{prov_status}')
+        except:
+            pass
     return True
 
 def process_expired_accounts(REDIS_CLIENT,EXPIRATION_THRESHOLD):
@@ -229,6 +249,7 @@ def deprovision_account(profile_name,REDIS_CLIENT):
         acc_active_pid = get_profile_name_pid_relationship(profile_name,REDIS_CLIENT)
         acc_ip_addr = get_ip_for_profile(profile_name,REDIS_CLIENT)
         acc_creation_time = get_active_profile_creation_time(profile_name,REDIS_CLIENT)
+        logging.info(f'Deprovisioning {profile_name} ({acc_msg_addr}), {acc_msg_request} with PID {acc_active_pid} and IP address {acc_ip_addr} created on {acc_creation_time}')
 
         # Send message to deprovision an account to the corresponding
         # VPN type.
@@ -265,13 +286,20 @@ def deprovision_account(profile_name,REDIS_CLIENT):
         REDIS_CLIENT.publish('mod_comm_send_check',f'send_expire_profile:{profile_name}')
 
         # Add profile to expired_profiles 
-        add_expired_profile(profile_name,acc_creation_time,REDIS_CLIENT)
+        expiration_value,expiration_object,status = add_expired_profile(profile_name,acc_creation_time,REDIS_CLIENT)
 
         # Remove profile from the list of active profiles
         status = del_active_profile(profile_name,REDIS_CLIENT)
 
         # Close the redis subscriber we created.
         vpn_subscriber.close()
+
+        # Send slack notification after provisioning
+        if SLACK_WEBHOOK:
+            try:
+                slack_notifier.send(text=f'AIVPN mod_manager::deprovisioned account {profile_name}')
+            except:
+                pass
         return True
     except Exception as err:
         logging.info(f'Exception in deprovision_account: {err}')
@@ -291,6 +319,7 @@ if __name__ == '__main__':
     ACTIVE_ACCOUNT_LIMIT = int(config['AIVPN']['ACTIVE_ACCOUNT_LIMIT'])
     CHECK_STATUS_TIME = int(config['AIVPN']['CHECK_STATUS_TIME'])
     CHECK_EXPIRED_TIME = int(config['AIVPN']['CHECK_EXPIRED_TIME'])
+    SLACK_WEBHOOK = config['SLACK']['WEBHOOK']
 
     logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.DEBUG,format='%(asctime)s, MOD_MANAGER, %(message)s')
 
@@ -314,6 +343,16 @@ if __name__ == '__main__':
     except Exception as err:
         logging.info(f'Channel subscription failed: {err}')
         sys.exit(-1)
+
+    # Configuring Slack notifications
+    if SLACK_WEBHOOK:
+        try:
+            from slack_sdk.webhook import WebhookClient
+            slack_notifier = WebhookClient(SLACK_WEBHOOK)
+            slack_response = slack_notifier.send(text="AIVPN mod_manager::initializing")
+        except Exception as err:
+            SLACK_WEBHOOK=False
+            logging.info(f'Unable to configure Slack notifications: {err}')
 
     # Main manager module logic starts here
     try:

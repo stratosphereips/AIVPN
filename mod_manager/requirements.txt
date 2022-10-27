@@ -1,2 +1,3 @@
 redis
 timerthread
+slack_sdk

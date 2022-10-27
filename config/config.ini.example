@@ -19,6 +19,7 @@ LOG_SLIPS = /logs/mod_slips.log
 LOG_OPENVPN = /logs/mod_openvpn.log
 LOG_WIREGUARD = /logs/mod_wireguard.log
 LOG_NOVPN = /logs/mod_novpn.log
+LOG_CLI = /opt/AIVPN/logs/cli.log
 
 [STORAGE]
 PATH = /data
@@ -70,3 +71,6 @@ MESSAGE_EXPIRED_PROFILE = Your AI VPN profile has expired. A report on the captu
 MESSAGE_REPORT_EMPTY = Dear user, there was no traffic captured in this session. This could be because (i) the profile was not used, (ii) the device did not connect to the VPN. Please try again.
 MESSAGE_MAX_LIMIT = You have reached the maximum number of active profiles per account. Try again after your active profiles have expired.
 MESSAGE_FULL_CAPACITY = Our service is at full capacity at the moment. Please try again in 24hs.
+
+[SLACK]
+SLACK_WEBHOOK = 
