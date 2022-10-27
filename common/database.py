@@ -486,7 +486,8 @@ def get_profile_to_force_expire(REDIS_CLIENT):
         redis_set = "force_expire_profile"
 
         request = REDIS_CLIENT.zpopmin(redis_set,1)
-        return request[0]
+        profile_name = request[0]
+        return profile_name[0]
     except Exception as err:
         return err
 

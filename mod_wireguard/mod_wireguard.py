@@ -53,6 +53,9 @@ def start_traffic_capture(CLIENT_NAME,CLIENT_IP,PATH):
     pcap for a given client and IP.
     """
     try:
+        # Identify which tcpdump to run
+        cmd_tcpdump = os.popen('which tcpdump').read().strip()
+
         # Number used to differentiate pcaps if there's more than one
         NUMBER=str(time.monotonic()).split('.')[1]
 
@@ -60,7 +63,7 @@ def start_traffic_capture(CLIENT_NAME,CLIENT_IP,PATH):
         PCAP_NAME=f'{PATH}/{CLIENT_NAME}/{CLIENT_NAME}_{CLIENT_IP}_{NUMBER}.pcap'
 
         # Start the subprocess
-        args=["/usr/sbin/tcpdump","-qq","-n","-U","-l","-s0","-i","any","host",CLIENT_IP,"-w",PCAP_NAME]
+        args=[cmd_tcpdump,"-qq","-n","-U","-l","-s0","-i","any","host",CLIENT_IP,"-w",PCAP_NAME]
         process = subprocess.Popen(args, start_new_session=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
 
         # Get the PID
@@ -175,13 +178,13 @@ if __name__ == '__main__':
                                     redis_client.publish('provision_wireguard','profile_creation_successful')
                                     logging.info('profile_creation_successful')
                                 else:
-                                    account_error_message="MOD_OPENVPN: profile_creation_failed:cannot start tcpdump"
+                                    account_error_message="MOD_WIREGUARD: profile_creation_failed:cannot start tcpdump"
                             else:
-                                account_error_message="MOD_OPENVPN: profile_creation_failed:cannot add profile_ip relationship to redis"
+                                account_error_message="MOD_WIREGUARD: profile_creation_failed:cannot add profile_ip relationship to redis"
                         else:
-                            account_error_message="MOD_OPENVPN: profile_creation_failed:failed to create a new profile"
+                            account_error_message="MOD_WIREGUARD: profile_creation_failed:failed to create a new profile"
                     else:
-                        account_error_message="MOD_OPENVPN: profile_creation_failed:no available IP addresses found"
+                        account_error_message="MOD_WIREGUARD: profile_creation_failed:no available IP addresses found"
 
                     # Notify once if there is an error message
                     if account_error_message:
