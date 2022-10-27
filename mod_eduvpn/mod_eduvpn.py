@@ -119,7 +119,7 @@ def read_configuration():
 
     CHANNEL = config['REDIS']['REDIS_EDUVPN_CHECK']
     LOG_FILE = config['LOGS']['LOG_EDUVPN']
-    PATH = config['STORAGE']['PATH']
+    PATH = config['EDUVPN']['PATH']
 
     return CHANNEL, LOG_FILE, PATH
 
