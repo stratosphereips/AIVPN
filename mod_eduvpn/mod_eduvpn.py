@@ -12,6 +12,7 @@ import configparser
 import ipaddress
 from common.database import *
 import subprocess
+import datetime
 
 def revoke_eduvpn_profile(CLIENT_NAME):
     """
@@ -45,6 +46,10 @@ def get_eduvpn_profile(CLIENT_NAME, PATH):
     """
     This function returns the new generated client profile.
     """
+    time = datetime.datetime.now()
+    display_time = time.strftime("%H:%M")
+
+    logging.info(f"[get_eduvpn_profile] Creating profile in {PATH}/{CLIENT_NAME}/{CLIENT_NAME}.ovpn - {display_time}'")
     try:
         os.system('/usr/local/bin/ovpn_getclient %s > %s/%s/%s.ovpn' % (CLIENT_NAME,PATH,CLIENT_NAME,CLIENT_NAME))
     except Exception as err:
@@ -185,7 +190,6 @@ if __name__ == '__main__':
                         # Generate the EDUVPN profile for the client
                         if generate_eduvpn_profile(CLIENT_NAME):
                             # Write the new profile to disk
-                            logging.info(f"Writing new profile: {CLIENT_NAME} to {PATH}")
                             get_eduvpn_profile(CLIENT_NAME, PATH)
                             # Write the static IP address client configuration
                             set_profile_static_ip(CLIENT_NAME,CLIENT_IP)

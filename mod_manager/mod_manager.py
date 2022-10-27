@@ -14,6 +14,8 @@ import timerthread
 import configparser
 from common.database import *
 from common.storage import *
+import datetime
+
 
 
 def redis_channel_monitoring(CHANNEL,db_subscriber,redis_client,ACTIVE_ACCOUNT_LIMIT):
@@ -143,7 +145,9 @@ def provision_account(new_request,REDIS_CLIENT,ACTIVE_ACCOUNT_LIMIT):
     ## Create a folder to store all files associated with the profile_name.
     ## The specific folder is specified in the configuration file.
     prov_status = create_working_directory(acc_profile_name)
-    logging.info(f'Provisioning: creation of working directory was {prov_status}')
+    time = datetime.datetime.now()
+    display_time = time.strftime("%H:%M")
+    logging.info(f'Provisioning: creation of working directory was {prov_status} at {PATH}/{acc_profile_name} - {display_time}')
     if not prov_status:
         # Request is stored back in the provisioning queue.
         add_item_provisioning_queue(REDIS_CLIENT,p_msg_id,p_msg_type,p_msg_addr,p_msg_request)
