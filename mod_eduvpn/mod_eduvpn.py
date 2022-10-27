@@ -30,8 +30,12 @@ def generate_eduvpn_profile(CLIENT_NAME):
     """
     This function generates a new profile for a client_name.
     """
+    logging.info(f"[generate_eduvpn_profile] for client: {CLIENT_NAME}")
     try:
-        os.system('/usr/local/bin/easyrsa build-client-full %s nopass' % CLIENT_NAME)
+        ret_value = os.system('/usr/share/easy-rsa/easyrsa build-client-full %s nopass' % CLIENT_NAME)
+        if ret_value != 0:
+            logging.info(f"Exception in generate_openvpn_profile: Binary doesn't exist")
+            return False
         return True
     except Exception as err:
         logging.info(f'Exception in generate_openvpn_profile: {err}')
@@ -114,7 +118,7 @@ def read_configuration():
 
 if __name__ == '__main__':
     # Read configuration
-    CHANNEL,LOG_FILE =  read_configuration()
+    CHANNEL,LOG_FILE = read_configuration()
     # create logfile if it doesn't exist
     os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
     with open(LOG_FILE, "w") as f:

@@ -27,13 +27,13 @@ def redis_channel_monitoring(CHANNEL,db_subscriber,redis_client,ACTIVE_ACCOUNT_L
                 if item['type'] == 'message':
                     logging.info(f"New message received in channel {item['channel']}: {item['data']}")
                     if item['data'] == 'MOD_COMM_RECV:NEW_REQUEST' or item['data'] == 'MOD_CLI:NEW_REQUEST':
-                        # try:
-                        new_request = get_item_provisioning_queue(redis_client)
-                        logging.info(f'Provisioning new request: {new_request[0]}')
-                        result = provision_account(new_request[0],redis_client,ACTIVE_ACCOUNT_LIMIT)
-                        logging.info(f'Provisioning result: {result}')
-                        # except Exception as err:
-                        #     logging.info(f'Exception in handling new request: {err}')
+                        try:
+                            new_request = get_item_provisioning_queue(redis_client)
+                            logging.info(f'Provisioning new request: {new_request[0]}')
+                            result = provision_account(new_request[0],redis_client,ACTIVE_ACCOUNT_LIMIT)
+                            logging.info(f'Provisioning result: {result}')
+                        except Exception as err:
+                            logging.info(f'Exception in handling new request: {err}')
                     if item['data'] == 'MOD_CLI:FORCE_EXPIRE':
                         try:
                             profile_to_force_expire = get_profile_to_force_expire(redis_client)
