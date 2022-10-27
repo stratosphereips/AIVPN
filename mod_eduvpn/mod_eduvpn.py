@@ -22,7 +22,7 @@ def revoke_eduvpn_profile(CLIENT_NAME):
         subprocess.run([COMMAND,CLIENT_NAME], stdout=subprocess.PIPE, text=True, input="yes")
         return True
     except Exception as err:
-        logging.info(f'Exception in revoke_openvpn_profile: {err}')
+        logging.info(f'Exception in revoke_eduvpn_profile: {err}')
         return err
 
 def generate_eduvpn_profile(CLIENT_NAME):
@@ -34,11 +34,11 @@ def generate_eduvpn_profile(CLIENT_NAME):
     try:
         ret_value = os.system('/usr/share/easy-rsa/easyrsa build-client-full %s nopass' % CLIENT_NAME)
         if ret_value != 0:
-            logging.info(f"Exception in generate_openvpn_profile: Binary doesn't exist")
+            logging.info(f"Exception in generate_eduvpn_profile: Binary doesn't exist")
             return False
         return True
     except Exception as err:
-        logging.info(f'Exception in generate_openvpn_profile: {err}')
+        logging.info(f'Exception in generate_eduvpn_profile: {err}')
         return False
 
 def get_eduvpn_profile(CLIENT_NAME, PATH):
@@ -48,7 +48,7 @@ def get_eduvpn_profile(CLIENT_NAME, PATH):
     try:
         os.system('/usr/local/bin/ovpn_getclient %s > %s/%s/%s.ovpn' % (CLIENT_NAME,PATH,CLIENT_NAME,CLIENT_NAME))
     except Exception as err:
-        logging.info(f'Error in get_openvpn_profile: {err}')
+        logging.info(f'Error in get_eduvpn_profile: {err}')
 
 def start_traffic_capture(CLIENT_NAME,CLIENT_IP,PATH):
     """
@@ -114,11 +114,13 @@ def read_configuration():
 
     CHANNEL = config['REDIS']['REDIS_EDUVPN_CHECK']
     LOG_FILE = config['LOGS']['LOG_EDUVPN']
-    return CHANNEL,LOG_FILE
+    PATH = config['STORAGE']['PATH']
+
+    return CHANNEL, LOG_FILE, PATH
 
 if __name__ == '__main__':
     # Read configuration
-    CHANNEL,LOG_FILE = read_configuration()
+    CHANNEL, LOG_FILE, PATH = read_configuration()
     # create logfile if it doesn't exist
     os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
     with open(LOG_FILE, "w") as f:
@@ -133,7 +135,7 @@ if __name__ == '__main__':
     # Connecting to the Redis database
     try:
         redis_client = redis_connect_to_db(REDIS_SERVER)
-        print(f"done connecting to redis. redis_client: {redis_client}")
+        logging.info(f"done connecting to redis. redis_client: {redis_client}")
     except Exception as err:
         logging.info(f'Unable to connect to the Redis database ({REDIS_SERVER}): {err}')
         sys.exit(-1)
@@ -141,7 +143,7 @@ if __name__ == '__main__':
     # Creating a Redis subscriber
     try:
         db_subscriber = redis_create_subscriber(redis_client)
-        print(f"done creating a redis subscriber: {db_subscriber}")
+        logging.info(f"done creating a redis subscriber: {db_subscriber}")
     except Exception as err:
         logging.info(f'Unable to create a Redis subscriber: {err}')
         sys.exit(-1)
@@ -150,7 +152,7 @@ if __name__ == '__main__':
     try:
         redis_subscribe_to_channel(db_subscriber, CHANNEL)
         logging.info("Connection and channel subscription to redis successful.")
-        print(f"Connection and channel  {CHANNEL} in redis successful... check the logs in {LOG_FILE}")
+        logging.info(f"Connection and channel  {CHANNEL} in redis successful... check the logs in {LOG_FILE}")
     except Exception as err:
         logging.info(f'Channel subscription failed: {err}')
         sys.exit(-1)
@@ -178,13 +180,12 @@ if __name__ == '__main__':
                         # Parse the name obtained in the request
                         CLIENT_NAME=item['data'].split(':')[1]
                         redis_client.publish('services_status',f'MOD_EDUVPN: assigning IP ({CLIENT_IP}) to client ({CLIENT_NAME})')
-                        print(f'MOD_EDUVPN: assigning IP ({CLIENT_IP}) to client ({CLIENT_NAME})')
+                        logging.info(f'MOD_EDUVPN: assigning IP ({CLIENT_IP}) to client ({CLIENT_NAME})')
 
                         # Generate the EDUVPN profile for the client
                         if generate_eduvpn_profile(CLIENT_NAME):
                             # Write the new profile to disk
-                            PATH = os.getcwd()
-                            print(f"writing new profile to {PATH}")
+                            logging.info(f"Writing new profile: {CLIENT_NAME} to {PATH}")
                             get_eduvpn_profile(CLIENT_NAME, PATH)
                             # Write the static IP address client configuration
                             set_profile_static_ip(CLIENT_NAME,CLIENT_IP)
