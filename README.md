@@ -40,6 +40,28 @@ The AI VPN is under active development. The functionality of the AI VPN is provi
 | mod_novpn     |     0.1 | active | Provides the unencrypted tunel using OpenVPN   | ![Docker Pulls](https://img.shields.io/docker/pulls/civilsphere/aivpn_mod_novpn?color=green)|
 | mod_pihole    |     0.1 | active | Provides DNS real time blocking using Pi-Hole  | - |
 
+# This is a special branch of AIVPN that can be used with EduVPN technology
+
+For it to work:
+- Have a baremetal computer ready that you can dedicate to this. EduVPN does not support dockers. So don't run this branch in your home computer as you may do with AIVPN.
+- install this branch of AIVPN normally
+- set it up
+
+## Install EduVPN
+
+- Have your server ready, it can be in the cloud.
+- Git clone the documentation repo https://github.com/eduvpn/documentation.git
+- Since apt-get complains that the repository is not signed
+- To fix repository “it is not signed” issue:
+- Add --allow-unauthenticated to the “apt update” command in deploy_debian.sh 
+- Add [trusted=yes] to the apt line in /etc/apt/sources.list.d/eduVPN_v3.list
+ deb [trusted=yes] https://repo.eduvpn.org/v3/deb ${DEBIAN_CODE_NAME} main 
+- Run the script deploy_debian.sh and set as the DNS name, or if you don’t have it, the public IP of your server. Leave the External Network Interface field with default values. 
+
+
+
+
+
 # Acknowledgements
 
 This project was funded through the NGI0 PET Fund, a fund established by NLnet with financial support from the European Commission's Next Generation Internet programme, under the aegis of DG Communications Networks, Content and Technology under grant agreement No 825310.
