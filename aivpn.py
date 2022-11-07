@@ -130,7 +130,7 @@ def provision_openvpn(REDIS_CLIENT, identity):
     Trigger the provisioning of a new OpenVPN profile for a client
     """
     identity_valid_data = get_validated_data(identity)
-    logging.debug(f'Provision No VPN: {identity}')
+    logging.debug(f'Provision OpenVPN: {identity}')
     if identity_valid_data["msg_request"][0] and identity_valid_data["msg_type"]:
         # Add to provisioning queue
         status = add_item_provisioning_queue(REDIS_CLIENT, identity_valid_data["msg_id"], identity_valid_data["msg_type"],
@@ -139,7 +139,7 @@ def provision_openvpn(REDIS_CLIENT, identity):
         print(
             f"Provisioning triggered: {status}. Number of items in the queue: {list_items_provisioning_queue(REDIS_CLIENT)}")
     else:
-        print('Provisioning process failed in provision_new_novpn, try again')
+        print('Provisioning process failed, try again')
 
 
 def provision_wireguard(REDIS_CLIENT, identity):
@@ -147,16 +147,16 @@ def provision_wireguard(REDIS_CLIENT, identity):
     Trigger the provisioning of a new Wireguard profile for a client
     """
     valid_data = get_validated_data(identity)
-    logging.debug(f'Provision No VPN: {identity}')
+    logging.debug(f'Provision Wireguard: {identity}')
     if valid_data["msg_request"][1] and valid_data["msg_type"]:
-        # Add to privisioning queue
+        # Add to provisioning queue
         status = add_item_provisioning_queue(REDIS_CLIENT, valid_data["msg_id"], valid_data["msg_type"],
                                              valid_data["msg_addr"], valid_data["msg_request"][1])
         redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
         print(
             f"Provisioning triggered: {status}. Number of items in the queue: {list_items_provisioning_queue(REDIS_CLIENT)}")
     else:
-        print('Provisioning process failed in provision_new_novpn, try again')
+        print('Provisioning process failed, try again')
 
 
 def provision_novpn(REDIS_CLIENT, identity):
@@ -172,7 +172,7 @@ def provision_novpn(REDIS_CLIENT, identity):
         print(
             f"Provisioning triggered: {status}. Number of items in the queue: {list_items_provisioning_queue(REDIS_CLIENT)}")
     else:
-        print('Provisioning process failed in provision_new_novpn, try again')
+        print('Provisioning process failed, try again')
 
 
 def audit_active_profiles(REDIS_CLIENT, action):
