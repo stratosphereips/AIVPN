@@ -2,19 +2,16 @@
 # This file is part of the Civilsphere AI VPN
 # See the file 'LICENSE' for copying permission.
 # Author: Veronica Valeros, vero.valeros@gmail.com, veronica.valeros@aic.fel.cvut.cz
-
+from functools import partial
 import sys
-import redis
 import logging
-import configparser
 import re
 import imaplib
 import threading
 from email.parser import BytesFeedParser
 from common.database import *
-from telegram.ext import CommandHandler
-from telegram.ext import MessageHandler, Filters
-from telegram.ext import Updater
+from telegram.ext import CommandHandler, Updater
+
 
 def send_request_to_redis(msg_id, msg_addr, msg_type, msg_request, logging, redis_client):
     """
@@ -34,35 +31,16 @@ def get_telegram_requests(redis_client,TELEGRAM_BOT_TOKEN,TELEGRAM_START_MSG,TEL
     This function runs the telegram bot in charge of receiving messages
     """
     msg_type = "telegram"
-    msg_request = "openvpn"
 
     # Telegram Handlers
     def telegram_cmd_start(update, context):
         context.bot.send_message(chat_id=update.effective_chat.id,text=TELEGRAM_START_MSG)
         logging.info('New Telegram chat received')
 
-    def telegram_cmd_getopenvpn(update, context):
+    def telegram_cmd(update, context, msg_request):
+
         context.bot.send_message(chat_id=update.effective_chat.id,text=TELEGRAM_WAIT_MSG)
-        msg_request = "openvpn"
         logging.info(f'New Telegram OpenVPN request received from: {update.effective_chat.id}')
-        # Write pending account to provision in REDIS
-        send_request_to_redis(int(update.effective_chat.id),update.effective_chat.id,msg_type,msg_request,logging,redis_client)
-        # Notify manager of new request
-        redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
-
-    def telegram_cmd_getwireguard(update, context):
-        context.bot.send_message(chat_id=update.effective_chat.id,text=TELEGRAM_WAIT_MSG)
-        msg_request = "wireguard"
-        logging.info(f'New Telegram WireGuard request received from: {update.effective_chat.id}')
-        # Write pending account to provision in REDIS
-        send_request_to_redis(int(update.effective_chat.id),update.effective_chat.id,msg_type,msg_request,logging,redis_client)
-        # Notify manager of new request
-        redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
-
-    def telegram_cmd_getnoencryptedvpn(update, context):
-        context.bot.send_message(chat_id=update.effective_chat.id,text=TELEGRAM_WAIT_MSG)
-        msg_request = "novpn"
-        logging.info(f'New Telegram Not Encrypted OpenVPN request received from: {update.effective_chat.id}')
         # Write pending account to provision in REDIS
         send_request_to_redis(int(update.effective_chat.id),update.effective_chat.id,msg_type,msg_request,logging,redis_client)
         # Notify manager of new request
@@ -78,13 +56,13 @@ def get_telegram_requests(redis_client,TELEGRAM_BOT_TOKEN,TELEGRAM_START_MSG,TEL
         start_handler = CommandHandler('start', telegram_cmd_start)
         dispatcher.add_handler(start_handler)
 
-        openvpn_handler = CommandHandler('getopenvpn', telegram_cmd_getopenvpn)
+        openvpn_handler = CommandHandler('getopenvpn', partial(telegram_cmd, "openvpn"))
         dispatcher.add_handler(openvpn_handler)
 
-        wireguard_handler = CommandHandler('getwireguard', telegram_cmd_getwireguard)
+        wireguard_handler = CommandHandler('getwireguard', partial(telegram_cmd, "wireguard"))
         dispatcher.add_handler(wireguard_handler)
 
-        novpn_handler = CommandHandler('getnoencryptedvpn', telegram_cmd_getnoencryptedvpn)
+        novpn_handler = CommandHandler('getnoencryptedvpn', partial(telegram_cmd, "novpn"))
         dispatcher.add_handler(novpn_handler)
 
         logging.info('Telegram handlers created')
@@ -92,9 +70,8 @@ def get_telegram_requests(redis_client,TELEGRAM_BOT_TOKEN,TELEGRAM_START_MSG,TEL
         # Starting
         updater.start_polling()
 
-
     except Exception as err:
-        logging.info(f'Exception in get_telegram_requests: {err}')
+        logging.debug(f'Exception in get_telegram_requests: {err}')
 
 def get_email_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
     """
