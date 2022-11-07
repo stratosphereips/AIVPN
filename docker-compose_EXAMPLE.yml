@@ -80,6 +80,8 @@ services:
         volumes:
             - ./logs:/logs/
             - ./data:/data/
+            - ./mod_slips/slips_configuration.conf:/StratosphereLinuxIPS/aivpn_slips.conf
+            - ./mod_slips/slips_whitelist.conf:/StratosphereLinuxIPS/aivpn_whitelist.conf
             - ./config:/code/config/:ro
             - ./common:/code/common/:ro
         deploy:
