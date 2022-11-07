@@ -32,7 +32,8 @@ def process_profile_traffic(profile_name,PATH):
                 # Run Slips here
                 OUTPUT=f'{PATH}/{profile_name}/slips_{capture_file}/'
                 FILENAME=f'{PATH}/{profile_name}/{capture_file}'
-                args=['/StratosphereLinuxIPS/slips.py','-c','slips.conf','-f',FILENAME,'-o',OUTPUT]
+                CONFIGURATION='/StratosphereLinuxIPS/aivpn_slips.conf'
+                args=['/StratosphereLinuxIPS/slips.py','-c',CONFIGURATION,'-f',FILENAME,'-o',OUTPUT]
                 process = subprocess.Popen(args,cwd="/StratosphereLinuxIPS", stdout=subprocess.PIPE)
                 process.wait()
                 return VALID_CAPTURE
