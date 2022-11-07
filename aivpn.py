@@ -11,30 +11,40 @@ import logging
 from common.database import *
 
 
-def manage_info(REDIS_CLIENT, profile_name):
+def manage_info(REDIS_CLIENT,profile_name):
     """
     Retrieve information about an AI VPN profile_name
     """
-
     try:
         logging.debug('Manage info: {profile_name}')
-        vpn_type = get_profile_vpn_type(profile_name, REDIS_CLIENT)
+        vpn_type = get_profile_vpn_type(profile_name,REDIS_CLIENT)
         profile_creation_time = 'n/a'
         profile_expiration_time = 'n/a'
         profile_reported_time = 'n/a'
         profile_deletion_time = 'n/a'
 
-        if exists_active_profile(profile_name, REDIS_CLIENT):
-            profile_creation_time = datetime.datetime.fromtimestamp(
-                float(get_active_profile_creation_time(profile_name, REDIS_CLIENT)))
+        if exists_active_profile(profile_name,REDIS_CLIENT):
+            profile_creation_time = datetime.datetime.fromtimestamp(float(get_active_profile_creation_time(profile_name,REDIS_CLIENT)))
             profile_active = 'active'
         else:
             profile_active = 'expired'
-            profile_information = json.loads(get_expired_profile_information(profile_name, REDIS_CLIENT))
-            profile_creation_time = datetime.datetime.fromtimestamp(float(profile_information['creation_time']))
-            profile_expiration_time = datetime.datetime.fromtimestamp(float(profile_information['expiration_time']))
-            profile_reported_time = datetime.datetime.fromtimestamp(float(profile_information['reported_time']))
-            profile_deletion_time = datetime.datetime.fromtimestamp(float(profile_information['deletion_time']))
+            profile_information = json.loads(get_expired_profile_information(profile_name,REDIS_CLIENT))
+            try:
+                profile_creation_time = datetime.datetime.fromtimestamp(float(profile_information['creation_time']))
+            except:
+                pass
+            try:
+                profile_expiration_time = datetime.datetime.fromtimestamp(float(profile_information['expiration_time']))
+            except:
+                pass
+            try:
+                profile_reported_time = datetime.datetime.fromtimestamp(float(profile_information['reported_time']))
+            except:
+                pass
+            try:
+                profile_deletion_time = datetime.datetime.fromtimestamp(float(profile_information['deletion_time']))
+            except:
+                pass
 
         print(f"[+] Profile information for: {profile_name}")
         print(f"   [-] Profile status: {profile_active}")
@@ -43,9 +53,9 @@ def manage_info(REDIS_CLIENT, profile_name):
         print(f"   [-] Profile expiration time: {profile_expiration_time}")
         print(f"   [-] Profile reported time: {profile_reported_time}")
         print(f"   [-] Profile deletion time: {profile_deletion_time}")
+        pass
     except Exception as err:
         print(f'Exception in manage_info: {err}')
-
 
 def manage_expire(REDIS_CLIENT, profile_name):
     """
