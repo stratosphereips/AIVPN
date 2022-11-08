@@ -57,6 +57,7 @@ def manage_info(REDIS_CLIENT,profile_name):
     except Exception as err:
         print(f'Exception in manage_info: {err}')
 
+
 def manage_expire(REDIS_CLIENT, profile_name):
     """
     Add a profile to the force expire queue to deprovision
@@ -217,6 +218,40 @@ def audit_queued_profiles(REDIS_CLIENT, action):
         print(f'Exception in audit_expired_profiles: {err}')
 
 
+def report_info():
+    """
+    Retrieve information about the automatic report
+    linked to a AI VPN profile.
+    """
+    try:
+        logging.debug('Retrieve report information')
+    except Exception as err:
+        print(f'Exception in report_info: {err}')
+
+
+def report_send():
+    """
+    Retrieve the automatic report for a given profile,
+    retrieve the user identity, and send the profile to
+    the user.
+    """
+    try:
+        logging.debug('Send profile report to user')
+    except Exception as err:
+        print(f'Exception in report_send: {err}')
+
+
+def report_create():
+    """
+    Trigger the (re)creation of a new automatic report
+    for a given AI VPN profile.
+    """
+    try:
+        logging.debug('Create report for profile')
+    except Exception as err:
+        print(f'Exception in report_create: {err}')
+
+
 if __name__ == '__main__':
     # Read configuration
     config = configparser.ConfigParser()
@@ -234,6 +269,8 @@ if __name__ == '__main__':
     manage = subparser.add_parser('manage', help=f'Manage an AI VPN profile')
     provision = subparser.add_parser('provision', help=f'Provision a new AI VPN account')
     audit = subparser.add_parser('audit', help=f'Audit AI VPN activities')
+    report = subparser.add_parser('report', help=f'Manage AI VPN analysis reports')
+
 
     # manage actions
     manage.add_argument('--info', help='retrieve information of a profile', type=str, required=False,
@@ -255,6 +292,11 @@ if __name__ == '__main__':
 
     # audit actions
     audit.add_argument('--profiles', choices=['active', 'expired', 'queued'], help='Audit profiles by type')
+
+    # report actions
+    manage.add_argument('--info', help='retrieve report information of a profile', type=str, required=False, metavar='<profile_name>')
+    manage.add_argument('--send', help='send profile report to user', type=str, required=False, metavar='<profile_name>')
+    manage.add_argument('--create', help='create automatic report for profile', type=str, required=False, metavar='<profile_name>')
 
     args = parser.parse_args()
 
@@ -303,6 +345,18 @@ if __name__ == '__main__':
         elif args.profiles == 'queued':
             cli_action = audit_queued_profiles
         params = args.profiles
+
+    if args.command == "report":
+        logging.info('Reporting profile')
+        if args.info:
+            cli_action = report_info
+            params = args.info
+        elif args.send:
+            cli_action = report_send
+            params = args.send
+        elif args.create:
+            cli_action = report_create
+            params = args.create
 
     # Connecting to the Redis database
     try:
