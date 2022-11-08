@@ -3,6 +3,7 @@
 # See the file 'LICENSE' for copying permission.
 # Author: Veronica Valeros, vero.valeros@gmail.com, veronica.valeros@aic.fel.cvut.cz
 
+import os
 import re
 import sys
 import datetime
@@ -216,6 +217,19 @@ def audit_queued_profiles(REDIS_CLIENT, action):
         print(f"[+] Number of queued profiles to provision: {queued_profiles}")
     except Exception as err:
         print(f'Exception in audit_expired_profiles: {err}')
+
+
+def report_exists(profile_name):
+    """
+    Check if an automatic AI VPN report exists
+    """
+    try:
+        AIVPN_PATH = os.getcwd()
+        REPORT_FILE = f'{AIVPN_PATH}/{profile_name}/{profile_name}.pdf'
+        return os.path.exists(REPORT_FILE)
+
+    except Exception as err:
+        print(f'Exception in report_exists: {err}')
 
 
 def report_info(REDIS_CLIENT, profile_name):
