@@ -28,12 +28,12 @@ def process_profile_traffic(profile_name,PATH):
 
             # If capture is not empty: process it
             if capture_size > 25:
-                VALID_CAPTURE=True
+                VALID_CAPTURE = True
                 # Run Slips here
-                OUTPUT=f'{PATH}/{profile_name}/slips_{capture_file}/'
-                FILENAME=f'{PATH}/{profile_name}/{capture_file}'
-                CONFIGURATION='/StratosphereLinuxIPS/aivpn_slips.conf'
-                args=['/StratosphereLinuxIPS/slips.py','-c',CONFIGURATION,'-f',FILENAME,'-o',OUTPUT]
+                OUTPUT = f'{PATH}/{profile_name}/slips_{capture_file}/'
+                FILENAME = f'{PATH}/{profile_name}/{capture_file}'
+                CONFIGURATION = '/StratosphereLinuxIPS/aivpn_slips.conf'
+                args = ['/StratosphereLinuxIPS/slips.py','-c',CONFIGURATION,'-f',FILENAME,'-o',OUTPUT]
                 process = subprocess.Popen(args,cwd="/StratosphereLinuxIPS", stdout=subprocess.PIPE)
                 process.wait()
                 return VALID_CAPTURE
@@ -100,12 +100,12 @@ if __name__ == '__main__':
                     logging.info(f'Status of the processing of profile {profile_name}: {status}')
                     if not status:
                         logging.info('An error occurred processing the capture with Slips')
-                        message=f'slips_false:{profile_name}'
+                        message = f'slips_false:{profile_name}'
                         redis_client.publish('slips_processing',message)
                         continue
                     if status:
                         logging.info('Processing of associated captures completed')
-                        message=f'slips_true:{profile_name}'
+                        message = f'slips_true:{profile_name}'
                         redis_client.publish('slips_processing',message)
 
         redis_client.publish('services_status', 'MOD_SLIPS:offline')
