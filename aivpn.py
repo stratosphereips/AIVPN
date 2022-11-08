@@ -233,6 +233,8 @@ def audit_queued_profiles(REDIS_CLIENT,action):
 
 def report_info():
     """
+    Retrieve information about the automatic report
+    linked to a AI VPN profile.
     """
     try:
         logging.debug('Retrieve report information')
@@ -242,6 +244,9 @@ def report_info():
 
 def report_send():
     """
+    Retrieve the automatic report for a given profile,
+    retrieve the user identity, and send the profile to
+    the user.
     """
     try:
         logging.debug('Send profile report to user')
@@ -251,6 +256,8 @@ def report_send():
 
 def report_create():
     """
+    Trigger the (re)creation of a new automatic report
+    for a given AI VPN profile.
     """
     try:
         logging.debug('Create report for profile')
