@@ -225,7 +225,7 @@ def report_exists(profile_name):
     """
     try:
         AIVPN_PATH = os.getcwd()
-        REPORT_FILE = f'{AIVPN_PATH}/{profile_name}/{profile_name}.pdf'
+        REPORT_FILE = f'{AIVPN_PATH}/data/{profile_name}/{profile_name}.pdf'
         return os.path.exists(REPORT_FILE)
 
     except Exception as err:
@@ -247,7 +247,7 @@ def report_info(REDIS_CLIENT, profile_name):
         report_file_status = report_exists(profile_name)
         if report_file_status:
             AIVPN_PATH = os.getcwd()
-            REPORT_FILE = f'{AIVPN_PATH}/{profile_name}/{profile_name}.pdf'
+            REPORT_FILE = f'{AIVPN_PATH}/data/{profile_name}/{profile_name}.pdf'
             report_size = os.path.getsize(REPORT_FILE)
             report_ctime = os.path.getctime(REPORT_FILE)
             report_mtime = os.path.getmtime(REPORT_FILE)
