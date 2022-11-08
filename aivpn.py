@@ -242,6 +242,28 @@ def report_info(REDIS_CLIENT, profile_name):
         if exists_active_profile(profile_name,REDIS_CLIENT):
             print(f'[+] The profile {profile_name} is still active and the report has not yet been generated')
             return True
+
+        # Check if report exists
+        report_file_status = report_exists(profile_name)
+        if report_file_status:
+            AIVPN_PATH = os.getcwd()
+            REPORT_FILE = f'{AIVPN_PATH}/{profile_name}/{profile_name}.pdf'
+            report_size = os.path.getsize(REPORT_FILE)
+            report_ctime = os.path.getctime(REPORT_FILE)
+            report_mtime = os.path.getmtime(REPORT_FILE)
+        else:
+            report_size = 0
+            report_ctime = 0
+            report_mtime = 0
+
+
+        # Print information to the user
+        print(f'[+] AI VPN automatic report information for profile {profile_name}:')
+        print(f'   [-] Report generated: {report_file_status}'
+        print(f'   [-] Report size: {report_size}'
+        print(f'   [-] Report created: {report_ctime}'
+        print(f'   [-] Report modifed: {report_mtime}'
+
     except Exception as err:
         print(f'Exception in report_info: {err}')
 
