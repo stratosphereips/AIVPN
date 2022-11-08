@@ -12,6 +12,7 @@ import logging
 import configparser
 from common.database import *
 
+
 def manage_info(REDIS_CLIENT,profile_name):
     """
     Retrieve information about an AI VPN profile_name
@@ -59,6 +60,7 @@ def manage_info(REDIS_CLIENT,profile_name):
     except Exception as err:
         print(f'Exception in manage_info: {err}')
 
+
 def manage_expire(REDIS_CLIENT,profile_name):
     """
     Add a profile to the force expire queue to deprovision
@@ -74,6 +76,7 @@ def manage_expire(REDIS_CLIENT,profile_name):
     except Exception as err:
         print(f'Exception in manage_expire: {err}')
 
+
 def manage_extend(REDIS_CLIENT,profile_name):
     """
     """
@@ -82,6 +85,7 @@ def manage_extend(REDIS_CLIENT,profile_name):
         pass
     except Exception as err:
         print(f'Exception in manage_extend: {err}')
+
 
 def manage_whois(REDIS_CLIENT,profile_name):
     """
@@ -93,6 +97,7 @@ def manage_whois(REDIS_CLIENT,profile_name):
         print(f"[+] User identity for {profile_name} is {identity}")
     except Exception as err:
         print(f'Exception in manage_whois: {err}')
+
 
 def validate_identity(identity):
     """
@@ -111,6 +116,7 @@ def validate_identity(identity):
         return msg_type
     except Exception as err:
         print(f'Exception in validate_identity: {err}')
+
 
 def provision_openvpn(REDIS_CLIENT, identity):
     """
@@ -136,6 +142,7 @@ def provision_openvpn(REDIS_CLIENT, identity):
     except Exception as err:
         print(f'Exception in provision_new_openvpn: {err}')
 
+
 def provision_wireguard(REDIS_CLIENT,identity):
     """
     Trigger the provisioning of a new Wireguard profile for a client
@@ -157,6 +164,7 @@ def provision_wireguard(REDIS_CLIENT,identity):
             print('Provisioning process failed, try again')
     except Exception as err:
         print(f'Exception in provision_new_wireguard: {err}')
+
 
 def provision_novpn(REDIS_CLIENT,identity):
     """
@@ -180,6 +188,7 @@ def provision_novpn(REDIS_CLIENT,identity):
     except Exception as err:
         print(f'Exception in provision_new_novpn: {err}')
 
+
 def audit_active_profiles(REDIS_CLIENT,action):
     """
     Retrieve a list of active VPN profiles
@@ -194,6 +203,7 @@ def audit_active_profiles(REDIS_CLIENT,action):
     except Exception as err:
         print(f'Exception in audit_active_profiles: {err}')
 
+
 def audit_expired_profiles(REDIS_CLIENT,action):
     """
     Retrieve a list of expired profiles
@@ -207,6 +217,7 @@ def audit_expired_profiles(REDIS_CLIENT,action):
                 print(f"   [-] {profile}")
     except Exception as err:
         print(f'Exception in audit_expired_profiles: {err}')
+
 
 def audit_queued_profiles(REDIS_CLIENT,action):
     """
