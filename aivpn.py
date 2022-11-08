@@ -307,6 +307,18 @@ if __name__ == '__main__':
             cli_action = audit_queued_profiles
         params = args.profiles
 
+    if args.command == "report":
+        logging.info('Reporting profile')
+        if args.info:
+            cli_action = report_info
+            params = args.info
+        elif args.send:
+            cli_action = report_send
+            params = args.send
+        elif args.create:
+            cli_action = report_create
+            params = args.create
+
     # Connecting to the Redis database
     try:
         redis_client = redis_connect_to_db(args.redis)
