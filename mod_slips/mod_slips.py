@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # This file is part of the Civilsphere AI VPN
 # See the file 'LICENSE' for copying permission.
-# Author: Veronica Valeros, vero.valeros@gmail.com, veronica.valeros@aic.fel.cvut.cz
+# Author: Veronica Valeros
+# Contact: vero.valeros@gmail.com, veronica.valeros@aic.fel.cvut.cz
 
 import os
 import sys
@@ -15,7 +16,10 @@ from common.database import redis_subscribe_to_channel
 
 
 def process_profile_traffic(profile_name, PATH):
-    """ Function to process the traffic for a given profile. """
+    """
+    Function to process the traffic for a given profile.
+    """
+
     VALID_CAPTURE = False
     try:
         # Find all pcaps for the profile and process them
@@ -24,7 +28,7 @@ def process_profile_traffic(profile_name, PATH):
         for capture_file in glob.glob("*.pcap"):
             os.mkdir(f'{PATH}/{profile_name}/slips_{capture_file}')
             capture_size = os.stat(capture_file).st_size
-            logging.info(f'Processing capture {capture_file} ({capture_size} b)')
+            logging.info(f'Processing file: {capture_file} ({capture_size} b)')
 
             # If capture is not empty: process it
             if capture_size > 25:
@@ -33,8 +37,10 @@ def process_profile_traffic(profile_name, PATH):
                 OUTPUT = f'{PATH}/{profile_name}/slips_{capture_file}/'
                 FILENAME = f'{PATH}/{profile_name}/{capture_file}'
                 CONFIGURATION = '/StratosphereLinuxIPS/aivpn_slips.conf'
-                args = ['/StratosphereLinuxIPS/slips.py', '-c', CONFIGURATION, '-f', FILENAME, '-o', OUTPUT]
-                process = subprocess.Popen(args, cwd="/StratosphereLinuxIPS", stdout=subprocess.PIPE)
+                args = ['/StratosphereLinuxIPS/slips.py', '-c', CONFIGURATION,
+                        '-f', FILENAME, '-o', OUTPUT]
+                process = subprocess.Popen(args, cwd="/StratosphereLinuxIPS",
+                                           stdout=subprocess.PIPE)
                 process.wait()
                 return VALID_CAPTURE
         return False
@@ -53,13 +59,14 @@ if __name__ == '__main__':
     LOG_FILE = config['LOGS']['LOG_SLIPS']
     PATH = config['STORAGE']['PATH']
 
-    logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG, format='%(asctime)s, MOD_SLIPS, %(message)s')
+    logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG,
+                        format='%(asctime)s, MOD_SLIPS, %(message)s')
 
     # Connecting to the Redis database
     try:
         redis_client = redis_connect_to_db(REDIS_SERVER)
     except Exception as err:
-        logging.error(f'Unable to connect to the Redis database ({REDIS_SERVER}): {err}')
+        logging.error(f'Cannot connect to Redis ({REDIS_SERVER}): {err}')
         sys.exit(-1)
 
     # Creating a Redis subscriber
@@ -85,27 +92,27 @@ if __name__ == '__main__':
         sys.exit(-1)
 
     try:
-        logging.info("Connection and channel subscription to redis successful.")
+        logging.info("Successful Redis connection and subscription.")
 
         # Checking for messages
         for item in db_subscriber.listen():
             if item['type'] == 'message':
-                logging.info("New message received in channel {}: {}".format(item['channel'], item['data']))
+                logging.info(f"New message in channel {item['channel']}: {item['data']}")
                 if item['data'] == 'report_status':
                     redis_client.publish('services_status', 'MOD_SLIPS:online')
                     logging.info('MOD_SLIPS:online')
                 elif 'process_profile' in item['data']:
                     profile_name = item['data'].split(':')[1]
-                    logging.info(f'Processing profile {profile_name} with Slips')
+                    logging.info(f'Running Slips on profile {profile_name}')
                     status = process_profile_traffic(profile_name, PATH)
-                    logging.info(f'Status of the processing of profile {profile_name}: {status}')
+                    logging.info(f'Slips analysis on {profile_name}: {status}')
                     if not status:
-                        logging.info('An error occurred processing the capture with Slips')
+                        logging.info('Error running Slips on profile')
                         message = f'slips_false:{profile_name}'
                         redis_client.publish('slips_processing', message)
                         continue
                     if status:
-                        logging.info('Processing of associated captures completed')
+                        logging.info('Slips analysis completed')
                         message = f'slips_true:{profile_name}'
                         redis_client.publish('slips_processing', message)
 
