@@ -17,16 +17,19 @@ from common.database import redis_subscribe_to_channel
 
 def process_profile_traffic(profile_name, PATH):
     """
-    Function to process the traffic for a given profile.
+    Process the traffic for a given profile with Slips IDS.
     """
 
     VALID_CAPTURE = False
     try:
         # Find all pcaps for the profile and process them
+        # Go to profile directory
         os.chdir(f'{PATH}/{profile_name}')
 
+        # Find all pcaps for the profile and process them
         for capture_file in glob.glob("*.pcap"):
             os.mkdir(f'{PATH}/{profile_name}/slips_{capture_file}')
+            # Check size of packet capture
             capture_size = os.stat(capture_file).st_size
             logging.info(f'Processing file: {capture_file} ({capture_size} b)')
 
@@ -44,6 +47,12 @@ def process_profile_traffic(profile_name, PATH):
                 process.wait()
                 return VALID_CAPTURE
         return False
+            # If capture is empty: do not process it
+            # If capture is not empty, process it with Slips IDS
+            # Create Slips working directory
+            # Run Slips as subprocess
+            # Wait for Slips IDS to finish processing
+        # When all captures are processed, return True
     except Exception as err:
         logging.info(f'Exception in process_profile_traffic: {err}')
         return False
