@@ -2,13 +2,6 @@
 
 All contributions are welcomed, thank you for taking the time to contribute to this project! 
 
-## How can you contribute?
-
-* Report bugs
-* Suggest features and ideas
-* Pull requests with a solved GitHub issue and new feature
-* Pull request with a new content.
-
 ## Persistent Git Branches
 
 The following git branches permanent in the Slips repository:
@@ -24,7 +17,7 @@ to follow when contributing:
 
 - bugfix-<>:        pull request branch, contains one bugfix,
 - docs-<>:          pull request branch, contains documentation work,
-- feat-<>:       pull request branch, contains a new feature,
+- feat-<>:          pull request branch, contains a new feature,
 - refactor-<>:      pull request branch, contains code refactoring,
 
 ## What branch should you base your contribution?
@@ -41,3 +34,11 @@ Pull Requests:
 - If you have developed multiple features and/or bugfixes, create separate
     branches for each one of them, and request merges for each branch;
 - The cleaner you code/change/changeset is, the faster it will be merged.
+
+## How can you contribute?
+
+* Report bugs
+* Suggest features and ideas
+* Pull requests with a solved GitHub issue and new feature
+* Pull request with a new content.
+

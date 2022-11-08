@@ -5,11 +5,9 @@
 
 import re
 import sys
-import json
 import datetime
 import argparse
 import logging
-import configparser
 from common.database import *
 
 
@@ -17,7 +15,6 @@ def manage_info(REDIS_CLIENT,profile_name):
     """
     Retrieve information about an AI VPN profile_name
     """
-    profile_information = {}
     try:
         logging.debug('Manage info: {profile_name}')
         vpn_type = get_profile_vpn_type(profile_name,REDIS_CLIENT)
@@ -60,15 +57,14 @@ def manage_info(REDIS_CLIENT,profile_name):
     except Exception as err:
         print(f'Exception in manage_info: {err}')
 
-
-def manage_expire(REDIS_CLIENT,profile_name):
+def manage_expire(REDIS_CLIENT, profile_name):
     """
     Add a profile to the force expire queue to deprovision
     """
     try:
         logging.debug(f'Manage expire: {profile_name}')
-        if exists_active_profile(profile_name,REDIS_CLIENT):
-            status = add_profile_to_force_expire(REDIS_CLIENT,profile_name)
+        if exists_active_profile(profile_name, REDIS_CLIENT):
+            status = add_profile_to_force_expire(REDIS_CLIENT, profile_name)
             redis_client.publish('services_status', 'MOD_CLI:FORCE_EXPIRE')
             print(f"[+] Forced expiration on profile '{profile_name}' was '{status}'")
         else:
@@ -77,22 +73,19 @@ def manage_expire(REDIS_CLIENT,profile_name):
         print(f'Exception in manage_expire: {err}')
 
 
-def manage_extend(REDIS_CLIENT,profile_name):
-    """
-    """
+def manage_extend(profile_name):
     try:
         logging.debug(f'Manage extend: {profile_name}')
-        pass
     except Exception as err:
         print(f'Exception in manage_extend: {err}')
 
 
-def manage_whois(REDIS_CLIENT,profile_name):
+def manage_whois(REDIS_CLIENT, profile_name):
     """
     Retrieve identity associated with a profile
     """
     try:
-        identity=get_profile_name_address(profile_name,REDIS_CLIENT)
+        identity = get_profile_name_address(profile_name, REDIS_CLIENT)
         logging.debug(f'Manage whois: {profile_name}')
         print(f"[+] User identity for {profile_name} is {identity}")
     except Exception as err:
@@ -106,90 +99,83 @@ def validate_identity(identity):
     try:
         email_regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
         telegram_regex = r'\b[0-9]{8,}\b'
-        if(re.fullmatch(email_regex, identity)):
-            msg_type = "email"
-        elif (re.fullmatch(telegram_regex, identity)):
-            msg_type = "telegram"
+        if re.fullmatch(email_regex, identity):
+            return "email"
+        elif re.fullmatch(telegram_regex, identity):
+            return "telegram"
         else:
-            print(f"Identity must be a valid format (email or telegram ID): {identity}")
+            logging.debug(f"Identity must be a valid format (email or telegram ID): {identity}")
             return False
-        return msg_type
     except Exception as err:
         print(f'Exception in validate_identity: {err}')
+
+
+def get_validated_data(identity):
+    try:
+        valid_identity = validate_identity(identity)
+        return {
+            "msg_id": 1,
+            "msg_type": valid_identity,
+            "msg_addr ": identity,
+            "msg_request": ["openvpn", "wireguard", "novpn"]
+        }
+
+    except Exception as err:
+        logging.debug(f"Identity {identity} is not valid")
+        return f'Exception occurred in data validation for provision {err}'
 
 
 def provision_openvpn(REDIS_CLIENT, identity):
     """
     Trigger the provisioning of a new OpenVPN profile for a client
     """
-    try:
-        logging.debug(f'Provision OpenVPN: {identity}')
-
-        msg_id = 1
-        msg_request = "openvpn"
-        msg_addr = identity
-        msg_type = validate_identity(identity)
-
-        if msg_id and msg_request and msg_addr and msg_type:
-            # Add to privisioning queue
-            logging.debug(f"Adding item to provisioning queue. Msg ID: {msg_id}, msg_type: {msg_type}, msg_addr: {msg_addr}, msg_request: {msg_request}")
-            status = add_item_provisioning_queue(REDIS_CLIENT,msg_id,msg_type,msg_addr,msg_request)
-            redis_client.publish('services_status', 'MOD_CLI:NEW_REQUEST')
-            print(f"Provisioning triggered: {status}. Number of items in the queue: {list_items_provisioning_queue(REDIS_CLIENT)}")
-        else:
-            print('Provisioning process failed, try again')
-
-    except Exception as err:
-        print(f'Exception in provision_new_openvpn: {err}')
+    identity_valid_data = get_validated_data(identity)
+    logging.debug(f'Provision OpenVPN: {identity}')
+    if identity_valid_data["msg_request"][0] and identity_valid_data["msg_type"]:
+        # Add to provisioning queue
+        status = add_item_provisioning_queue(REDIS_CLIENT, identity_valid_data["msg_id"], identity_valid_data["msg_type"],
+                                             identity_valid_data["msg_addr"], identity_valid_data["msg_request"][0])
+        redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
+        print(
+            f"Provisioning triggered: {status}. Number of items in the queue: {list_items_provisioning_queue(REDIS_CLIENT)}")
+    else:
+        print('Provisioning process failed, try again')
 
 
-def provision_wireguard(REDIS_CLIENT,identity):
+def provision_wireguard(REDIS_CLIENT, identity):
     """
     Trigger the provisioning of a new Wireguard profile for a client
     """
-    try:
-        logging.debug(f'Provision Wireguard: {identity}')
-        msg_id = 1
-        msg_request = "wireguard"
-        msg_addr = identity
-        msg_type = validate_identity(identity)
-
-        if msg_id and msg_request and msg_addr and msg_type:
-            # Add to privisioning queue
-            logging.debug(f"Adding item to provisioning queue. Msg ID: {msg_id}, msg_type: {msg_type}, msg_addr: {msg_addr}, msg_request: {msg_request}")
-            status = add_item_provisioning_queue(REDIS_CLIENT,msg_id,msg_type,msg_addr,msg_request)
-            redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
-            print(f"Provisioning triggered: {status}. Number of items in the queue: {list_items_provisioning_queue(REDIS_CLIENT)}")
-        else:
-            print('Provisioning process failed, try again')
-    except Exception as err:
-        print(f'Exception in provision_new_wireguard: {err}')
+    valid_data = get_validated_data(identity)
+    logging.debug(f'Provision Wireguard: {identity}')
+    if valid_data["msg_request"][1] and valid_data["msg_type"]:
+        # Add to provisioning queue
+        status = add_item_provisioning_queue(REDIS_CLIENT, valid_data["msg_id"], valid_data["msg_type"],
+                                             valid_data["msg_addr"], valid_data["msg_request"][1])
+        redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
+        print(
+            f"Provisioning triggered: {status}. Number of items in the queue: {list_items_provisioning_queue(REDIS_CLIENT)}")
+    else:
+        print('Provisioning process failed, try again')
 
 
-def provision_novpn(REDIS_CLIENT,identity):
+def provision_novpn(REDIS_CLIENT, identity):
     """
     Trigger the provisioning of a new not encrypted vpn profile for a client
     """
-    try:
-        logging.debug(f'Provision No VPN: {identity}')
-        msg_id = 1
-        msg_request = "novpn"
-        msg_addr = identity
-        msg_type = validate_identity(identity)
-
-        if msg_id and msg_request and msg_addr and msg_type:
-            # Add to privisioning queue
-            logging.debug(f"Adding item to provisioning queue. Msg ID: {msg_id}, msg_type: {msg_type}, msg_addr: {msg_addr}, msg_request: {msg_request}")
-            status = add_item_provisioning_queue(REDIS_CLIENT,msg_id,msg_type,msg_addr,msg_request)
-            redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
-            print(f"Provisioning triggered: {status}. Number of items in the queue: {list_items_provisioning_queue(REDIS_CLIENT)}")
-        else:
-            print('Provisioning process failed, try again')
-    except Exception as err:
-        print(f'Exception in provision_new_novpn: {err}')
+    valid_data = get_validated_data(identity)
+    logging.debug(f'Provision No VPN: {identity}')
+    if valid_data["msg_request"][2] and valid_data["msg_type"]:
+        status = add_item_provisioning_queue(REDIS_CLIENT, valid_data["msg_id"], valid_data["msg_type"],
+                                             valid_data["msg_addr"], valid_data["msg_request"][2])
+        redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
+        print(
+            f"Provisioning triggered: {status}. Number of items in the queue: {list_items_provisioning_queue(REDIS_CLIENT)}")
+    else:
+        print('Provisioning process failed, try again')
 
 
-def audit_active_profiles(REDIS_CLIENT,action):
+def audit_active_profiles(REDIS_CLIENT, action):
     """
     Retrieve a list of active VPN profiles
     """
@@ -197,14 +183,14 @@ def audit_active_profiles(REDIS_CLIENT,action):
         logging.debug('Audit active profiles')
         active_profiles = get_active_profiles_keys(REDIS_CLIENT)
         print(f"[+] Number of active profiles: {len(active_profiles)}")
-        if len(active_profiles)>0:
+        if len(active_profiles) > 0:
             for profile in active_profiles:
                 print(f"   [-] {profile}")
     except Exception as err:
         print(f'Exception in audit_active_profiles: {err}')
 
 
-def audit_expired_profiles(REDIS_CLIENT,action):
+def audit_expired_profiles(REDIS_CLIENT, action):
     """
     Retrieve a list of expired profiles
     """
@@ -212,14 +198,14 @@ def audit_expired_profiles(REDIS_CLIENT,action):
         logging.debug('Audit expired profiles')
         expired_profiles = get_expired_profiles_keys(REDIS_CLIENT)
         print(f"[+] Number of expired profiles: {len(expired_profiles)}")
-        if len(expired_profiles)>0:
+        if len(expired_profiles) > 0:
             for profile in expired_profiles:
                 print(f"   [-] {profile}")
     except Exception as err:
         print(f'Exception in audit_expired_profiles: {err}')
 
 
-def audit_queued_profiles(REDIS_CLIENT,action):
+def audit_queued_profiles(REDIS_CLIENT, action):
     """
     Retrieve a list of profiles in provisioning queue
     """
@@ -231,40 +217,6 @@ def audit_queued_profiles(REDIS_CLIENT,action):
         print(f'Exception in audit_expired_profiles: {err}')
 
 
-def report_info():
-    """
-    Retrieve information about the automatic report
-    linked to a AI VPN profile.
-    """
-    try:
-        logging.debug('Retrieve report information')
-    except Exception as err:
-        print(f'Exception in report_info: {err}')
-
-
-def report_send():
-    """
-    Retrieve the automatic report for a given profile,
-    retrieve the user identity, and send the profile to
-    the user.
-    """
-    try:
-        logging.debug('Send profile report to user')
-    except Exception as err:
-        print(f'Exception in report_send: {err}')
-
-
-def report_create():
-    """
-    Trigger the (re)creation of a new automatic report
-    for a given AI VPN profile.
-    """
-    try:
-        logging.debug('Create report for profile')
-    except Exception as err:
-        print(f'Exception in report_create: {err}')
-
-
 if __name__ == '__main__':
     # Read configuration
     config = configparser.ConfigParser()
@@ -273,8 +225,8 @@ if __name__ == '__main__':
     MOD_CHANNELS = json.loads(config['REDIS']['REDIS_MODULES'])
     LOG_FILE = config['LOGS']['LOG_CLI']
 
-    parser = argparse.ArgumentParser(description = "AI VPN Command Line Tool")
-    parser.add_argument( "-v", "--verbose", help="increase output verbosity", action="store_true")
+    parser = argparse.ArgumentParser(description="AI VPN Command Line Tool")
+    parser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
     parser.add_argument('--redis', help="AI VPN redis module IP address", required=True)
 
     # Configure commands
@@ -282,37 +234,37 @@ if __name__ == '__main__':
     manage = subparser.add_parser('manage', help=f'Manage an AI VPN profile')
     provision = subparser.add_parser('provision', help=f'Provision a new AI VPN account')
     audit = subparser.add_parser('audit', help=f'Audit AI VPN activities')
-    report = subparser.add_parser('report', help=f'Manage AI VPN analysis reports')
 
     # manage actions
-    manage.add_argument('--info', help='retrieve information of a profile', type=str, required=False, metavar='<profile_name>')
+    manage.add_argument('--info', help='retrieve information of a profile', type=str, required=False,
+                        metavar='<profile_name>')
     manage.add_argument('--expire', help='expire a profile', type=str, required=False, metavar='<profile_name>')
-    manage.add_argument('--extend', help='extend the expiration of a profile (add default expiration on top of current date)', type=str, required=False, metavar='<profile_name>')
-    manage.add_argument('--whois', help='retrieve identity associated with a profile', type=str, required=False, metavar='<profile_name>')
+    manage.add_argument('--extend',
+                        help='extend the expiration of a profile (add default expiration on top of current date)',
+                        type=str, required=False, metavar='<profile_name>')
+    manage.add_argument('--whois', help='retrieve identity associated with a profile', type=str, required=False,
+                        metavar='<profile_name>')
 
     # provision actions
-    provision.add_argument('--openvpn', help='create a new openvpn profile for a given identity', type=str, required=False, metavar='<user email | user telegram>')
-    provision.add_argument('--wireguard', help='create a new wireguard profile for a given identity', type=str, required=False, metavar='<user email | user telegram>')
-    provision.add_argument('--novpn', help='create a new novpn profile for a given identity', type=str, required=False, metavar='<user email | user telegram>')
+    provision.add_argument('--openvpn', help='create a new openvpn profile for a given identity', type=str,
+                           required=False, metavar='<user email | user telegram>')
+    provision.add_argument('--wireguard', help='create a new wireguard profile for a given identity', type=str,
+                           required=False, metavar='<user email | user telegram>')
+    provision.add_argument('--novpn', help='create a new novpn profile for a given identity', type=str, required=False,
+                           metavar='<user email | user telegram>')
 
     # audit actions
-    audit.add_argument('--profiles', choices=['active','expired','queued'], help='Audit profiles by type')
-
-    # report actions
-    manage.add_argument('--info', help='retrieve report information of a profile', type=str, required=False, metavar='<profile_name>')
-    manage.add_argument('--send', help='send profile report to user', type=str, required=False, metavar='<profile_name>')
-    manage.add_argument('--create', help='create automatic report for profile', type=str, required=False, metavar='<profile_name>')
-
+    audit.add_argument('--profiles', choices=['active', 'expired', 'queued'], help='Audit profiles by type')
 
     args = parser.parse_args()
 
     # Setup logging
     if args.verbose:
-        log_level=logging.DEBUG
+        log_level = logging.DEBUG
     else:
-        log_level=logging.INFO
+        log_level = logging.INFO
 
-    logging.basicConfig(filename=LOG_FILE, level=log_level,format='%(asctime)s, AIVPN_CLI, %(message)s')
+    logging.basicConfig(filename=LOG_FILE, level=log_level, format='%(asctime)s, AIVPN_CLI, %(message)s')
 
     # parsing commands
     if args.command == 'manage':
@@ -351,18 +303,6 @@ if __name__ == '__main__':
         elif args.profiles == 'queued':
             cli_action = audit_queued_profiles
         params = args.profiles
-
-    if args.command == "report":
-        logging.info('Reporting profile')
-        if args.info:
-            cli_action = report_info
-            params = args.info
-        elif args.send:
-            cli_action = report_send
-            params = args.send
-        elif args.create:
-            cli_action = report_create
-            params = args.create
 
     # Connecting to the Redis database
     try:
