@@ -20,39 +20,39 @@ def process_profile_traffic(profile_name, PATH):
     Process the traffic for a given profile with Slips IDS.
     """
 
-    VALID_CAPTURE = False
     try:
-        # Find all pcaps for the profile and process them
         # Go to profile directory
         os.chdir(f'{PATH}/{profile_name}')
 
         # Find all pcaps for the profile and process them
         for capture_file in glob.glob("*.pcap"):
-            os.mkdir(f'{PATH}/{profile_name}/slips_{capture_file}')
             # Check size of packet capture
             capture_size = os.stat(capture_file).st_size
             logging.info(f'Processing file: {capture_file} ({capture_size} b)')
 
-            # If capture is not empty: process it
-            if capture_size > 25:
-                VALID_CAPTURE = True
-                # Run Slips here
-                OUTPUT = f'{PATH}/{profile_name}/slips_{capture_file}/'
-                FILENAME = f'{PATH}/{profile_name}/{capture_file}'
-                CONFIGURATION = '/StratosphereLinuxIPS/aivpn_slips.conf'
-                args = ['/StratosphereLinuxIPS/slips.py', '-c', CONFIGURATION,
-                        '-f', FILENAME, '-o', OUTPUT]
-                process = subprocess.Popen(args, cwd="/StratosphereLinuxIPS",
-                                           stdout=subprocess.PIPE)
-                process.wait()
-                return VALID_CAPTURE
-        return False
             # If capture is empty: do not process it
+            if capture_size < 26:
+                return False
+
             # If capture is not empty, process it with Slips IDS
+            FILENAME = f'{PATH}/{profile_name}/{capture_file}'
+            SLIPS_OUTPUT = f'{PATH}/{profile_name}/slips_{capture_file}/'
+            SLIPS_CONF = '/StratosphereLinuxIPS/aivpn_slips.conf'
+
             # Create Slips working directory
+            os.mkdir(f'{PATH}/{profile_name}/slips_{capture_file}')
+
             # Run Slips as subprocess
+            args = ['/StratosphereLinuxIPS/slips.py', '-c', SLIPS_CONF,
+                    '-f', FILENAME, '-o', SLIPS_OUTPUT]
+            process = subprocess.run(args, cwd="/StratosphereLinuxIPS",
+                                       stdout=subprocess.PIPE, timeout=86400)
+
             # Wait for Slips IDS to finish processing
+            process.wait()
+
         # When all captures are processed, return True
+        return True
     except Exception as err:
         logging.info(f'Exception in process_profile_traffic: {err}')
         return False
