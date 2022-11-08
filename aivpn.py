@@ -249,8 +249,8 @@ def report_info(REDIS_CLIENT, profile_name):
             AIVPN_PATH = os.getcwd()
             REPORT_FILE = f'{AIVPN_PATH}/data/{profile_name}/{profile_name}.pdf'
             report_size = os.path.getsize(REPORT_FILE)
-            report_ctime = os.path.getctime(REPORT_FILE)
-            report_mtime = os.path.getmtime(REPORT_FILE)
+            report_ctime = datetime.datetime.fromtimestamp(float(os.path.getctime(REPORT_FILE)))
+            report_mtime = datetime.datetime.fromtimestamp(float(os.path.getmtime(REPORT_FILE)))
         else:
             report_size = 0
             report_ctime = 0
@@ -259,7 +259,7 @@ def report_info(REDIS_CLIENT, profile_name):
         # Print information to the user
         print(f'[+] AI VPN automatic report information for profile {profile_name}:')
         print(f'   [-] Report generated: {report_file_status}')
-        print(f'   [-] Report size: {report_size}')
+        print(f'   [-] Report size: {report_size} b')
         print(f'   [-] Report created: {report_ctime}')
         print(f'   [-] Report modifed: {report_mtime}')
 
