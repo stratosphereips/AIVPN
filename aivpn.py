@@ -237,6 +237,7 @@ if __name__ == '__main__':
     manage = subparser.add_parser('manage', help=f'Manage an AI VPN profile')
     provision = subparser.add_parser('provision', help=f'Provision a new AI VPN account')
     audit = subparser.add_parser('audit', help=f'Audit AI VPN activities')
+    report = subparser.add_parser('report', help=f'Manage AI VPN analysis reports')
 
     # manage actions
     manage.add_argument('--info', help='retrieve information of a profile', type=str, required=False, metavar='<profile_name>')
@@ -251,6 +252,12 @@ if __name__ == '__main__':
 
     # audit actions
     audit.add_argument('--profiles', choices=['active','expired','queued'], help='Audit profiles by type')
+
+    # report actions
+    manage.add_argument('--info', help='retrieve report information of a profile', type=str, required=False, metavar='<profile_name>')
+    manage.add_argument('--send', help='send profile report to user', type=str, required=False, metavar='<profile_name>')
+    manage.add_argument('--create', help='create automatic report for profile', type=str, required=False, metavar='<profile_name>')
+
 
     args = parser.parse_args()
 
