@@ -306,9 +306,9 @@ if __name__ == '__main__':
     audit.add_argument('--profiles', choices=['active', 'expired', 'queued'], help='Audit profiles by type')
 
     # report actions
-    manage.add_argument('--info', help='retrieve report information of a profile', type=str, required=False, metavar='<profile_name>')
-    manage.add_argument('--send', help='send profile report to user', type=str, required=False, metavar='<profile_name>')
-    manage.add_argument('--create', help='create automatic report for profile', type=str, required=False, metavar='<profile_name>')
+    report.add_argument('--info', help='retrieve report information of a profile', type=str, required=False, metavar='<profile_name>')
+    report.add_argument('--send', help='send profile report to user', type=str, required=False, metavar='<profile_name>')
+    report.add_argument('--create', help='create automatic report for profile', type=str, required=False, metavar='<profile_name>')
 
     args = parser.parse_args()
 
