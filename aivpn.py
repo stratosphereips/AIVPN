@@ -231,6 +231,33 @@ def audit_queued_profiles(REDIS_CLIENT,action):
         print(f'Exception in audit_expired_profiles: {err}')
 
 
+def report_info():
+    """
+    """
+    try:
+        logging.debug('Retrieve report information')
+    except Exception as err:
+        print(f'Exception in report_info: {err}')
+
+
+def report_send():
+    """
+    """
+    try:
+        logging.debug('Send profile report to user')
+    except Exception as err:
+        print(f'Exception in report_send: {err}')
+
+
+def report_create():
+    """
+    """
+    try:
+        logging.debug('Create report for profile')
+    except Exception as err:
+        print(f'Exception in report_create: {err}')
+
+
 if __name__ == '__main__':
     # Read configuration
     config = configparser.ConfigParser()
