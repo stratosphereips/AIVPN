@@ -6,13 +6,12 @@
 import os
 import sys
 import glob
-import json
-import redis
 import logging
 import subprocess
 import configparser
-from common.database import *
-from collections import Counter
+from common.database import redis_connect_to_db
+from common.database import redis_create_subscriber
+from common.database import redis_subscribe_to_channel
 
 def process_profile_traffic(profile_name,PATH):
     """ Function to process the traffic for a given profile. """
