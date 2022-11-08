@@ -48,9 +48,6 @@ def process_profile_traffic(profile_name, PATH):
             process = subprocess.run(args, cwd="/StratosphereLinuxIPS",
                                        stdout=subprocess.PIPE, timeout=86400)
 
-            # Wait for Slips IDS to finish processing
-            process.wait()
-
         # When all captures are processed, return True
         return True
     except Exception as err:
