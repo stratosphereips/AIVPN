@@ -256,13 +256,12 @@ def report_info(REDIS_CLIENT, profile_name):
             report_ctime = 0
             report_mtime = 0
 
-
         # Print information to the user
         print(f'[+] AI VPN automatic report information for profile {profile_name}:')
-        print(f'   [-] Report generated: {report_file_status}'
-        print(f'   [-] Report size: {report_size}'
-        print(f'   [-] Report created: {report_ctime}'
-        print(f'   [-] Report modifed: {report_mtime}'
+        print(f'   [-] Report generated: {report_file_status}')
+        print(f'   [-] Report size: {report_size}')
+        print(f'   [-] Report created: {report_ctime}')
+        print(f'   [-] Report modifed: {report_mtime}')
 
     except Exception as err:
         print(f'Exception in report_info: {err}')
