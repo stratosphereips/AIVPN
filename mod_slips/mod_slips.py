@@ -13,6 +13,7 @@ from common.database import redis_connect_to_db
 from common.database import redis_create_subscriber
 from common.database import redis_subscribe_to_channel
 
+
 def process_profile_traffic(profile_name, PATH):
     """ Function to process the traffic for a given profile. """
     VALID_CAPTURE = False
@@ -41,8 +42,9 @@ def process_profile_traffic(profile_name, PATH):
         logging.info(f'Exception in process_profile_traffic: {err}')
         return False
 
+
 if __name__ == '__main__':
-    #Read configuration
+    # Read configuration
     config = configparser.ConfigParser()
     config.read('config/config.ini')
 
