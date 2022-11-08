@@ -218,13 +218,17 @@ def audit_queued_profiles(REDIS_CLIENT, action):
         print(f'Exception in audit_expired_profiles: {err}')
 
 
-def report_info():
+def report_info(REDIS_CLIENT, profile_name):
     """
     Retrieve information about the automatic report
     linked to a AI VPN profile.
     """
     try:
         logging.debug('Retrieve report information')
+        if exists_active_profile(profile_name,REDIS_CLIENT):
+            print(f'[+] The profile {profile_name} is still active and \
+                   the report has not yet been generated')
+            return True
     except Exception as err:
         print(f'Exception in report_info: {err}')
 
@@ -237,6 +241,10 @@ def report_send():
     """
     try:
         logging.debug('Send profile report to user')
+        if exists_active_profile(profile_name,REDIS_CLIENT):
+            print(f'[+] The profile {profile_name} is still active and \
+                   the report has not yet been generated')
+            return True
     except Exception as err:
         print(f'Exception in report_send: {err}')
 
@@ -248,6 +256,10 @@ def report_create():
     """
     try:
         logging.debug('Create report for profile')
+        if exists_active_profile(profile_name,REDIS_CLIENT):
+            print(f'[+] The profile {profile_name} is still active and \
+                   the report has not yet been generated')
+            return True
     except Exception as err:
         print(f'Exception in report_create: {err}')
 
