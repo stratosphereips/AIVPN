@@ -240,8 +240,7 @@ def report_info(REDIS_CLIENT, profile_name):
     try:
         logging.debug('Retrieve report information')
         if exists_active_profile(profile_name,REDIS_CLIENT):
-            print(f'[+] The profile {profile_name} is still active and \
-                   the report has not yet been generated')
+            print(f'[+] The profile {profile_name} is still active and the report has not yet been generated')
             return True
     except Exception as err:
         print(f'Exception in report_info: {err}')
@@ -256,8 +255,7 @@ def report_send():
     try:
         logging.debug('Send profile report to user')
         if exists_active_profile(profile_name,REDIS_CLIENT):
-            print(f'[+] The profile {profile_name} is still active and \
-                   the report has not yet been generated')
+            print(f'[+] The profile {profile_name} is still active and the report has not yet been generated')
             return True
     except Exception as err:
         print(f'Exception in report_send: {err}')
@@ -271,8 +269,7 @@ def report_create():
     try:
         logging.debug('Create report for profile')
         if exists_active_profile(profile_name,REDIS_CLIENT):
-            print(f'[+] The profile {profile_name} is still active and \
-                   the report has not yet been generated')
+            print(f'[+] The profile {profile_name} is still active and the report has not yet been generated')
             return True
     except Exception as err:
         print(f'Exception in report_create: {err}')
