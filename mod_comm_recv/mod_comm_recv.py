@@ -274,7 +274,7 @@ if __name__ == '__main__':
             if item['type'] == 'message':
                 logging.info(f"New message received in channel {item['channel']}: {item['data']}")
                 if item['data'] == 'report_status':
-                    if get_email_requests(redis_client, IMAP_SERVER, IMAP_USERNAME, IMAP_PASSWORD):
+                    if get_email_requests(redis_client):
                         redis_client.publish('services_status','MOD_COMM_RECV:online')
                         logging.info('Status Online')
                     else:
