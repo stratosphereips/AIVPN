@@ -159,7 +159,22 @@ def get_email_body_data(message):
         logging.debug(f"Failed with exception {e}. Email body is not in rich email.")
         return message.get_payload()
 
-
+def get_msg_request(processed_emails):
+    """
+    Takes email message and search for vpn keyword in subject or body of the email
+    and returns vpn keyword as message request
+    """
+    # search for vpn name in subject of an email
+    if processed_emails['subject'] is not None:
+        email_subject_search = search_body_or_subject(processed_emails['subject'])
+        if email_subject_search:
+            return email_subject_search
+        else:
+            # search for vpn keyword in a body of an email
+            email_body_data = get_email_body_data(processed_emails)
+            email_body_search = search_body_or_subject(email_body_data)
+            if email_body_search:
+                return email_body_search
 
 def get_email_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
     """
