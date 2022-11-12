@@ -124,6 +124,43 @@ def process_email_message(msg):
         if email_to == IMAP_USERNAME:
             return msg
 
+def get_email_by_vpn_keyword(email_field):
+    if email_field is None:
+        return ""
+    elif email_field == "NOENCRYPTEDVPN":
+        return "novpn"
+    elif email_field == "WIREGUARD":
+        return "wireguard"
+    elif email_field == "VPN":
+        return "openvpn"
+    else:
+        return False
+
+def search_for_vpn_keyword(msg):
+    patterns = ["NOENCRYPTEDVPN", "WIREGUARD", "VPN"]
+    for pattern in patterns:
+        try:
+            match = re.search(pattern, msg, re.IGNORECASE)
+            if match:
+                logging.info(f"Found the correct match for vpn keyword: {match.group(0)}")
+                return match.group(0)
+        except Exception as e:
+            logging.error(f"Failed to find the correct email subject in parse_email_subject {e}")
+            return False
+
+def search_body_or_subject(email_field):
+    email_search_match = search_for_vpn_keyword(email_field)
+    if email_search_match:
+        return get_email_by_vpn_keyword(email_search_match)
+def get_email_body_data(message):
+    try:
+        return message.get_payload().pop().get_payload()
+    except Exception as e:
+        logging.debug(f"Failed with exception {e}. Email body is not in rich email.")
+        return message.get_payload()
+
+
+
 def get_email_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
     """
     This function connects to an email server and retrieves all new emails to
