@@ -176,144 +176,51 @@ def get_msg_request(processed_emails):
             if email_body_search:
                 return email_body_search
 
-def get_email_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
-    """
-    This function connects to an email server and retrieves all new emails to
-    identify new VPN requests.
-    """
-
-    email_requests = []
-    msg_type = "email"
+def get_email_requests(redis_client):
     try:
-        # Connect to email
-        mail = imaplib.IMAP4_SSL(IMAP_SERVER)
-        mail.login(IMAP_USERNAME,IMAP_PASSWORD)
-        logging.debug("Connected to account successful")
-
-        # Connect to Inbox. Readyonly option: False=marks msgs as read; True=keep messages as unread.
-        mail.select("Inbox", readonly=False)
-
-        # Search and return UIDS of all UNSEEN/UNREAD emails in Inbox
-        result, data = mail.uid('search', None, "UNSEEN")
-
-        # We receive a list of unread email UID
-        id_list = data[0].split() # data is a list.
-        logging.info("Found {} new requests to process".format(len(id_list)))
-
-        # Process the new unread emails. If zero, nothing returns
-        while len(id_list) > 0:
-            # In case another process checked emails simultaneously, we refresh the list of ids
-            result, data = mail.uid('search', None, "UNSEEN")
-            id_list = data[0].split() # data is a list.
-
-            # Get the first email ID to process
-            email_uid = id_list.pop(0)
-            logging.debug(f"Processing email UID {email_uid}")
-
-            # Fetch the email headers and body (RFC822) for the given email UID
-            result, data = mail.uid('fetch', email_uid, '(RFC822)')
-
-            # Parse email to extract header and body
-            email_parser = BytesFeedParser()
-            email_parser.feed(data[0][1])
-            msg = email_parser.close()
-
-            # Do not process answers to the emails we send
-            if msg['In-Reply-To'] is not None:
-                continue
-
-            # Parse email receiver
-            email_to = re.search(r'[\w\.-]+@[\w\.-]+', msg['to']).group(0)
-            logging.debug(f"Processing email receiver {email_to}")
-
-            # Do not process messages where we are not the receivers
-            if not email_to == IMAP_USERNAME:
-                continue
-
-            # Parse subject and find matches for keyword VPN
-            email_subject = ""
-            msg_request=""
-            try:
-                email_subject = re.search(r'NOENCRYPTEDVPN', msg['subject'],re.IGNORECASE).group(0)
-                msg_request="novpn"
-            except:
-                try:
-                    email_subject = re.search(r'NOTENCRYPTEDVPN', msg['subject'],re.IGNORECASE).group(0)
-                    msg_request="novpn"
-                except:
-                    try:
-                        email_subject = re.search(r'WIREGUARD', msg['subject'],re.IGNORECASE).group(0)
-                        msg_request="wireguard"
-                    except:
-                        try:
-                            email_subject = re.search(r'VPN', msg['subject'],re.IGNORECASE).group(0)
-                            msg_request="openvpn"
-                        except:
-                            pass
-            logging.debug(f"Extracted email subject: {email_subject} ({msg_request})")
-
-
-            try:
-                email_body = re.search(r'NOENCRYPTEDVPN',email_body,re.IGNORECASE).group(0)
-                msg_request="novpn"
-            except:
-                try:
-                    email_body = re.search(r'NOTENCRYPTEDVPN',email_body,re.IGNORECASE).group(0)
-                    msg_request="novpn"
-                except:
-                    try:
-                        email_body = re.search(r'WIREGUARD',email_body,re.IGNORECASE).group(0)
-                        msg_request="wireguard"
-                    except:
-                        try:
-                            email_body = re.search(r'VPN',email_body,re.IGNORECASE).group(0)
-                            msg_request="openvpn"
-                        except:
-                            email_body = ""
-            logging.debug(f"Extracted email body: {email_body} ({msg_request})")
-
-            # We only parse messages that contain VPN in subject or body
-            # These prints will be removed after we test everything is good
-            if msg_request != "":
-                logging.info(f"Extracted email request: {email_subject}:{email_body}({msg_request})")
-                # Parse email date
+        messages = select_inbox_messages()
+        for email_uid, inbox_message in messages:
+            msg = parse_email_messages(inbox_message)
+            msg_type = "email"
+            email_reply_to = re.search(r'[\w\.-]+@[\w\.-]+', msg['to']).group(0)
+            processed_emails = process_email_message(msg)
+            msg_request = get_msg_request(processed_emails)
+            if msg_request:
                 email_date = msg['date']
-
-                # Parse email sender
                 email_from = re.search(r'[\w\.-]+@[\w\.-]+', msg['from']).group(0)
-
+                email_to = re.search(r'[\w\.-]+@[\w\.-]+', msg['to']).group(0)
+                email_subject = msg.get("Subject", "empty")
+                email_body = msg_request
+                logging.info(f"Extracted email request: {email_subject}:{email_body}({msg_request})")
                 # Write pending account to provision in REDIS
-                send_request_to_redis(int(email_uid),email_from,msg_type,msg_request,logging,redis_client)
-
+                send_request_to_redis(int(email_uid), email_from, msg_type, msg_request, logging, redis_client)
                 # Notify manager of new request
                 redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
 
                 logging.debug("This email matches the keywords")
-                logging.debug('{:8}: {}'.format("email id",int(email_uid)))
-                logging.debug('{:8}: {}'.format("date",email_date))
-                logging.debug('{:8}: {}'.format("to",email_to))
-                logging.debug('{:8}: {}'.format("from",email_from))
-                logging.debug('{:8}: {}'.format("reply_to",msg['In-Reply-To']))
-                logging.debug('{:8}: {}'.format("subject",email_subject))
-                logging.debug('{:8}: {}'.format("body",email_body))
+                logging.debug('{:8}: {}'.format("Email ID", int(email_uid)))
+                logging.debug('{:8}: {}'.format("Date", email_date))
+                logging.debug('{:8}: {}'.format("To", email_to))
+                logging.debug('{:8}: {}'.format("From", email_from))
+                logging.debug('{:8}: {}'.format("Reply To", email_reply_to))
+                logging.debug('{:8}: {}'.format("Subject", msg_request))
+                logging.debug('{:8}: {}'.format("Body", msg_request))
             else:
-                logging.debug("This email does not match the keywords")
-                logging.debug('{:8}: {}'.format("Email ID",email_uid))
-                logging.debug('{:8}: {}'.format("Date",email_date))
-                logging.debug('{:8}: {}'.format("To",email_to))
-                logging.debug('{:8}: {}'.format("From",email_from))
-                logging.debug('{:8}: {}'.format("reply_to",msg['In-Reply-To']))
-                logging.debug('{:8}: {}'.format("Subject",email_subject))
-                logging.debug('{:8}: {}'.format("Body",email_body))
-
-        # Close connection to server
-        mail.expunge()
-        mail.close()
-        mail.logout()
-        return True
+                email_date = msg['date']
+                email_from = re.search(r'[\w\.-]+@[\w\.-]+', msg['from']).group(0)
+                email_to = re.search(r'[\w\.-]+@[\w\.-]+', msg['to']).group(0)
+                logging.debug("This email matches the keywords")
+                logging.debug('{:8}: {}'.format("Email ID", int(email_uid)))
+                logging.debug('{:8}: {}'.format("Date", email_date))
+                logging.debug('{:8}: {}'.format("To", email_to))
+                logging.debug('{:8}: {}'.format("From", email_from))
+                logging.debug('{:8}: {}'.format("Reply To", email_reply_to))
+                logging.debug('{:8}: {}'.format("Subject", msg_request))
+                logging.debug('{:8}: {}'.format("Body", msg_request))
     except Exception as e:
         print(e)
         return False
+
 
 if __name__ == '__main__':
     # Read cofiguration file 
