@@ -81,6 +81,7 @@ def open_imap_connection():
 
 
 def select_inbox_messages():
+    " Returns generator:"
     global mail
     try:
         mail = open_imap_connection()
@@ -104,6 +105,12 @@ def select_inbox_messages():
         mail.expunge()
         mail.close()
         mail.logout()
+
+def parse_email_messages(inbox_message):
+    # Parse email to extract header and body
+    email_parser = BytesFeedParser()
+    email_parser.feed(inbox_message[1])
+    return email_parser.close()
 
 def get_email_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
     """
