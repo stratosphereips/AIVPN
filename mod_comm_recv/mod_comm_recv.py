@@ -20,13 +20,14 @@ def send_request_to_redis(msg_id, msg_addr, msg_type, msg_request, logging, redi
     """
     try:
         logging.debug(f'Sending {msg_request} request to Redis: ({str(msg_id)}) {msg_addr} on {msg_type}')
-        add_item_provisioning_queue(redis_client,msg_id,msg_type,msg_addr,msg_request)
+        add_item_provisioning_queue(redis_client, msg_id, msg_type, msg_addr, msg_request)
         return True
     except Exception as err:
         logging.info(f'Exception in send_request_to_redis: {err}')
         return False
 
-def get_telegram_requests(redis_client,TELEGRAM_BOT_TOKEN,TELEGRAM_START_MSG,TELEGRAM_WAIT_MSG):
+
+def get_telegram_requests(redis_client, TELEGRAM_BOT_TOKEN, TELEGRAM_START_MSG, TELEGRAM_WAIT_MSG):
     """
     This function runs the telegram bot in charge of receiving messages
     """
@@ -34,15 +35,16 @@ def get_telegram_requests(redis_client,TELEGRAM_BOT_TOKEN,TELEGRAM_START_MSG,TEL
 
     # Telegram Handlers
     def telegram_cmd_start(update, context):
-        context.bot.send_message(chat_id=update.effective_chat.id,text=TELEGRAM_START_MSG)
+        context.bot.send_message(chat_id=update.effective_chat.id, text=TELEGRAM_START_MSG)
         logging.info('New Telegram chat received')
 
     def telegram_cmd(update, context, msg_request):
 
-        context.bot.send_message(chat_id=update.effective_chat.id,text=TELEGRAM_WAIT_MSG)
+        context.bot.send_message(chat_id=update.effective_chat.id, text=TELEGRAM_WAIT_MSG)
         logging.info(f'New Telegram OpenVPN request received from: {update.effective_chat.id}')
         # Write pending account to provision in REDIS
-        send_request_to_redis(int(update.effective_chat.id),update.effective_chat.id,msg_type,msg_request,logging,redis_client)
+        send_request_to_redis(int(update.effective_chat.id), update.effective_chat.id, msg_type, msg_request, logging,
+                              redis_client)
         # Notify manager of new request
         redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
 
@@ -72,6 +74,7 @@ def get_telegram_requests(redis_client,TELEGRAM_BOT_TOKEN,TELEGRAM_START_MSG,TEL
 
     except Exception as err:
         logging.debug(f'Exception in get_telegram_requests: {err}')
+
 
 def open_imap_connection():
     # Connect to the server
@@ -106,11 +109,13 @@ def select_inbox_messages():
         mail.close()
         mail.logout()
 
+
 def parse_email_messages(inbox_message):
     # Parse email to extract header and body
     email_parser = BytesFeedParser()
     email_parser.feed(inbox_message[1])
     return email_parser.close()
+
 
 def process_email_message(msg):
     """
@@ -124,6 +129,7 @@ def process_email_message(msg):
         if email_to == IMAP_USERNAME:
             return msg
 
+
 def get_email_by_vpn_keyword(email_field):
     if email_field is None:
         return ""
@@ -135,6 +141,7 @@ def get_email_by_vpn_keyword(email_field):
         return "openvpn"
     else:
         return False
+
 
 def search_for_vpn_keyword(msg):
     patterns = ["NOENCRYPTEDVPN", "WIREGUARD", "VPN"]
@@ -148,16 +155,20 @@ def search_for_vpn_keyword(msg):
             logging.error(f"Failed to find the correct email subject in parse_email_subject {e}")
             return False
 
+
 def search_body_or_subject(email_field):
     email_search_match = search_for_vpn_keyword(email_field)
     if email_search_match:
         return get_email_by_vpn_keyword(email_search_match)
+
+
 def get_email_body_data(message):
     try:
         return message.get_payload().pop().get_payload()
     except Exception as e:
         logging.debug(f"Failed with exception {e}. Email body is not in rich email.")
         return message.get_payload()
+
 
 def get_msg_request(processed_emails):
     """
@@ -175,6 +186,7 @@ def get_msg_request(processed_emails):
             email_body_search = search_body_or_subject(email_body_data)
             if email_body_search:
                 return email_body_search
+
 
 def get_email_requests(redis_client):
     try:
@@ -238,7 +250,8 @@ if __name__ == '__main__':
     TELEGRAM_WAIT_MSG = config['TELEGRAM']['TELEGRAM_WAIT_MSG']
 
     # Initialize logging
-    logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.INFO,format='%(asctime)s, MOD_COMM_RECV, %(message)s')
+    logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.INFO,
+                        format='%(asctime)s, MOD_COMM_RECV, %(message)s')
 
     # Connecting to the Redis database
     try:
@@ -256,7 +269,7 @@ if __name__ == '__main__':
 
     # Subscribing to Redis channel
     try:
-        redis_subscribe_to_channel(db_subscriber,CHANNEL)
+        redis_subscribe_to_channel(db_subscriber, CHANNEL)
     except Exception as err:
         logging.error('Channel subscription failed: {err}')
         sys.exit(-1)
@@ -265,7 +278,9 @@ if __name__ == '__main__':
         logging.info("Connection and channel subscription to redis successful.")
 
         # Starting Telegram bot to check for new messages
-        telegram_bot = threading.Thread(target=get_telegram_requests, args=(redis_client,TELEGRAM_BOT_TOKEN,TELEGRAM_START_MSG,TELEGRAM_WAIT_MSG,), daemon=True)
+        telegram_bot = threading.Thread(target=get_telegram_requests,
+                                        args=(redis_client, TELEGRAM_BOT_TOKEN, TELEGRAM_START_MSG, TELEGRAM_WAIT_MSG,),
+                                        daemon=True)
         telegram_bot.start()
         logging.info("Telegram bot thread started")
 
@@ -275,16 +290,16 @@ if __name__ == '__main__':
                 logging.info(f"New message received in channel {item['channel']}: {item['data']}")
                 if item['data'] == 'report_status':
                     if get_email_requests(redis_client):
-                        redis_client.publish('services_status','MOD_COMM_RECV:online')
+                        redis_client.publish('services_status', 'MOD_COMM_RECV:online')
                         logging.info('Status Online')
                     else:
                         IMAP_SERVER = config['IMAP']['SERVER']
                         IMAP_USERNAME = config['IMAP']['USERNAME']
                         IMAP_PASSWORD = config['IMAP']['PASSWORD']
-                        redis_client.publish('services_status','MOD_COMM_RECV:error_checking_requests')
+                        redis_client.publish('services_status', 'MOD_COMM_RECV:error_checking_requests')
                         logging.info('Error checking requests')
 
-        redis_client.publish('services_status','MOD_COMM_RECV:offline')
+        redis_client.publish('services_status', 'MOD_COMM_RECV:offline')
         logging.info("Terminating.")
         db_subscriber.close()
         redis_client.close()
