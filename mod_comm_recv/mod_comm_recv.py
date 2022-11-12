@@ -73,6 +73,38 @@ def get_telegram_requests(redis_client,TELEGRAM_BOT_TOKEN,TELEGRAM_START_MSG,TEL
     except Exception as err:
         logging.debug(f'Exception in get_telegram_requests: {err}')
 
+def open_imap_connection():
+    # Connect to the server
+    connection = imaplib.IMAP4_SSL(IMAP_SERVER)
+    connection.login(IMAP_USERNAME, IMAP_PASSWORD)
+    return connection
+
+
+def select_inbox_messages():
+    global mail
+    try:
+        mail = open_imap_connection()
+
+        mail.select("Inbox", readonly=False)
+        # # Search and return UIDS of all UNSEEN/UNREAD emails in Inbox
+        status, data = mail.uid('search', None, "UNSEEN")
+        if status == "OK":
+            id_msg_list = data[0].split()
+            if len(id_msg_list) > 0:
+                # process messages
+                for msg_id in id_msg_list:
+                    print("Processing message", msg_id)
+                    typ, data = mail.uid('fetch', msg_id, '(RFC822)')
+                    msg = data[0]
+                    yield msg_id, msg
+    except Exception as e:
+        logging.error(f"Exception occurred in select_inbox_messages function {e}")
+        return False
+    finally:
+        mail.expunge()
+        mail.close()
+        mail.logout()
+
 def get_email_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
     """
     This function connects to an email server and retrieves all new emails to
@@ -149,13 +181,6 @@ def get_email_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
                             pass
             logging.debug(f"Extracted email subject: {email_subject} ({msg_request})")
 
-            # Parse email body and find matches for keyword VPN
-            try:
-                # Extract email body in rich email
-                email_body = msg.get_payload().pop().get_payload()
-            except:
-                # Extract email body in plain email
-                email_body = msg.get_payload()
 
             try:
                 email_body = re.search(r'NOENCRYPTEDVPN',email_body,re.IGNORECASE).group(0)
