@@ -112,6 +112,18 @@ def parse_email_messages(inbox_message):
     email_parser.feed(inbox_message[1])
     return email_parser.close()
 
+def process_email_message(msg):
+    """
+    Function takes parsed message and processed only those which
+    current user is a receiver and answers to the emails are not send by AI VPN
+    """
+    # Do not process answers to the emails we send
+    if msg['In-Reply-To'] is None:
+        email_to = re.search(r'[\w\.-]+@[\w\.-]+', msg['to']).group(0)
+        # Do not process messages where we are not the receivers
+        if email_to == IMAP_USERNAME:
+            return msg
+
 def get_email_requests(redis_client,IMAP_SERVER,IMAP_USERNAME,IMAP_PASSWORD):
     """
     This function connects to an email server and retrieves all new emails to
