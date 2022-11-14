@@ -41,7 +41,7 @@ def get_telegram_requests(redis_client, TELEGRAM_BOT_TOKEN, TELEGRAM_START_MSG, 
     def telegram_cmd(update, context, msg_request):
 
         context.bot.send_message(chat_id=update.effective_chat.id, text=TELEGRAM_WAIT_MSG)
-        logging.info(f'New Telegram OpenVPN request received from: {update.effective_chat.id}')
+        logging.info(f'New Telegram {msg_request} request received from: {update.effective_chat.id}')
         # Write pending account to provision in REDIS
         send_request_to_redis(int(update.effective_chat.id), update.effective_chat.id, msg_type, msg_request, logging,
                               redis_client)
@@ -77,6 +77,10 @@ def get_telegram_requests(redis_client, TELEGRAM_BOT_TOKEN, TELEGRAM_START_MSG, 
 
 
 def open_imap_connection():
+    """
+    Functions opens a connection to an email service, logs in to specified email account,
+    and returns a connection.
+    """
     # Connect to the server
     connection = imaplib.IMAP4_SSL(IMAP_SERVER)
     connection.login(IMAP_USERNAME, IMAP_PASSWORD)
@@ -84,20 +88,25 @@ def open_imap_connection():
 
 
 def select_inbox_messages():
-    " Returns generator:"
+    """
+    Function logins to email client, selects only new messages in Inbox.
+    Returns tuple generator of email uid and a message.
+    """
     global mail
     try:
         mail = open_imap_connection()
-
+        # Connect to Inbox. Readyonly option: False=marks msgs as read; True=keep messages as unread.
         mail.select("Inbox", readonly=False)
-        # # Search and return UIDS of all UNSEEN/UNREAD emails in Inbox
+        # Search and return UIDS of all UNSEEN/UNREAD emails in Inbox
         status, data = mail.uid('search', None, "UNSEEN")
         if status == "OK":
+            # We receive a list of unread email UID
             id_msg_list = data[0].split()
             if len(id_msg_list) > 0:
-                # process messages
+                # Process the new unread emails. If zero, nothing returns
                 for msg_id in id_msg_list:
-                    print("Processing message", msg_id)
+                    logging.info("Processing message", msg_id)
+                    # Fetch the email headers and body (RFC822) for the given email UID
                     typ, data = mail.uid('fetch', msg_id, '(RFC822)')
                     msg = data[0]
                     yield msg_id, msg
@@ -119,7 +128,7 @@ def parse_email_messages(inbox_message):
 
 def process_email_message(msg):
     """
-    Function takes parsed message and processed only those which
+    Function takes parsed email message and process only those which
     current user is a receiver and answers to the emails are not send by AI VPN
     """
     # Do not process answers to the emails we send
@@ -144,6 +153,10 @@ def get_email_by_vpn_keyword(email_field):
 
 
 def search_for_vpn_keyword(msg):
+    """
+    Function takes an email message, search for a VPN keyword defined in patterns.
+    If the match found returns a match. If not, returns False.
+    """
     patterns = ["NOENCRYPTEDVPN", "WIREGUARD", "VPN"]
     for pattern in patterns:
         try:
@@ -157,12 +170,19 @@ def search_for_vpn_keyword(msg):
 
 
 def search_body_or_subject(email_field):
+    """
+    Function takes a string containing either from email body or subject, searches for vnp keyword match,
+    and returns corresponding vpn name (novpn,openvpn,wireguard) as string
+    """
     email_search_match = search_for_vpn_keyword(email_field)
     if email_search_match:
         return get_email_by_vpn_keyword(email_search_match)
 
 
 def get_email_body_data(message):
+    """
+    Function takes email messages and extracts email body in rich email
+    """
     try:
         return message.get_payload().pop().get_payload()
     except Exception as e:
@@ -172,8 +192,8 @@ def get_email_body_data(message):
 
 def get_msg_request(processed_emails):
     """
-    Takes email message and search for vpn keyword in subject or body of the email
-    and returns vpn keyword as message request
+    Function takes email message, performs a search for vpn keyword in subject or body of the email,
+    and returns vpn keyword string as a message request
     """
     # search for vpn name in subject of an email
     if processed_emails['subject'] is not None:
@@ -189,6 +209,10 @@ def get_msg_request(processed_emails):
 
 
 def get_email_requests(redis_client):
+    """
+       This function connects to an email server and retrieves all new emails to
+       identify new VPN requests.
+       """
     try:
         messages = select_inbox_messages()
         for email_uid, inbox_message in messages:
