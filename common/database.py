@@ -259,12 +259,12 @@ def get_vpn_client_ip_address(vpn_type,redis_client):
 
         maximum_attempts=len([str(ip) for ip in ipaddress.IPv4Network(network_cidr)])
         while result < maximum_attempts:
-            IP_ADDRESS=random.choice([str(ip) for ip in ipaddress.IPv4Network(network_cidr)])
-            if exists_ip_address(IP_ADDRESS,vpn_type,redis_client):
+            ip_address=random.choice([str(ip) for ip in ipaddress.IPv4Network(network_cidr)])
+            if exists_ip_address(ip_address,vpn_type,redis_client):
                 result+=1
             else:
-                add_ip_address(IP_ADDRESS,vpn_type,redis_client)
-                return IP_ADDRESS
+                add_ip_address(ip_address,vpn_type,redis_client)
+                return ip_address
         return False
     except Exception as err:
         return err
