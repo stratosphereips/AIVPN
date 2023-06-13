@@ -11,24 +11,24 @@ import logging
 from common.database import *
 
 
-def manage_info(REDIS_CLIENT,profile_name):
+def manage_info(redis_client,profile_name):
     """
     Retrieve information about an AI VPN profile_name
     """
     try:
         logging.debug('Manage info: {profile_name}')
-        vpn_type = get_profile_vpn_type(profile_name,REDIS_CLIENT)
+        vpn_type = get_profile_vpn_type(profile_name,redis_client)
         profile_creation_time = 'n/a'
         profile_expiration_time = 'n/a'
         profile_reported_time = 'n/a'
         profile_deletion_time = 'n/a'
 
-        if exists_active_profile(profile_name,REDIS_CLIENT):
-            profile_creation_time = datetime.datetime.fromtimestamp(float(get_active_profile_creation_time(profile_name,REDIS_CLIENT)))
+        if exists_active_profile(profile_name,redis_client):
+            profile_creation_time = datetime.datetime.fromtimestamp(float(get_active_profile_creation_time(profile_name,redis_client)))
             profile_active = 'active'
         else:
             profile_active = 'expired'
-            profile_information = json.loads(get_expired_profile_information(profile_name,REDIS_CLIENT))
+            profile_information = json.loads(get_expired_profile_information(profile_name,redis_client))
             try:
                 profile_creation_time = datetime.datetime.fromtimestamp(float(profile_information['creation_time']))
             except:
@@ -57,14 +57,14 @@ def manage_info(REDIS_CLIENT,profile_name):
     except Exception as err:
         print(f'Exception in manage_info: {err}')
 
-def manage_expire(REDIS_CLIENT, profile_name):
+def manage_expire(redis_client, profile_name):
     """
     Add a profile to the force expire queue to deprovision
     """
     try:
         logging.debug(f'Manage expire: {profile_name}')
-        if exists_active_profile(profile_name, REDIS_CLIENT):
-            status = add_profile_to_force_expire(REDIS_CLIENT, profile_name)
+        if exists_active_profile(profile_name, redis_client):
+            status = add_profile_to_force_expire(redis_client, profile_name)
             redis_client.publish('services_status', 'MOD_CLI:FORCE_EXPIRE')
             print(f"[+] Forced expiration on profile '{profile_name}' was '{status}'")
         else:
@@ -80,12 +80,12 @@ def manage_extend(profile_name):
         print(f'Exception in manage_extend: {err}')
 
 
-def manage_whois(REDIS_CLIENT, profile_name):
+def manage_whois(redis_client, profile_name):
     """
     Retrieve identity associated with a profile
     """
     try:
-        identity = get_profile_name_address(profile_name, REDIS_CLIENT)
+        identity = get_profile_name_address(profile_name, redis_client)
         logging.debug(f'Manage whois: {profile_name}')
         print(f"[+] User identity for {profile_name} is {identity}")
     except Exception as err:
@@ -125,7 +125,7 @@ def get_validated_data(identity):
         return f'Exception occurred in data validation for provision {err}'
 
 
-def provision_openvpn(REDIS_CLIENT, identity):
+def provision_openvpn(redis_client, identity):
     """
     Trigger the provisioning of a new OpenVPN profile for a client
     """
@@ -133,16 +133,16 @@ def provision_openvpn(REDIS_CLIENT, identity):
     logging.debug(f'Provision OpenVPN: {identity}')
     if identity_valid_data["msg_request"][0] and identity_valid_data["msg_type"]:
         # Add to provisioning queue
-        status = add_item_provisioning_queue(REDIS_CLIENT, identity_valid_data["msg_id"], identity_valid_data["msg_type"],
+        status = add_item_provisioning_queue(redis_client, identity_valid_data["msg_id"], identity_valid_data["msg_type"],
                                              identity_valid_data["msg_addr"], identity_valid_data["msg_request"][0])
         redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
         print(
-            f"Provisioning triggered: {status}. Number of items in the queue: {list_items_provisioning_queue(REDIS_CLIENT)}")
+            f"Provisioning triggered: {status}. Number of items in the queue: {list_items_provisioning_queue(redis_client)}")
     else:
         print('Provisioning process failed, try again')
 
 
-def provision_wireguard(REDIS_CLIENT, identity):
+def provision_wireguard(redis_client, identity):
     """
     Trigger the provisioning of a new Wireguard profile for a client
     """
@@ -150,38 +150,38 @@ def provision_wireguard(REDIS_CLIENT, identity):
     logging.debug(f'Provision Wireguard: {identity}')
     if valid_data["msg_request"][1] and valid_data["msg_type"]:
         # Add to provisioning queue
-        status = add_item_provisioning_queue(REDIS_CLIENT, valid_data["msg_id"], valid_data["msg_type"],
+        status = add_item_provisioning_queue(redis_client, valid_data["msg_id"], valid_data["msg_type"],
                                              valid_data["msg_addr"], valid_data["msg_request"][1])
         redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
         print(
-            f"Provisioning triggered: {status}. Number of items in the queue: {list_items_provisioning_queue(REDIS_CLIENT)}")
+            f"Provisioning triggered: {status}. Number of items in the queue: {list_items_provisioning_queue(redis_client)}")
     else:
         print('Provisioning process failed, try again')
 
 
-def provision_novpn(REDIS_CLIENT, identity):
+def provision_novpn(redis_client, identity):
     """
     Trigger the provisioning of a new not encrypted vpn profile for a client
     """
     valid_data = get_validated_data(identity)
     logging.debug(f'Provision No VPN: {identity}')
     if valid_data["msg_request"][2] and valid_data["msg_type"]:
-        status = add_item_provisioning_queue(REDIS_CLIENT, valid_data["msg_id"], valid_data["msg_type"],
+        status = add_item_provisioning_queue(redis_client, valid_data["msg_id"], valid_data["msg_type"],
                                              valid_data["msg_addr"], valid_data["msg_request"][2])
         redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
         print(
-            f"Provisioning triggered: {status}. Number of items in the queue: {list_items_provisioning_queue(REDIS_CLIENT)}")
+            f"Provisioning triggered: {status}. Number of items in the queue: {list_items_provisioning_queue(redis_client)}")
     else:
         print('Provisioning process failed, try again')
 
 
-def audit_active_profiles(REDIS_CLIENT, action):
+def audit_active_profiles(redis_client, action):
     """
     Retrieve a list of active VPN profiles
     """
     try:
         logging.debug('Audit active profiles')
-        active_profiles = get_active_profiles_keys(REDIS_CLIENT)
+        active_profiles = get_active_profiles_keys(redis_client)
         print(f"[+] Number of active profiles: {len(active_profiles)}")
         if len(active_profiles) > 0:
             for profile in active_profiles:
@@ -190,13 +190,13 @@ def audit_active_profiles(REDIS_CLIENT, action):
         print(f'Exception in audit_active_profiles: {err}')
 
 
-def audit_expired_profiles(REDIS_CLIENT, action):
+def audit_expired_profiles(redis_client, action):
     """
     Retrieve a list of expired profiles
     """
     try:
         logging.debug('Audit expired profiles')
-        expired_profiles = get_expired_profiles_keys(REDIS_CLIENT)
+        expired_profiles = get_expired_profiles_keys(redis_client)
         print(f"[+] Number of expired profiles: {len(expired_profiles)}")
         if len(expired_profiles) > 0:
             for profile in expired_profiles:
@@ -205,13 +205,13 @@ def audit_expired_profiles(REDIS_CLIENT, action):
         print(f'Exception in audit_expired_profiles: {err}')
 
 
-def audit_queued_profiles(REDIS_CLIENT, action):
+def audit_queued_profiles(redis_client, action):
     """
     Retrieve a list of profiles in provisioning queue
     """
     try:
         logging.debug('Audit queued profiles')
-        queued_profiles = list_items_provisioning_queue(REDIS_CLIENT)
+        queued_profiles = list_items_provisioning_queue(redis_client)
         print(f"[+] Number of queued profiles to provision: {queued_profiles}")
     except Exception as err:
         print(f'Exception in audit_expired_profiles: {err}')
