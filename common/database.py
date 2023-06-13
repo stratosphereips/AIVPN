@@ -367,8 +367,8 @@ def del_profile_name_pid_relationship(profile_name,redis_client):
 def get_profile_name_pid_relationship(profile_name,redis_client):
     """ Returns a pid from a given profile_name. """
     try:
-        PID = redis_client.hget(hash_profile_name_pid,profile_name)
-        return PID
+        pid = redis_client.hget(hash_profile_name_pid,profile_name)
+        return pid
     except Exception as err:
         return err
 
