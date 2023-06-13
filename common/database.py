@@ -381,10 +381,10 @@ def gen_profile_name():
     Generates a new profile_name based on a recipe.
     Profile name recipe: YYYYMMDDmmss_<word>_<word>
     """
-    WORDS_JSON = 'common/words.json'
+    words_json = 'common/words.json'
     try:
         # Import the word dictionary to be used for generating the profile_names
-        with open(WORDS_JSON) as f:
+        with open(words_json) as f:
             WORDS_DICT = json.load(f)
 
         string1 = random.choice(WORDS_DICT['data'])
