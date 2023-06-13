@@ -31,10 +31,10 @@ def redis_create_subscriber(publisher):
     except Exception as err:
         return err
 
-def redis_subscribe_to_channel(subscriber,CHANNEL):
+def redis_subscribe_to_channel(subscriber,channel):
     """ Function to subscribe to a given Redis channel"""
     try:
-        subscriber.subscribe(CHANNEL)
+        subscriber.subscribe(channel)
         return True
     except Exception as err:
         return err
