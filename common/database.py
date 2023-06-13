@@ -255,11 +255,11 @@ def get_vpn_client_ip_address(vpn_type,redis_client):
         result=0
         config = configparser.ConfigParser()
         config.read('config/config.ini')
-        NETWORK_CIDR = config[vpn_type.upper()]['NETWORK_CIDR']
+        network_cidr = config[vpn_type.upper()]['NETWORK_CIDR']
 
-        maximum_attempts=len([str(ip) for ip in ipaddress.IPv4Network(NETWORK_CIDR)])
+        maximum_attempts=len([str(ip) for ip in ipaddress.IPv4Network(network_cidr)])
         while result < maximum_attempts:
-            IP_ADDRESS=random.choice([str(ip) for ip in ipaddress.IPv4Network(NETWORK_CIDR)])
+            IP_ADDRESS=random.choice([str(ip) for ip in ipaddress.IPv4Network(network_cidr)])
             if exists_ip_address(IP_ADDRESS,vpn_type,redis_client):
                 result+=1
             else:
@@ -275,10 +275,10 @@ def get_vpn_free_ip_address_space(vpn_type,redis_client):
     try:
         config = configparser.ConfigParser()
         config.read('config/config.ini')
-        NETWORK_CIDR = config[vpn_type.upper()]['NETWORK_CIDR']
+        network_cidr = config[vpn_type.upper()]['NETWORK_CIDR']
         hash_blocked_ip_addresses = f'blocked_ip_addresses_mod_{vpn_type}'
 
-        maximum_addresses=len([str(ip) for ip in ipaddress.IPv4Network(NETWORK_CIDR)])
+        maximum_addresses=len([str(ip) for ip in ipaddress.IPv4Network(network_cidr)])
 
         used_addresses=redis_client.hlen(hash_blocked_ip_addresses)
 
