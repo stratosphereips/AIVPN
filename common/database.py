@@ -15,10 +15,10 @@ import configparser
 ## Series of functions to handle the connections to the Redis database, as well
 ## as subscribing to channels using pub/sub.
 
-def redis_connect_to_db(REDIS_SERVER):
+def redis_connect_to_db(redis_server):
     """ Function to connect to a Redis database. Returns object publisher. """
     try:
-        client = redis.Redis(REDIS_SERVER, port=6379, db=0, decode_responses=True )
+        client = redis.Redis(redis_server, port=6379, db=0, decode_responses=True )
         return client
     except Exception as err:
         return err
