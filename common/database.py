@@ -385,10 +385,10 @@ def gen_profile_name():
     try:
         # Import the word dictionary to be used for generating the profile_names
         with open(words_json) as f:
-            WORDS_DICT = json.load(f)
+            words_dict = json.load(f)
 
-        string1 = random.choice(WORDS_DICT['data'])
-        string2 = random.choice(WORDS_DICT['data'])
+        string1 = random.choice(words_dict['data'])
+        string2 = random.choice(words_dict['data'])
         date_now = time.strftime("%Y%m%d%H%M%S")
         profile_name = "{}-{}_{}".format(date_now, string1, string2)
 
