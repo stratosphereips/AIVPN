@@ -40,6 +40,8 @@ TELEGRAM_START_MSG = Welcome to the Civilsphere Emergency VPN service.
                      /getopenvpn to receive a new OpenVPN profile
 
                      /getwireguard to receive a new WireGuard profile.
+
+                     /getnoencryptedvpn to receive a new, not encrypted OpenVPN profile to be used only when VPNs are illegal in your country.
 TELEGRAM_WAIT_MSG = Thank you for your request. Your VPN profile is being generated and activated. Please wait.
 
 [OPENVPN]
