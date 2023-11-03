@@ -21,9 +21,9 @@ import os
 import sys
 import glob
 import logging
-import redis
 import subprocess
 import configparser
+import redis
 from common.database import redis_connect_to_db
 from common.database import redis_create_subscriber
 from common.database import redis_subscribe_to_channel
@@ -34,6 +34,7 @@ def process_profile_traffic(profile_name, storage_path):
     Process the traffic for a given profile with Slips IDS.
     """
 
+    op_success = False
     try:
         # Go to profile directory
         os.chdir(f'{storage_path}/{profile_name}')
@@ -70,55 +71,50 @@ def process_profile_traffic(profile_name, storage_path):
                            check=True)
 
         # When all captures are processed, return True
-        return True
+        op_success = True
     except FileNotFoundError as pptf_error:
         logging.error(
             'File not found at process_profile_traffic: %s',
             pptf_error
         )
-        return False
     except PermissionError as pptf_error:
         logging.error(
             'Permission error at process_profile_traffic: %s',
             pptf_error
         )
-        return False
     except IsADirectoryError as pptf_error:
         logging.error(
             'Expected file found dir at process_profile_traffic: %s',
             pptf_error
         )
-        return False
     except NotADirectoryError as pptf_error:
         logging.error(
             'Expected dir found file at process_profile_traffic: %s',
             pptf_error
         )
-        return False
     except subprocess.TimeoutExpired as pptf_error:
         logging.error(
             'Subprocess timed out at process_profile_traffic: %s',
             pptf_error
         )
-        return False
     except subprocess.CalledProcessError as pptf_error:
         logging.error(
             'Subprocess exited with error at process_profile_traffic: %s',
             pptf_error
         )
-        return False
     except OSError as pptf_error:
         logging.error(
             'OS error at process_profile_traffic: %s',
             pptf_error
         )
-        return False
     except Exception as pptf_error:
         logging.error(
             'Unexpected exception at process_profile_traffic: %s',
             pptf_error
         )
-        return False
+
+    # Return result status of the function
+    return op_success
 
 
 if __name__ == '__main__':
