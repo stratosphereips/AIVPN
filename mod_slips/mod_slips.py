@@ -65,52 +65,52 @@ def process_profile_traffic(profile_name, storage_path):
 
         # When all captures are processed, return True
         return True
-    except FileNotFoundError as file_error:
+    except FileNotFoundError as pptf_error:
         logging.error(
             'File not found at process_profile_traffic: %s',
-            file_error
+            pptf_error
         )
         return False
-    except PermissionError as perm_error:
+    except PermissionError as pptf_error:
         logging.error(
             'Permission error at process_profile_traffic: %s',
-            perm_error
+            pptf_error
         )
         return False
-    except IsADirectoryError as isdir_error:
+    except IsADirectoryError as pptf_error:
         logging.error(
             'Expected file found dir at process_profile_traffic: %s',
-            isdir_error
+            pptf_error
         )
         return False
-    except NotADirectoryError as notadir_error:
+    except NotADirectoryError as pptf_error:
         logging.error(
             'Expected dir found file at process_profile_traffic: %s',
-            notadir_error
+            pptf_error
         )
         return False
-    except subprocess.TimeoutExpired as subpto_error:
+    except subprocess.TimeoutExpired as pptf_error:
         logging.error(
             'Subprocess timed out at process_profile_traffic: %s',
-            subpto_error
+            pptf_error
         )
         return False
-    except subprocess.CalledProcessError as subpcpe_error:
+    except subprocess.CalledProcessError as pptf_error:
         logging.error(
             'Subprocess exited with error at process_profile_traffic: %s',
-            subpcpe_error
+            pptf_error
         )
         return False
-    except OSError as os_error:
+    except OSError as pptf_error:
         logging.error(
             'OS error at process_profile_traffic: %s',
-            os_error
+            pptf_error
         )
         return False
-    except Exception as unexpected_error:
+    except Exception as pptf_error:
         logging.error(
             'Unexpected exception at process_profile_traffic: %s',
-            unexpected_error
+            pptf_error
         )
         return False
 
