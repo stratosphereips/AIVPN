@@ -12,7 +12,6 @@ import time
 import logging
 import configparser
 import subprocess
-import ipaddress
 from common.database import redis_connect_to_db
 from common.database import redis_create_subscriber
 from common.database import redis_subscribe_to_channel
