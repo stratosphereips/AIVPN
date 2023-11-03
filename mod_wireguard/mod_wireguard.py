@@ -264,7 +264,6 @@ if __name__ == '__main__':
                         logging.info('Generating WireGuard profile %s with IP %s', CLIENT_NAME, CLIENT_IP)
                         status = generate_profile(CLIENT_NAME, PATH, CLIENT_IP)
                         if status == True:
-                            set_profile_static_ip(CLIENT_NAME, CLIENT_IP)
                             # Store client:ip relationship for the traffic capture
                             if add_profile_ip_relationship(CLIENT_NAME, CLIENT_IP, redis_client):
                                 PID = start_traffic_capture(CLIENT_NAME, CLIENT_IP, PATH)
