@@ -65,7 +65,8 @@ def process_profile_traffic(profile_name, storage_path):
             subprocess.run(args,
                            cwd="/StratosphereLinuxIPS",
                            stdout=subprocess.PIPE,
-                           timeout=86400)
+                           timeout=86400,
+                           check=True)
 
         # When all captures are processed, return True
         return True
