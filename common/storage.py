@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 # This file is part of the Civilsphere AI VPN
 # See the file 'LICENSE' for copying permission.
-# Author: Veronica Valeros, vero.valeros@gmail.com, veronica.valeros@aic.fel.cvut.cz
+# Author: Veronica Valeros
+#         vero.valeros@gmail.com, veronica.valeros@aic.fel.cvut.cz
 
 import os
 import configparser
+
 
 def create_working_directory(profile_name):
     """
@@ -24,4 +26,3 @@ def create_working_directory(profile_name):
         return True
     except Exception as e:
         return e
-
