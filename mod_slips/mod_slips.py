@@ -21,6 +21,7 @@ import os
 import sys
 import glob
 import logging
+import redis
 import subprocess
 import configparser
 from common.database import redis_connect_to_db
@@ -133,33 +134,46 @@ if __name__ == '__main__':
     logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG,
                         format='%(asctime)s, MOD_SLIPS, %(message)s')
 
-    # Connecting to the Redis database
     try:
+        # Connecting to the Redis database
         redis_client = redis_connect_to_db(REDIS_SERVER)
-    except Exception as err:
-        logging.error('Cannot connect to Redis (%s): %s', REDIS_SERVER, err)
-        sys.exit(-1)
 
-    # Creating a Redis subscriber
-    try:
+        # Creating a Redis subscriber and subscribing to channel
         db_subscriber = redis_create_subscriber(redis_client)
-    except Exception as err:
-        logging.error('Unable to create a Redis subscriber: %s', err)
-        sys.exit(-1)
-
-    # Subscribing to Redis channel
-    try:
         redis_subscribe_to_channel(db_subscriber, CHANNEL)
+
+    except redis.ConnectionError as err:
+        logging.error('Connection error with Redis server (%s): %s',
+                      REDIS_SERVER,
+                      err)
+        sys.exit(-1)
+    except redis.TimeoutError as err:
+        logging.error('Timeout error with Redis server (%s): %s',
+                      REDIS_SERVER,
+                      err)
+        sys.exit(-1)
+    except redis.AuthenticationError as err:
+        logging.error('Authentication error with Redis server (%s): %s',
+                      REDIS_SERVER,
+                      err)
+        sys.exit(-1)
     except Exception as err:
-        logging.error('Channel subscription failed: %s', err)
+        logging.error('Unexpected error during Redis operations: %s',
+                      err)
         sys.exit(-1)
 
-    # Starting Slips Redis Database
     try:
-        # Run redis
+        # Starting Slips Redis Database
         subprocess.Popen(['redis-server', '--daemonize', 'yes'])
+    except subprocess.SubprocessError as err:
+        logging.error(
+                'Subprocess error while starting Slips Redis database: %s',
+                err)
+        sys.exit(-1)
     except Exception as err:
-        logging.error('Cannot Slips redis database: %s', err)
+        logging.error(
+                'Unexpected error while starting Slips Redis database: %s',
+                err)
         sys.exit(-1)
 
     try:
