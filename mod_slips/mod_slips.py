@@ -52,13 +52,13 @@ def process_profile_traffic(profile_name, storage_path):
             # If capture is not empty, process it with Slips IDS
             profile_filename = f'{storage_path}/{profile_name}/{capture_file}'
             slips_output = f'{storage_path}/{profile_name}/slips_{capture_file}/'
-            SLIPS_CONF = '/StratosphereLinuxIPS/aivpn_slips.conf'
+            slips_config = '/StratosphereLinuxIPS/aivpn_slips.conf'
 
             # Create Slips working directory
             os.mkdir(f'{storage_path}/{profile_name}/slips_{capture_file}')
 
             # Run Slips as subprocess
-            args = ['/StratosphereLinuxIPS/slips.py', '-c', SLIPS_CONF,
+            args = ['/StratosphereLinuxIPS/slips.py', '-c', slips_config,
                     '-f', profile_filename, '-o', slips_output]
             process = subprocess.run(args, cwd="/StratosphereLinuxIPS",
                                        stdout=subprocess.PIPE, timeout=86400)
