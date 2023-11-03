@@ -65,8 +65,53 @@ def process_profile_traffic(profile_name, storage_path):
 
         # When all captures are processed, return True
         return True
-    except Exception as err:
-        logging.info('Exception in process_profile_traffic: %s', err)
+    except FileNotFoundError as file_error:
+        logging.error(
+            'File not found at process_profile_traffic: %s',
+            file_error
+        )
+        return False
+    except PermissionError as perm_error:
+        logging.error(
+            'Permission error at process_profile_traffic: %s',
+            perm_error
+        )
+        return False
+    except IsADirectoryError as isdir_error:
+        logging.error(
+            'Expected file found dir at process_profile_traffic: %s',
+            isdir_error
+        )
+        return False
+    except NotADirectoryError as notadir_error:
+        logging.error(
+            'Expected dir found file at process_profile_traffic: %s',
+            notadir_error
+        )
+        return False
+    except subprocess.TimeoutExpired as subpto_error:
+        logging.error(
+            'Subprocess timed out at process_profile_traffic: %s',
+            subpto_error
+        )
+        return False
+    except subprocess.CalledProcessError as subpcpe_error:
+        logging.error(
+            'Subprocess exited with error at process_profile_traffic: %s',
+            subpcpe_error
+        )
+        return False
+    except OSError as os_error:
+        logging.error(
+            'OS error at process_profile_traffic: %s',
+            os_error
+        )
+        return False
+    except Exception as unexpected_error:
+        logging.error(
+            'Unexpected exception at process_profile_traffic: %s',
+            unexpected_error
+        )
         return False
 
 
