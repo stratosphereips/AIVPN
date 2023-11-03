@@ -2,7 +2,20 @@
 # This file is part of the Civilsphere AI VPN
 # See the file 'LICENSE' for copying permission.
 # Author: Veronica Valeros
-# Contact: vero.valeros@gmail.com, veronica.valeros@aic.fel.cvut.cz
+#         vero.valeros@gmail.com, veronica.valeros@aic.fel.cvut.cz
+"""
+Processes network traffic profiles using Slips IDS and interacts with Redis.
+
+This module reads network packet captures from specified profile directories,
+processes them with Slips IDS. It communicates the status via Redis channels.
+
+Functions:
+    process_profile_traffic(profile_name, PATH):
+        Runs Slips IDS on pcap files for the given profile.
+
+The script's main section handles Redis connection, subscription,
+and message-driven processing workflow.
+"""
 
 import os
 import sys
