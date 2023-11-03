@@ -24,9 +24,9 @@ def create_working_directory(profile_name):
         # Read the file path to be used from config file
         config = configparser.ConfigParser()
         config.read('config/config.ini')
-        PATH = config['STORAGE']['PATH']
+        storage_path = config['STORAGE']['PATH']
 
-        profile_directory = PATH+"/"+profile_name
+        profile_directory = storage_path+"/"+profile_name
 
         if not os.path.exists(profile_directory):
             os.makedirs(profile_directory)
