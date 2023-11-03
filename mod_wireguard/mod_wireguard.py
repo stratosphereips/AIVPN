@@ -12,6 +12,7 @@ import time
 import logging
 import configparser
 import subprocess
+import signal
 from common.database import redis_connect_to_db
 from common.database import redis_create_subscriber
 from common.database import redis_subscribe_to_channel
@@ -148,15 +149,33 @@ def start_traffic_capture(loc_profile, loc_client_ip, loc_path):
     return loc_pid
 
 
-def stop_traffic_capture(CLIENT_PID):
-    """ This function stops a given traffic capture by PID. """
+def stop_traffic_capture(loc_client_pid):
+    """
+    Immediately stops the traffic capture process with the given PID.
+
+    loc_client_pid (int): The PID of the traffic capture process to stop.
+    :returns: True if the process was stopped successfully, False otherwise.
+    """
+
+    # Make sure we don't try to kill a non existent PID
+    if loc_client_pid is None:
+        logging.error("Invalid PID: None provided.")
+        return False
+
+    # Terminate the process immediately
     try:
-        os.kill(CLIENT_PID, 9)
-        os.wait()
+        os.kill(loc_client_pid, signal.SIGKILL)
+        # Wait for the process to be killed
+        os.waitpid(loc_client_pid, 0)
+        logging.info("Process with PID %d was killed.", loc_client_pid)
         return True
-    except Exception as err:
-        logging.info('Exception in stop_traffic_capture: %s', err)
-        return err
+    except OSError as loc_err:
+        logging.error('Failed to kill process with PID %d: %s',
+                      loc_client_pid,
+                      loc_err)
+    except TypeError as loc_err:
+        logging.error('Invalid PID type: %s', loc_err)
+    return False
 
 
 def set_profile_static_ip(CLIENT_NAME, CLIENT_IP):
