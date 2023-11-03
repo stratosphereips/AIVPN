@@ -83,13 +83,13 @@ def start_traffic_capture(CLIENT_NAME, CLIENT_IP, PATH):
         cmd_tcpdump = os.popen('which tcpdump').read().strip()
 
         # Number used to differentiate pcaps if there's more than one
-        NUMBER=str(time.monotonic()).split('.')[1]
+        NUMBER = str(time.monotonic()).split('.')[1]
 
         # Create the tcpdump file name
-        PCAP_NAME=f'{PATH}/{CLIENT_NAME}/{CLIENT_NAME}_{CLIENT_IP}_{NUMBER}.pcap'
+        PCAP_NAME = f'{PATH}/{CLIENT_NAME}/{CLIENT_NAME}_{CLIENT_IP}_{NUMBER}.pcap'
 
         # Start the subprocess
-        args=[cmd_tcpdump,"-qq","-n","-U","-l","-s0","-i","any","host",CLIENT_IP,"-w",PCAP_NAME]
+        args = [cmd_tcpdump, "-qq", "-n", "-U", "-l", "-s0", "-i", "any", "host", CLIENT_IP, "-w", PCAP_NAME]
         process = subprocess.Popen(args, start_new_session=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
 
         # Get the PID
@@ -105,7 +105,7 @@ def start_traffic_capture(CLIENT_NAME, CLIENT_IP, PATH):
 def stop_traffic_capture(CLIENT_PID):
     """ This function stops a given traffic capture by PID. """
     try:
-        os.kill(CLIENT_PID,9)
+        os.kill(CLIENT_PID, 9)
         os.wait()
         return True
     except Exception as err:
@@ -138,14 +138,14 @@ def read_configuration():
     PKI_ADDRESS = config['WIREGUARD']['PKI_ADDRESS']
     PATH = config['STORAGE']['PATH']
 
-    return REDIS_SERVER,CHANNEL,LOG_FILE,SERVER_PUBLIC_URL,PKI_ADDRESS,PATH
+    return REDIS_SERVER, CHANNEL, LOG_FILE, SERVER_PUBLIC_URL, PKI_ADDRESS, PATH
 
 
 if __name__ == '__main__':
     # Read configuration
-    REDIS_SERVER,CHANNEL,LOG_FILE,SERVER_PUBLIC_URL,PKI_ADDRESS,PATH = read_configuration()
+    REDIS_SERVER, CHANNEL, LOG_FILE, SERVER_PUBLIC_URL, PKI_ADDRESS, PATH = read_configuration()
 
-    logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG,format='%(asctime)s, MOD_WIREGUARD, %(message)s')
+    logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG, format='%(asctime)s, MOD_WIREGUARD, %(message)s')
 
     # Connecting to the Redis database
     try:
@@ -163,7 +163,7 @@ if __name__ == '__main__':
 
     # Subscribing to Redis channel
     try:
-        redis_subscribe_to_channel(db_subscriber,CHANNEL)
+        redis_subscribe_to_channel(db_subscriber, CHANNEL)
         logging.info("Connection and channel subscription to redis successful.")
     except Exception as err:
         logging.info(f'Channel subscription failed: {err}')
@@ -180,53 +180,53 @@ if __name__ == '__main__':
                     redis_client.publish('services_status', 'MOD_WIREGUARD:online')
                     logging.info('Status Online')
                 elif 'new_profile' in item['data']:
-                    account_error_message=""
+                    account_error_message = ""
                     logging.info('Received a new request for an WireGuard profile')
                     redis_client.publish('services_status', 'MOD_WIREGUARD:processing a new WireGuard profile')
 
                     # Get a client ip for wireguard
-                    CLIENT_IP = get_vpn_client_ip_address('wireguard',redis_client)
+                    CLIENT_IP = get_vpn_client_ip_address('wireguard', redis_client)
 
-                    if not CLIENT_IP==False:
+                    if not CLIENT_IP == False:
                         # Parse the name obtained in the request
-                        CLIENT_NAME=item['data'].split(':')[1]
-                        redis_client.publish('services_status',f'MOD_WIREGUARD: assigning IP ({CLIENT_IP}) to client ({CLIENT_NAME})')
+                        CLIENT_NAME = item['data'].split(':')[1]
+                        redis_client.publish('services_status', f'MOD_WIREGUARD: assigning IP ({CLIENT_IP}) to client ({CLIENT_NAME})')
 
                         # Generate the Wireguard profile for the client
                         logging.info(f'Generating WireGuard profile {CLIENT_NAME} with IP {CLIENT_IP}')
-                        status = generate_profile(CLIENT_NAME,PATH,CLIENT_IP)
-                        if status==True:
-                            set_profile_static_ip(CLIENT_NAME,CLIENT_IP)
+                        status = generate_profile(CLIENT_NAME, PATH, CLIENT_IP)
+                        if status == True:
+                            set_profile_static_ip(CLIENT_NAME, CLIENT_IP)
                             # Store client:ip relationship for the traffic capture
-                            if add_profile_ip_relationship(CLIENT_NAME,CLIENT_IP,redis_client):
-                                PID = start_traffic_capture(CLIENT_NAME,CLIENT_IP,PATH)
+                            if add_profile_ip_relationship(CLIENT_NAME, CLIENT_IP, redis_client):
+                                PID = start_traffic_capture(CLIENT_NAME, CLIENT_IP, PATH)
                                 if not PID == False:
                                     logging.info(f'Tcpdump started successfully (PID:{PID})')
-                                    result = add_pid_profile_name_relationship(PID,CLIENT_NAME,redis_client)
-                                    result = add_profile_name_pid_relationship(CLIENT_NAME,PID,redis_client)
-                                    redis_client.publish('services_status','MOD_WIREGUARD:profile_creation_successful')
-                                    redis_client.publish('provision_wireguard','profile_creation_successful')
+                                    result = add_pid_profile_name_relationship(PID, CLIENT_NAME, redis_client)
+                                    result = add_profile_name_pid_relationship(CLIENT_NAME, PID, redis_client)
+                                    redis_client.publish('services_status', 'MOD_WIREGUARD:profile_creation_successful')
+                                    redis_client.publish('provision_wireguard', 'profile_creation_successful')
                                     logging.info('profile_creation_successful')
                                 else:
-                                    account_error_message="MOD_WIREGUARD: profile_creation_failed:cannot start tcpdump"
+                                    account_error_message = "MOD_WIREGUARD: profile_creation_failed:cannot start tcpdump"
                             else:
-                                account_error_message="MOD_WIREGUARD: profile_creation_failed:cannot add profile_ip relationship to redis"
+                                account_error_message = "MOD_WIREGUARD: profile_creation_failed:cannot add profile_ip relationship to redis"
                         else:
-                            account_error_message="MOD_WIREGUARD: profile_creation_failed:failed to create a new profile"
+                            account_error_message = "MOD_WIREGUARD: profile_creation_failed:failed to create a new profile"
                     else:
-                        account_error_message="MOD_WIREGUARD: profile_creation_failed:no available IP addresses found"
+                        account_error_message = "MOD_WIREGUARD: profile_creation_failed:no available IP addresses found"
 
                     # Notify once if there is an error message
                     if account_error_message:
                         logging.info(account_error_message)
-                        redis_client.publish('services_status',account_error_message)
-                        redis_client.publish('provision_wireguard',account_error_message)
+                        redis_client.publish('services_status', account_error_message)
+                        redis_client.publish('provision_wireguard', account_error_message)
 
                 elif 'revoke_profile' in item['data']:
-                    account_error_message=""
+                    account_error_message = ""
                     # Parse CLIENT_NAME and PID from message
-                    CLIENT_NAME=item['data'].split(':')[1]
-                    CLIENT_PID=int(item['data'].split(':')[2])
+                    CLIENT_NAME = item['data'].split(':')[1]
+                    CLIENT_PID = int(item['data'].split(':')[2])
                     logging.info(f'Revoking profile {CLIENT_NAME} and stopping traffic capture ({CLIENT_PID})')
 
                     # Revoke VPN profile
@@ -236,19 +236,19 @@ if __name__ == '__main__':
                         logging.info(f'Result of stopping the traffic capture was {status}')
                         if status:
                             # Account revoked successfully
-                            redis_client.publish('services_status','MOD_WIREGUARD: profile_revocation_successful')
-                            redis_client.publish('deprovision_wireguard','profile_revocation_successful')
+                            redis_client.publish('services_status', 'MOD_WIREGUARD: profile_revocation_successful')
+                            redis_client.publish('deprovision_wireguard', 'profile_revocation_successful')
                             logging.info('profile_revocation_successful')
                         else:
-                            account_error_message='Unable to stop the traffic capture.'
+                            account_error_message = 'Unable to stop the traffic capture.'
                     else:
-                        account_error_message='Unable to revoke the VPN profile.'
+                        account_error_message = 'Unable to revoke the VPN profile.'
 
                     # Notify once if there is an error message
                     if account_error_message:
                         logging.info(account_error_message)
-                        redis_client.publish('services_status',account_error_message)
-                        redis_client.publish('deprovision_wireguard',account_error_message)
+                        redis_client.publish('services_status', account_error_message)
+                        redis_client.publish('deprovision_wireguard', account_error_message)
 
         redis_client.publish('services_status', 'MOD_WIREGUARD:offline')
         logging.info("Terminating")
