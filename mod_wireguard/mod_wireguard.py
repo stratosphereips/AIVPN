@@ -13,6 +13,7 @@ import ipaddress
 from common.database import *
 import subprocess
 
+
 def revoke_profile(CLIENT_NAME):
     """
     This function revokes a given profile.
@@ -24,6 +25,7 @@ def revoke_profile(CLIENT_NAME):
     except Exception as err:
         logging.info(f'Exception in revoke_profile: {err}')
         return err
+
 
 def generate_profile(CLIENT_NAME,PATH,CLIENT_IP):
 
@@ -38,6 +40,7 @@ def generate_profile(CLIENT_NAME,PATH,CLIENT_IP):
         logging.info(f'Exception in generate_profile: {err}')
         return False
 
+
 def get_vpn_profile(CLIENT_NAME,PATH):
     """
     This function returns the new generated client profile.
@@ -46,6 +49,7 @@ def get_vpn_profile(CLIENT_NAME,PATH):
         pass
     except Exception as err:
         logging.info(f'Error in get_vpn_profile: {err}')
+
 
 def start_traffic_capture(CLIENT_NAME,CLIENT_IP,PATH):
     """
@@ -75,6 +79,7 @@ def start_traffic_capture(CLIENT_NAME,CLIENT_IP,PATH):
         logging.info(f'Error in start_traffic_capture: {err}')
         return False
 
+
 def stop_traffic_capture(CLIENT_PID):
     """ This function stops a given traffic capture by PID. """
     try:
@@ -84,6 +89,7 @@ def stop_traffic_capture(CLIENT_PID):
     except Exception as err:
         logging.info(f'Exception in stop_traffic_capture: {err}')
         return err
+
 
 def set_profile_static_ip(CLIENT_NAME,CLIENT_IP):
     """
@@ -96,6 +102,7 @@ def set_profile_static_ip(CLIENT_NAME,CLIENT_IP):
     except Exception as err:
         logging.info(f'Exception in set_profile_static_ip: {err}')
         return False
+
 
 def read_configuration():
     # Read configuration file
@@ -110,6 +117,7 @@ def read_configuration():
     PATH = config['STORAGE']['PATH']
 
     return REDIS_SERVER,CHANNEL,LOG_FILE,SERVER_PUBLIC_URL,PKI_ADDRESS,PATH
+
 
 if __name__ == '__main__':
     # Read configuration
