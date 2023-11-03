@@ -32,5 +32,9 @@ def create_working_directory(profile_name):
             os.makedirs(profile_directory)
 
         return True
-    except Exception as e:
-        return e
+    except KeyError as err:
+        print(f"Configuration error: {err}")
+        return False
+    except OSError as err:
+        print(f"File system error: {err}")
+        return False
