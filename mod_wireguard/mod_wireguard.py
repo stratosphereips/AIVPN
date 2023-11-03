@@ -20,9 +20,10 @@ def revoke_profile(loc_profile):
     """
     Revoke a given profile using the 'del-peer' command.
 
-    :param client_name: The name of the client whose profile is to be revoked.
-    :return: True if the profile was successfully revoked, False otherwise.
+    loc_profile (str): The local profile identifier for the profile to revoke.
+    returns (bool): True if the profile was successfully revoked, else False.
     """
+    action_status = False
     try:
         # Call the del-peer function using subprocess
         delpeer_result = subprocess.run(
@@ -32,12 +33,20 @@ def revoke_profile(loc_profile):
                 check=True)
         # Return true only if the return code is 0
         if delpeer_result.returncode == 0:
-            return True
-        else:
-            return False
-    except Exception as err:
-        logging.info('Exception in revoke_profile: %s', err)
-        return err
+            action_status = True
+    except subprocess.CalledProcessError as e:
+        logging.error("del-peer failed, return code %s: %s",
+                      e.returncode,
+                      e.output)
+    except OSError as e:
+        logging.error("del-peer failed with OSError: %s",
+                      e)
+    except ValueError as e:
+        logging.error("del-peer failed, invalid arguments for subprocess: %s",
+                      e)
+
+    # Return action_status for any of the cases
+    return action_status
 
 
 def generate_profile(CLIENT_NAME, PATH, CLIENT_IP):
