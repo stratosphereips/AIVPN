@@ -3,6 +3,14 @@
 # See the file 'LICENSE' for copying permission.
 # Author: Veronica Valeros
 #         vero.valeros@gmail.com, veronica.valeros@aic.fel.cvut.cz
+"""
+This module provides utilities for managing storage operations within
+the Civilsphere AI VPN project. It includes functions for creating and managing
+work directories based on profile names.
+
+Functions:
+    create_working_directory(profile_name): Creates a directory for a profile.
+"""
 
 import os
 import configparser
