@@ -39,16 +39,16 @@ def revoke_profile(loc_profile):
         # Return true only if the return code is 0
         if delpeer_result.returncode == 0:
             action_status = True
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError as loc_err:
         logging.error("del-peer failed, return code %s: %s",
-                      e.returncode,
-                      e.output)
-    except OSError as e:
+                      loc_err.returncode,
+                      loc_err.output)
+    except OSError as loc_err:
         logging.error("del-peer failed with OSError: %s",
-                      e)
-    except ValueError as e:
+                      loc_err)
+    except ValueError as loc_err:
         logging.error("del-peer failed, invalid arguments for subprocess: %s",
-                      e)
+                      loc_err)
 
     # Return action_status for any of the cases
     return action_status
