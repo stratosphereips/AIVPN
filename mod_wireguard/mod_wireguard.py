@@ -87,15 +87,6 @@ def generate_profile(loc_profile, loc_path, loc_client_ip):
     # Return action_status for any of the cases
     return action_status
 
-def get_vpn_profile(CLIENT_NAME, PATH):
-    """
-    This function returns the new generated client profile.
-    """
-    try:
-        pass
-    except Exception as err:
-        logging.info('Error in get_vpn_profile: %s', err)
-
 
 def start_traffic_capture(CLIENT_NAME, CLIENT_IP, PATH):
     """
