@@ -127,14 +127,14 @@ if __name__ == '__main__':
                 elif 'process_profile' in item['data']:
                     profile_name = item['data'].split(':')[1]
                     logging.info('Running Slips on profile %s', profile_name)
-                    status = process_profile_traffic(profile_name, storage_path)
-                    logging.info('Slips analysis on %s: %s', profile_name, status)
-                    if not status:
+                    STATUS = process_profile_traffic(profile_name, storage_path)
+                    logging.info('Slips analysis on %s: %s', profile_name, STATUS)
+                    if not STATUS:
                         logging.info('Error running Slips on profile')
                         message = f'slips_false:{profile_name}'
                         redis_client.publish('slips_processing', message)
                         continue
-                    if status:
+                    if STATUS:
                         logging.info('Slips analysis completed')
                         message = f'slips_true:{profile_name}'
                         redis_client.publish('slips_processing', message)
