@@ -178,19 +178,6 @@ def stop_traffic_capture(loc_client_pid):
     return False
 
 
-def set_profile_static_ip(CLIENT_NAME, CLIENT_IP):
-    """
-    This function creates sets an static IP for the client profile by creating
-    a file in the ccd/ directory with the IP set for the client.
-    """
-    try:
-        # Lets not need this
-        pass
-    except Exception as err:
-        logging.info('Exception in set_profile_static_ip: %s', err)
-        return False
-
-
 def read_configuration():
     # Read configuration file
     config = configparser.ConfigParser()
