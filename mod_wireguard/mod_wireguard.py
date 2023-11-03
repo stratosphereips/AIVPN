@@ -64,7 +64,7 @@ def generate_profile(CLIENT_NAME, PATH, CLIENT_IP):
         os.system(f'/app/add-peer {CLIENT_NAME} {PATH} {CLIENT_IP}')
         return True
     except Exception as err:
-        logging.info(f'Exception in generate_profile: {err}')
+        logging.info('Exception in generate_profile: %s', err)
         return False
 
 
@@ -75,7 +75,7 @@ def get_vpn_profile(CLIENT_NAME, PATH):
     try:
         pass
     except Exception as err:
-        logging.info(f'Error in get_vpn_profile: {err}')
+        logging.info('Error in get_vpn_profile: %s', err)
 
 
 def start_traffic_capture(CLIENT_NAME, CLIENT_IP, PATH):
@@ -103,7 +103,7 @@ def start_traffic_capture(CLIENT_NAME, CLIENT_IP, PATH):
         # Return the PID
         return PID
     except Exception as err:
-        logging.info(f'Error in start_traffic_capture: {err}')
+        logging.info('Error in start_traffic_capture: %s', err)
         return False
 
 
@@ -114,7 +114,7 @@ def stop_traffic_capture(CLIENT_PID):
         os.wait()
         return True
     except Exception as err:
-        logging.info(f'Exception in stop_traffic_capture: {err}')
+        logging.info('Exception in stop_traffic_capture: %s', err)
         return err
 
 
@@ -127,7 +127,7 @@ def set_profile_static_ip(CLIENT_NAME, CLIENT_IP):
         # Lets not need this
         pass
     except Exception as err:
-        logging.info(f'Exception in set_profile_static_ip: {err}')
+        logging.info('Exception in set_profile_static_ip: %s', err)
         return False
 
 
@@ -156,14 +156,16 @@ if __name__ == '__main__':
     try:
         redis_client = redis_connect_to_db(REDIS_SERVER)
     except Exception as err:
-        logging.info(f'Unable to connect to the Redis database ({REDIS_SERVER}): {err}')
+        logging.info('Unable to connect to the Redis database (%s): %s',
+                     REDIS_SERVER,
+                     err)
         sys.exit(-1)
 
     # Creating a Redis subscriber
     try:
         db_subscriber = redis_create_subscriber(redis_client)
     except Exception as err:
-        logging.info(f'Unable to create a Redis subscriber: {err}')
+        logging.info('Unable to create a Redis subscriber: %s', err)
         sys.exit(-1)
 
     # Subscribing to Redis channel
@@ -171,7 +173,7 @@ if __name__ == '__main__':
         redis_subscribe_to_channel(db_subscriber, CHANNEL)
         logging.info("Connection and channel subscription to redis successful.")
     except Exception as err:
-        logging.info(f'Channel subscription failed: {err}')
+        logging.info('Channel subscription failed: %s', err)
         sys.exit(-1)
 
     try:
@@ -180,7 +182,9 @@ if __name__ == '__main__':
         for item in db_subscriber.listen():
             # Every new message is processed and acted upon
             if item['type'] == 'message':
-                logging.info(f"New message received in channel {item['channel']}: {item['data']}")
+                logging.info('New message received in channel %s: %s',
+                             item['channel'],
+                             item['data'])
                 if item['data'] == 'report_status':
                     redis_client.publish('services_status', 'MOD_WIREGUARD:online')
                     logging.info('Status Online')
@@ -198,7 +202,7 @@ if __name__ == '__main__':
                         redis_client.publish('services_status', f'MOD_WIREGUARD: assigning IP ({CLIENT_IP}) to client ({CLIENT_NAME})')
 
                         # Generate the Wireguard profile for the client
-                        logging.info(f'Generating WireGuard profile {CLIENT_NAME} with IP {CLIENT_IP}')
+                        logging.info('Generating WireGuard profile %s with IP %s', CLIENT_NAME, CLIENT_IP)
                         status = generate_profile(CLIENT_NAME, PATH, CLIENT_IP)
                         if status == True:
                             set_profile_static_ip(CLIENT_NAME, CLIENT_IP)
@@ -206,7 +210,7 @@ if __name__ == '__main__':
                             if add_profile_ip_relationship(CLIENT_NAME, CLIENT_IP, redis_client):
                                 PID = start_traffic_capture(CLIENT_NAME, CLIENT_IP, PATH)
                                 if not PID == False:
-                                    logging.info(f'Tcpdump started successfully (PID:{PID})')
+                                    logging.info('Tcpdump started successfully (PID:%s)', PID)
                                     result = add_pid_profile_name_relationship(PID, CLIENT_NAME, redis_client)
                                     result = add_profile_name_pid_relationship(CLIENT_NAME, PID, redis_client)
                                     redis_client.publish('services_status', 'MOD_WIREGUARD:profile_creation_successful')
@@ -232,13 +236,13 @@ if __name__ == '__main__':
                     # Parse CLIENT_NAME and PID from message
                     CLIENT_NAME = item['data'].split(':')[1]
                     CLIENT_PID = int(item['data'].split(':')[2])
-                    logging.info(f'Revoking profile {CLIENT_NAME} and stopping traffic capture ({CLIENT_PID})')
+                    logging.info('Revoking profile %s and stopping traffic capture (%s)', CLIENT_NAME, CLIENT_PID)
 
                     # Revoke VPN profile
                     if revoke_profile(CLIENT_NAME):
                         # Stop the traffic capture by PID
                         status = stop_traffic_capture(CLIENT_PID)
-                        logging.info(f'Result of stopping the traffic capture was {status}')
+                        logging.info('Result of stopping the traffic capture was {%s}', status)
                         if status:
                             # Account revoked successfully
                             redis_client.publish('services_status', 'MOD_WIREGUARD: profile_revocation_successful')
@@ -261,7 +265,7 @@ if __name__ == '__main__':
         redis_client.close()
         sys.exit(-1)
     except Exception as err:
-        logging.info(f'Terminating via exception in main: {err}')
+        logging.info('Terminating via exception in main: %s', err)
         db_subscriber.close()
         redis_client.close()
         sys.exit(-1)
