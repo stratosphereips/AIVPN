@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 # This file is part of the Civilsphere AI VPN
 # See the file 'LICENSE' for copying permission.
-# Author: Sebastian Garcia, eldraco@gmail.com, sebastian.garcia@agents.fel.cvut.cz
-# Author: Veronica Valeros, vero.valeros@gmail.com, veronica.valeros@aic.fel.cvut.cz
+# Author: Sebastian Garcia,
+#         eldraco@gmail.com, sebastian.garcia@agents.fel.cvut.cz
+# Author: Veronica Valeros
+#         vero.valeros@gmail.com, veronica.valeros@aic.fel.cvut.cz
 
 import os
 import sys
 import time
 import logging
 import configparser
+import subprocess
 import ipaddress
 from common.database import *
-import subprocess
 
 
 def revoke_profile(CLIENT_NAME):
