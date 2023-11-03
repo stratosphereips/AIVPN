@@ -107,11 +107,6 @@ def process_profile_traffic(loc_profile, loc_path):
             'OS error at process_profile_traffic: %s',
             pptf_error
         )
-    except Exception as pptf_error:
-        logging.error(
-            'Unexpected exception at process_profile_traffic: %s',
-            pptf_error
-        )
 
     # Return result status of the function
     return op_success
