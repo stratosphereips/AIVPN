@@ -179,25 +179,32 @@ def stop_traffic_capture(loc_client_pid):
 
 
 def read_configuration():
-    # Read configuration file
+    """
+    Read configuration values from the config file.
+    """
     config = configparser.ConfigParser()
     config.read('config/config.ini')
 
-    REDIS_SERVER = config['REDIS']['REDIS_SERVER']
-    CHANNEL = config['REDIS']['REDIS_WIREGUARD_CHECK']
-    LOG_FILE = config['LOGS']['LOG_WIREGUARD']
-    SERVER_PUBLIC_URL = config['WIREGUARD']['SERVER_PUBLIC_URL']
-    PKI_ADDRESS = config['WIREGUARD']['PKI_ADDRESS']
-    PATH = config['STORAGE']['PATH']
+    redis_server = config['REDIS']['REDIS_SERVER']
+    channel = config['REDIS']['REDIS_WIREGUARD_CHECK']
+    log_file = config['LOGS']['LOG_WIREGUARD']
+    server_public_url = config['WIREGUARD']['SERVER_PUBLIC_URL']
+    pki_address = config['WIREGUARD']['PKI_ADDRESS']
+    path = config['STORAGE']['PATH']
 
-    return REDIS_SERVER, CHANNEL, LOG_FILE, SERVER_PUBLIC_URL, PKI_ADDRESS, PATH
+    return (redis_server, channel, log_file,
+            server_public_url, pki_address, path)
 
 
 if __name__ == '__main__':
     # Read configuration
-    REDIS_SERVER, CHANNEL, LOG_FILE, SERVER_PUBLIC_URL, PKI_ADDRESS, PATH = read_configuration()
+    (REDIS_SERVER, CHANNEL, LOG_FILE,
+     SERVER_PUBLIC_URL, PKI_ADDRESS, PATH) = read_configuration()
 
-    logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG, format='%(asctime)s, MOD_WIREGUARD, %(message)s')
+    # Initialize logging
+    logging.basicConfig(filename=LOG_FILE,
+                        level=logging.DEBUG,
+                        format='%(asctime)s, MOD_WIREGUARD, %(message)s')
 
     # Connecting to the Redis database
     try:
