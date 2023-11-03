@@ -13,6 +13,7 @@ import logging
 import configparser
 import subprocess
 import signal
+import redis
 from common.database import redis_connect_to_db
 from common.database import redis_create_subscriber
 from common.database import redis_subscribe_to_channel
@@ -206,28 +207,32 @@ if __name__ == '__main__':
                         level=logging.DEBUG,
                         format='%(asctime)s, MOD_WIREGUARD, %(message)s')
 
-    # Connecting to the Redis database
     try:
+        # Connecting to the Redis database
         redis_client = redis_connect_to_db(REDIS_SERVER)
-    except Exception as err:
-        logging.info('Unable to connect to the Redis database (%s): %s',
-                     REDIS_SERVER,
-                     err)
-        sys.exit(-1)
 
-    # Creating a Redis subscriber
-    try:
+        # Creating a Redis subscriber and subscribing to channel
         db_subscriber = redis_create_subscriber(redis_client)
-    except Exception as err:
-        logging.info('Unable to create a Redis subscriber: %s', err)
-        sys.exit(-1)
-
-    # Subscribing to Redis channel
-    try:
         redis_subscribe_to_channel(db_subscriber, CHANNEL)
-        logging.info("Connection and channel subscription to redis successful.")
+
+    except redis.ConnectionError as err:
+        logging.error('Connection error with Redis server (%s): %s',
+                      REDIS_SERVER,
+                      err)
+        sys.exit(-1)
+    except redis.TimeoutError as err:
+        logging.error('Timeout error with Redis server (%s): %s',
+                      REDIS_SERVER,
+                      err)
+        sys.exit(-1)
+    except redis.AuthenticationError as err:
+        logging.error('Authentication error with Redis server (%s): %s',
+                      REDIS_SERVER,
+                      err)
+        sys.exit(-1)
     except Exception as err:
-        logging.info('Channel subscription failed: %s', err)
+        logging.error('Unexpected error during Redis operations: %s',
+                      err)
         sys.exit(-1)
 
     try:
