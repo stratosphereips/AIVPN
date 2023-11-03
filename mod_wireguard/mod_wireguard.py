@@ -16,7 +16,7 @@ import ipaddress
 from common.database import *
 
 
-def revoke_profile(CLIENT_NAME):
+def revoke_profile(loc_profile):
     """
     Revoke a given profile using the 'del-peer' command.
 
@@ -24,9 +24,17 @@ def revoke_profile(CLIENT_NAME):
     :return: True if the profile was successfully revoked, False otherwise.
     """
     try:
-        # This is where we call the del-peer
-        os.system(f'/app/del-peer {CLIENT_NAME}')
-        return True
+        # Call the del-peer function using subprocess
+        delpeer_result = subprocess.run(
+                ['/app/del-peer', loc_profile],
+                capture_output=True,
+                text=True,
+                check=True)
+        # Return true only if the return code is 0
+        if delpeer_result.returncode == 0:
+            return True
+        else:
+            return False
     except Exception as err:
         logging.info('Exception in revoke_profile: %s', err)
         return err
