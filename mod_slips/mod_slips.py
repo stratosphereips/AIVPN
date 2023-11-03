@@ -10,7 +10,7 @@ This module reads network packet captures from specified profile directories,
 processes them with Slips IDS. It communicates the status via Redis channels.
 
 Functions:
-    process_profile_traffic(profile_name, PATH):
+    process_profile_traffic(profile_name, storage_path):
         Runs Slips IDS on pcap files for the given profile.
 
 The script's main section handles Redis connection, subscription,
@@ -28,14 +28,14 @@ from common.database import redis_create_subscriber
 from common.database import redis_subscribe_to_channel
 
 
-def process_profile_traffic(profile_name, PATH):
+def process_profile_traffic(profile_name, storage_path):
     """
     Process the traffic for a given profile with Slips IDS.
     """
 
     try:
         # Go to profile directory
-        os.chdir(f'{PATH}/{profile_name}')
+        os.chdir(f'{storage_path}/{profile_name}')
 
         # Find all pcaps for the profile and process them
         for capture_file in glob.glob("*.pcap"):
@@ -48,12 +48,12 @@ def process_profile_traffic(profile_name, PATH):
                 return False
 
             # If capture is not empty, process it with Slips IDS
-            FILENAME = f'{PATH}/{profile_name}/{capture_file}'
-            SLIPS_OUTPUT = f'{PATH}/{profile_name}/slips_{capture_file}/'
+            FILENAME = f'{storage_path}/{profile_name}/{capture_file}'
+            SLIPS_OUTPUT = f'{storage_path}/{profile_name}/slips_{capture_file}/'
             SLIPS_CONF = '/StratosphereLinuxIPS/aivpn_slips.conf'
 
             # Create Slips working directory
-            os.mkdir(f'{PATH}/{profile_name}/slips_{capture_file}')
+            os.mkdir(f'{storage_path}/{profile_name}/slips_{capture_file}')
 
             # Run Slips as subprocess
             args = ['/StratosphereLinuxIPS/slips.py', '-c', SLIPS_CONF,
@@ -76,7 +76,7 @@ if __name__ == '__main__':
     REDIS_SERVER = config['REDIS']['REDIS_SERVER']
     CHANNEL = config['REDIS']['REDIS_SLIPS_CHECK']
     LOG_FILE = config['LOGS']['LOG_SLIPS']
-    PATH = config['STORAGE']['PATH']
+    storage_path = config['STORAGE']['PATH']
 
     logging.basicConfig(filename=LOG_FILE, level=logging.DEBUG,
                         format='%(asctime)s, MOD_SLIPS, %(message)s')
@@ -123,7 +123,7 @@ if __name__ == '__main__':
                 elif 'process_profile' in item['data']:
                     profile_name = item['data'].split(':')[1]
                     logging.info(f'Running Slips on profile {profile_name}')
-                    status = process_profile_traffic(profile_name, PATH)
+                    status = process_profile_traffic(profile_name, storage_path)
                     logging.info(f'Slips analysis on {profile_name}: {status}')
                     if not status:
                         logging.info('Error running Slips on profile')
