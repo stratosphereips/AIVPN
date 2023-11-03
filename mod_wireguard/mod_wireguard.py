@@ -54,19 +54,38 @@ def revoke_profile(loc_profile):
     return action_status
 
 
-def generate_profile(CLIENT_NAME, PATH, CLIENT_IP):
+def generate_profile(loc_profile, loc_path, loc_client_ip):
 
     """
     This function generates a new profile for a client_name.
-    """
-    try:
-        # This is where we call the add-peer
-        os.system(f'/app/add-peer {CLIENT_NAME} {PATH} {CLIENT_IP}')
-        return True
-    except Exception as err:
-        logging.info('Exception in generate_profile: %s', err)
-        return False
 
+    loc_profile: profile name for the client
+    loc_path: path were to store the profile
+    loc_client_ip: IP assigned to the client
+    """
+    action_status = False
+    try:
+        # This is where we call the add-peer using subprocess
+        addpeer_result = subprocess.run(
+                ['/app/add-peer', loc_profile, loc_path, loc_client_ip],
+                capture_output=True,
+                text=True,
+                check=True)
+        if addpeer_result.returncode == 0:
+            action_status = True
+    except subprocess.CalledProcessError as loc_err:
+        logging.error("add-peer failed, return code %s: %s",
+                      loc_err.returncode,
+                      loc_err.output)
+    except OSError as loc_err:
+        logging.error("add-peer failed with OSError: %s",
+                      loc_err)
+    except ValueError as loc_err:
+        logging.error("add-peer failed, invalid arguments for subprocess: %s",
+                      loc_err)
+
+    # Return action_status for any of the cases
+    return action_status
 
 def get_vpn_profile(CLIENT_NAME, PATH):
     """
