@@ -88,33 +88,64 @@ def generate_profile(loc_profile, loc_path, loc_client_ip):
     return action_status
 
 
-def start_traffic_capture(CLIENT_NAME, CLIENT_IP, PATH):
+def start_traffic_capture(loc_profile, loc_client_ip, loc_path):
     """
     This function starts a tcpdump process to capture the traffic and store the
     pcap for a given client and IP.
+
+    loc_profile: profile name for the client
+    loc_client_ip: IP assigned to the client
+    loc_path: path assigned to the client
+    :return: The PID of the started tcpdump process or False on failure.
+
     """
+    loc_pid = None
+
+    # Identify which tcpdump to run
     try:
-        # Identify which tcpdump to run
         cmd_tcpdump = os.popen('which tcpdump').read().strip()
-
-        # Number used to differentiate pcaps if there's more than one
-        NUMBER = str(time.monotonic()).split('.')[1]
-
-        # Create the tcpdump file name
-        PCAP_NAME = f'{PATH}/{CLIENT_NAME}/{CLIENT_NAME}_{CLIENT_IP}_{NUMBER}.pcap'
-
-        # Start the subprocess
-        args = [cmd_tcpdump, "-qq", "-n", "-U", "-l", "-s0", "-i", "any", "host", CLIENT_IP, "-w", PCAP_NAME]
-        process = subprocess.Popen(args, start_new_session=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
-
-        # Get the PID
-        PID = process.pid
-
-        # Return the PID
-        return PID
-    except Exception as err:
-        logging.info('Error in start_traffic_capture: %s', err)
+    except OSError as loc_err:
+        logging.error('Failed to find tcpdump: %s', loc_err)
         return False
+
+    # Number used to differentiate pcaps if there's more than one
+    pcap_number = str(time.monotonic()).split('.')[1]
+
+    # Create the tcpdump file name
+    profile_pcap_path = f'{loc_path}/{loc_profile}'
+    profile_pcap_name = f'{loc_profile}_{loc_client_ip}_{pcap_number}.pcap'
+    profile_file_path = f'{profile_pcap_path}/{profile_pcap_name}'
+
+    # Prepare the arguments for the subprocess
+    args = [cmd_tcpdump,
+            "-qq",
+            "-n",
+            "-U",
+            "-l",
+            "-s0",
+            "-i",
+            "any",
+            "host", loc_client_ip,
+            "-w", profile_file_path]
+
+    try:
+        # Start the subprocess
+        with subprocess.Popen(args,
+                              start_new_session=True,
+                              stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE,
+                              stdin=subprocess.PIPE) as process:
+
+            # Get the PID
+            loc_pid = process.pid
+
+    except ValueError:
+        logging.error('Invalid arguments provided to subprocess.Popen')
+    except OSError as loc_err:
+        logging.error('OS error occurred: %s', loc_err)
+
+    # Return the PID
+    return loc_pid
 
 
 def stop_traffic_capture(CLIENT_PID):
