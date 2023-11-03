@@ -29,7 +29,7 @@ def revoke_profile(CLIENT_NAME):
         return err
 
 
-def generate_profile(CLIENT_NAME,PATH,CLIENT_IP):
+def generate_profile(CLIENT_NAME, PATH, CLIENT_IP):
 
     """
     This function generates a new profile for a client_name.
@@ -43,7 +43,7 @@ def generate_profile(CLIENT_NAME,PATH,CLIENT_IP):
         return False
 
 
-def get_vpn_profile(CLIENT_NAME,PATH):
+def get_vpn_profile(CLIENT_NAME, PATH):
     """
     This function returns the new generated client profile.
     """
@@ -53,7 +53,7 @@ def get_vpn_profile(CLIENT_NAME,PATH):
         logging.info(f'Error in get_vpn_profile: {err}')
 
 
-def start_traffic_capture(CLIENT_NAME,CLIENT_IP,PATH):
+def start_traffic_capture(CLIENT_NAME, CLIENT_IP, PATH):
     """
     This function starts a tcpdump process to capture the traffic and store the
     pcap for a given client and IP.
@@ -93,7 +93,7 @@ def stop_traffic_capture(CLIENT_PID):
         return err
 
 
-def set_profile_static_ip(CLIENT_NAME,CLIENT_IP):
+def set_profile_static_ip(CLIENT_NAME, CLIENT_IP):
     """
     This function creates sets an static IP for the client profile by creating
     a file in the ccd/ directory with the IP set for the client.
