@@ -41,7 +41,9 @@ def process_profile_traffic(profile_name, storage_path):
         for capture_file in glob.glob("*.pcap"):
             # Check size of packet capture
             capture_size = os.stat(capture_file).st_size
-            logging.info(f'Processing file: {capture_file} ({capture_size} b)')
+            logging.info('Processing file: %s (%s b)',
+                         capture_file,
+                         capture_size)
 
             # If capture is empty: do not process it
             if capture_size < 26:
@@ -64,7 +66,7 @@ def process_profile_traffic(profile_name, storage_path):
         # When all captures are processed, return True
         return True
     except Exception as err:
-        logging.info(f'Exception in process_profile_traffic: {err}')
+        logging.info('Exception in process_profile_traffic: %s', err)
         return False
 
 
@@ -85,21 +87,21 @@ if __name__ == '__main__':
     try:
         redis_client = redis_connect_to_db(REDIS_SERVER)
     except Exception as err:
-        logging.error(f'Cannot connect to Redis ({REDIS_SERVER}): {err}')
+        logging.error('Cannot connect to Redis (%s): %s', REDIS_SERVER, err)
         sys.exit(-1)
 
     # Creating a Redis subscriber
     try:
         db_subscriber = redis_create_subscriber(redis_client)
     except Exception as err:
-        logging.error(f'Unable to create a Redis subscriber: {err}')
+        logging.error('Unable to create a Redis subscriber: %s', err)
         sys.exit(-1)
 
     # Subscribing to Redis channel
     try:
         redis_subscribe_to_channel(db_subscriber, CHANNEL)
     except Exception as err:
-        logging.error(f'Channel subscription failed: {err}')
+        logging.error('Channel subscription failed: %s', err)
         sys.exit(-1)
 
     # Starting Slips Redis Database
@@ -107,7 +109,7 @@ if __name__ == '__main__':
         # Run redis
         subprocess.Popen(['redis-server', '--daemonize', 'yes'])
     except Exception as err:
-        logging.error(f'Cannot Slips redis database: {err}')
+        logging.error('Cannot Slips redis database: %s', err)
         sys.exit(-1)
 
     try:
@@ -116,15 +118,17 @@ if __name__ == '__main__':
         # Checking for messages
         for item in db_subscriber.listen():
             if item['type'] == 'message':
-                logging.info(f"New message in channel {item['channel']}: {item['data']}")
+                logging.info("New message in channel %s: %s",
+                             item['channel'],
+                             item['data'])
                 if item['data'] == 'report_status':
                     redis_client.publish('services_status', 'MOD_SLIPS:online')
                     logging.info('MOD_SLIPS:online')
                 elif 'process_profile' in item['data']:
                     profile_name = item['data'].split(':')[1]
-                    logging.info(f'Running Slips on profile {profile_name}')
+                    logging.info('Running Slips on profile %s', profile_name)
                     status = process_profile_traffic(profile_name, storage_path)
-                    logging.info(f'Slips analysis on {profile_name}: {status}')
+                    logging.info('Slips analysis on %s: %s', profile_name, status)
                     if not status:
                         logging.info('Error running Slips on profile')
                         message = f'slips_false:{profile_name}'
@@ -141,7 +145,7 @@ if __name__ == '__main__':
         redis_client.close()
         sys.exit(0)
     except Exception as err:
-        logging.info(f'Terminating via exception in __main__: {err}')
+        logging.info('Terminating via exception in __main__: %s', err)
         db_subscriber.close()
         redis_client.close()
         sys.exit(-1)
