@@ -18,14 +18,17 @@ from common.database import *
 
 def revoke_profile(CLIENT_NAME):
     """
-    This function revokes a given profile.
+    Revoke a given profile using the 'del-peer' command.
+
+    :param client_name: The name of the client whose profile is to be revoked.
+    :return: True if the profile was successfully revoked, False otherwise.
     """
     try:
         # This is where we call the del-peer
         os.system(f'/app/del-peer {CLIENT_NAME}')
         return True
     except Exception as err:
-        logging.info(f'Exception in revoke_profile: {err}')
+        logging.info('Exception in revoke_profile: %s', err)
         return err
 
 
