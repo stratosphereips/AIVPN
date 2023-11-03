@@ -58,10 +58,14 @@ def process_profile_traffic(profile_name, storage_path):
             os.mkdir(f'{storage_path}/{profile_name}/slips_{capture_file}')
 
             # Run Slips as subprocess
-            args = ['/StratosphereLinuxIPS/slips.py', '-c', slips_config,
-                    '-f', profile_filename, '-o', slips_output]
-            process = subprocess.run(args, cwd="/StratosphereLinuxIPS",
-                                       stdout=subprocess.PIPE, timeout=86400)
+            args = ['/StratosphereLinuxIPS/slips.py',
+                    '-c', slips_config,
+                    '-f', profile_filename,
+                    '-o', slips_output]
+            subprocess.run(args,
+                           cwd="/StratosphereLinuxIPS",
+                           stdout=subprocess.PIPE,
+                           timeout=86400)
 
         # When all captures are processed, return True
         return True
