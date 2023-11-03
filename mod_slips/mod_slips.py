@@ -160,16 +160,13 @@ if __name__ == '__main__':
 
     try:
         # Starting Slips Redis Database
-        subprocess.Popen(['redis-server', '--daemonize', 'yes'])
-    except subprocess.SubprocessError as err:
-        logging.error(
-                'Subprocess error while starting Slips Redis database: %s',
-                err)
+        with subprocess.Popen(['redis-server', '--daemonize', 'yes']) as proc:
+            proc.wait()
+    except OSError as err:
+        logging.error('Starting Redis failed with OS error: %s', err)
         sys.exit(-1)
-    except Exception as err:
-        logging.error(
-                'Unexpected error while starting Slips Redis database: %s',
-                err)
+    except subprocess.SubprocessError as err:
+        logging.error('Starting Redis failed with subprocess error: %s', err)
         sys.exit(-1)
 
     try:
@@ -186,9 +183,16 @@ if __name__ == '__main__':
                     logging.info('MOD_SLIPS:online')
                 elif 'process_profile' in item['data']:
                     profile_name = item['data'].split(':')[1]
-                    logging.info('Running Slips on profile %s', profile_name)
-                    STATUS = process_profile_traffic(profile_name, storage_path)
-                    logging.info('Slips analysis on %s: %s', profile_name, STATUS)
+                    logging.info('Running Slips on profile %s',
+                                 profile_name)
+
+                    STATUS = process_profile_traffic(
+                                profile_name,
+                                storage_path)
+                    logging.info('Slips analysis on %s: %s',
+                                 profile_name,
+                                 STATUS)
+
                     if not STATUS:
                         logging.info('Error running Slips on profile')
                         message = f'slips_false:{profile_name}'
