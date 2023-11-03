@@ -29,7 +29,7 @@ from common.database import redis_create_subscriber
 from common.database import redis_subscribe_to_channel
 
 
-def process_profile_traffic(profile_name, storage_path):
+def process_profile_traffic(loc_profile, loc_path):
     """
     Process the traffic for a given profile with Slips IDS.
     """
@@ -37,7 +37,7 @@ def process_profile_traffic(profile_name, storage_path):
     op_success = False
     try:
         # Go to profile directory
-        os.chdir(f'{storage_path}/{profile_name}')
+        os.chdir(f'{loc_path}/{loc_profile}')
 
         # Find all pcaps for the profile and process them
         for capture_file in glob.glob("*.pcap"):
@@ -52,12 +52,12 @@ def process_profile_traffic(profile_name, storage_path):
                 return False
 
             # If capture is not empty, process it with Slips IDS
-            profile_filename = f'{storage_path}/{profile_name}/{capture_file}'
-            slips_output = f'{storage_path}/{profile_name}/slips_{capture_file}/'
+            profile_filename = f'{loc_path}/{loc_profile}/{capture_file}'
+            slips_output = f'{loc_path}/{loc_profile}/slips_{capture_file}/'
             slips_config = '/StratosphereLinuxIPS/aivpn_slips.conf'
 
             # Create Slips working directory
-            os.mkdir(f'{storage_path}/{profile_name}/slips_{capture_file}')
+            os.mkdir(f'{loc_path}/{loc_profile}/slips_{capture_file}')
 
             # Run Slips as subprocess
             args = ['/StratosphereLinuxIPS/slips.py',
