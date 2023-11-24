@@ -8,15 +8,20 @@ import sys
 import logging
 import re
 import imaplib
-import threading
+from functools import partial
 import configparser
 from email.parser import BytesFeedParser
 import redis
+from telegram.ext import ApplicationBuilder
+from telegram.ext import CommandHandler
 from common.database import add_item_provisioning_queue
 from common.database import redis_connect_to_db
 from common.database import redis_create_subscriber
 from common.database import redis_subscribe_to_channel
 
+
+# Global
+global REDIS_CLIENT
 
 # Read cofiguration file
 config = configparser.ConfigParser()
@@ -40,6 +45,52 @@ logging.basicConfig(filename=LOG_FILE,
 
 # Create a module-level logger
 logger = logging.getLogger(__name__)
+
+
+def send_request_to_redis(msg_id, msg_addr, msg_type, msg_request):
+    """
+    This function writes a new AI-VPN request to Redis.
+    This is the first step to get a new account provisioned.
+    """
+    try:
+        logging.info('Sending request to Redis: %s, %s, %s, %s',
+                     msg_request,
+                     msg_id,
+                     msg_addr,
+                     msg_type)
+        add_item_provisioning_queue(REDIS_CLIENT, msg_id, msg_type, msg_addr, msg_request)
+        return True
+    except Exception as loc_err:
+        logging.info('Exception in send_request_to_redis: %s', loc_err)
+        return False
+
+
+# Telegram Handlers
+async def telegram_cmd_start(update, context):
+    """
+    Telegram handle to welcome new users
+    """
+
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=T_START_MSG)
+    logging.info('New Telegram chat received from: %s', update.effective_chat.id)
+
+
+async def telegram_cmd(msg_request, update, context):
+    """
+    Telegram handler to process users' requests
+    """
+
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=T_WAIT_MSG)
+    logging.info("New Telegram request: %s (%s)", msg_request, update.effective_chat.id)
+
+    # Write pending account to provision in REDIS
+    send_request_to_redis(int(update.effective_chat.id),
+                          update.effective_chat.id,
+                          'telegram',
+                          msg_request)
+
+    # Notify manager of new request
+    REDIS_CLIENT.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
 
 
 def get_unread_emails(mailbox='Inbox'):
@@ -189,24 +240,45 @@ def process_new_request(email_msg):
 
 
 if __name__ == '__main__':
+
     # Connecting to the Redis database
     try:
         # Connecting to the Redis database
-        redis_client = redis_connect_to_db(REDIS_SERVER)
-        db_subscriber = redis_create_subscriber(redis_client)
+        REDIS_CLIENT = redis_connect_to_db(REDIS_SERVER)
+        db_subscriber = redis_create_subscriber(REDIS_CLIENT)
         redis_subscribe_to_channel(db_subscriber, CHANNEL)
 
         logger.info("Redis connection and subscription successful.")
-
+    except redis.AuthenticationError as err:
+        logger.error('Redis authentication error (%s): %s', REDIS_SERVER, err)
+        sys.exit(-1)
     except redis.ConnectionError as err:
         logger.error('Redis connection error (%s): %s', REDIS_SERVER, err)
         sys.exit(-1)
     except redis.TimeoutError as err:
         logger.error('Redis timeout error (%s): %s', REDIS_SERVER, err)
         sys.exit(-1)
-    except redis.AuthenticationError as err:
-        logger.error('Redis authentication error (%s): %s', REDIS_SERVER, err)
-        sys.exit(-1)
+
+    # Starting Telegram bot to check for new messages
+    application = ApplicationBuilder().token(T_BOT_TOKEN).build()
+    logging.info('Telegram bot initialized')
+
+    # Creating handlers per action
+    start_handler = CommandHandler('start', telegram_cmd_start)
+    application.add_handler(start_handler)
+
+    openvpn_handler = CommandHandler('getopenvpn', partial(telegram_cmd, "openvpn"))
+    wireguard_handler = CommandHandler('getwireguard', partial(telegram_cmd, "wireguard"))
+    novpn_handler = CommandHandler('getnoencryptedvpn', partial(telegram_cmd, "novpn"))
+
+    application.add_handler(openvpn_handler)
+    application.add_handler(wireguard_handler)
+    application.add_handler(novpn_handler)
+
+    logging.info('Telegram handlers created')
+
+    # Starting
+    application.run_polling()
 
     try:
         for item in db_subscriber.listen():
@@ -220,18 +292,18 @@ if __name__ == '__main__':
 
                     if process_result is not False:
                         # send request to redis
-                        add_item_provisioning_queue(redis_client,
+                        add_item_provisioning_queue(REDIS_CLIENT,
                                                     uid,  # email_field_uid
                                                     "email",  # message_type
                                                     process_result[0],  # email_field_from
                                                     process_result[1])  # keyword_match
-                        redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
+                        REDIS_CLIENT.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
                         logger.info("New request send to redis from %s (%s)",
                                     process_result[0],  # email_field_from
                                     process_result[1])  # keyword_match
 
                     # Report service status to manager
-                    redis_client.publish('services_status', 'MOD_COMM_RECV:online')
+                    REDIS_CLIENT.publish('services_status', 'MOD_COMM_RECV:online')
 
     except redis.ConnectionError as err:
         logger.info("Connection error: %s", err)
@@ -240,5 +312,5 @@ if __name__ == '__main__':
     finally:
         logger.info("Terminating")
         db_subscriber.close()
-        redis_client.close()
+        REDIS_CLIENT.close()
         sys.exit(-1)
