@@ -13,7 +13,7 @@ from email.mime.multipart import MIMEMultipart, MIMEBase
 from email.mime.text import MIMEText
 from email.encoders import encode_base64
 from telegram.ext import CommandHandler
-from telegram.ext import MessageHandler, Filters
+from telegram.ext import MessageHandler, filters
 from telegram.ext import Updater
 
 def send_mime_msg_via_email(msg_task,profile_name,msg_addr,msg_vpn_type,config):
