@@ -59,55 +59,10 @@ def test_process_profile_traffic_ignores_small_files(mock_redis_client):
 # Tests for the report generation functionality with detailed data mocking
 @patch("mod_report.mod_report.pdfkit.from_file", return_value=True)
 @patch("mod_report.mod_report.jinja2.Environment.get_template")
-@patch("mod_report.mod_report.json.load")
-@patch("mod_report.mod_report.glob.glob", return_value=["20test.pcap"])
-@patch("mod_report.mod_report.os.chdir")
-def test_generate_profile_report_html(
-    mock_chdir, mock_glob, mock_json_load, mock_get_template, mock_pdfkit
-):
-    mock_template = MagicMock()
-    mock_template.render.return_value = "rendered content"
-    mock_get_template.return_value = mock_template
-
-    # Mock the json.load to return the structured data expected by your function
-    mock_json_load.return_value = {
-        "capinfos": {
-            "Capture duration (seconds)": 3600,
-            "Number of packets": 1000,
-            "File size (bytes)": 1000000,
-        },
-        "zeek": {"connections": 10, "dns": 5, "dns_blocked": 1, "ssl": 3, "http": 2},
-        "top_uploads": [
-            {
-                "Source-Destination": "1.1.1.1 2.2.2.2",
-                "Total Upload": 500,
-                "Total Transferred": 1000,
-                "Duration": 60,
-            }
-        ],
-        "top_dns": [{"_source": {"layers": {"dns.qry.name": ["example.com"]}}}],
-    }
-
-    # Mock open function for reading JSON files
-    mock_open_func = mock_open(read_data=json.dumps(mock_json_load.return_value))
-    with patch("builtins.open", mock_open_func):
-        profile_name = "test_profile"
-        PATH = "/test/path"
-        SLIPS_STATUS = True
-
-        from mod_report.mod_report import generate_profile_report_html
-
-        result = generate_profile_report_html(profile_name, PATH, SLIPS_STATUS)
-
-        assert result is True, "Expected generate_profile_report_html to return True"
-
-
-@patch("mod_report.mod_report.pdfkit.from_file", return_value=True)
-@patch("mod_report.mod_report.jinja2.Environment.get_template")
 @patch("mod_report.mod_report.json.load", autospec=True)
 @patch("mod_report.mod_report.glob.glob", return_value=["20test.pcap"])
 @patch("mod_report.mod_report.os.chdir")
-def test_generate_profile_report_html_detailed(
+def test_generate_profile_report_html(
     mock_chdir, mock_glob, mock_json_load, mock_get_template, mock_pdfkit
 ):
     mock_template = MagicMock()
