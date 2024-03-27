@@ -311,4 +311,9 @@ if __name__ == '__main__':
         logging.info(f'Unable to connect to Redis ({args.redis}): {err}')
         sys.exit(-1)
 
+    # Ensure action defined
+    if 'cli_action' not in locals():
+        parser.print_help()
+        sys.exit(1)
+        
     cli_action(redis_client,params)
