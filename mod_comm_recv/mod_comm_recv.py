@@ -1,335 +1,316 @@
 #!/usr/bin/env python3
 # This file is part of the Civilsphere AI VPN
 # See the file 'LICENSE' for copying permission.
-# Author: Veronica Valeros, vero.valeros@gmail.com, veronica.valeros@aic.fel.cvut.cz
-from functools import partial
+# Author: Veronica Valeros
+#         veronica.valeros@aic.fel.cvut.cz
+
 import sys
 import logging
 import re
 import imaplib
-import threading
+from functools import partial
+import configparser
 from email.parser import BytesFeedParser
-from common.database import *
-from telegram.ext import CommandHandler, Updater
+import redis
+from telegram.ext import ApplicationBuilder
+from telegram.ext import CommandHandler
+from common.database import add_item_provisioning_queue
+from common.database import redis_connect_to_db
+from common.database import redis_create_subscriber
+from common.database import redis_subscribe_to_channel
 
 
-def send_request_to_redis(msg_id, msg_addr, msg_type, msg_request, logging, redis_client):
+# Global
+global REDIS_CLIENT
+
+# Read cofiguration file
+config = configparser.ConfigParser()
+config.read('config/config.ini')
+
+REDIS_SERVER = config['REDIS']['REDIS_SERVER']
+CHANNEL = config['REDIS']['REDIS_COMM_RECV_CHECK']
+LOG_FILE = config['LOGS']['LOG_COMM_RECV']
+IMAP_SERVER = config['IMAP']['SERVER']
+IMAP_USERNAME = config['IMAP']['USERNAME']
+IMAP_PASSWORD = config['IMAP']['PASSWORD']
+T_BOT_TOKEN = config['TELEGRAM']['TELEGRAM_BOT_TOKEN']
+T_START_MSG = config['TELEGRAM']['TELEGRAM_START_MSG']
+T_WAIT_MSG = config['TELEGRAM']['TELEGRAM_WAIT_MSG']
+
+# Initialize logging
+logging.basicConfig(filename=LOG_FILE,
+                    encoding='utf-8',
+                    level=logging.DEBUG,
+                    format='%(asctime)s, MOD_COMM_RECV, %(message)s')
+
+# Create a module-level logger
+logger = logging.getLogger(__name__)
+
+
+def send_request_to_redis(msg_id, msg_addr, msg_type, msg_request):
     """
     This function writes a new AI-VPN request to Redis.
     This is the first step to get a new account provisioned.
     """
     try:
-        logging.debug(f'Sending {msg_request} request to Redis: ({str(msg_id)}) {msg_addr} on {msg_type}')
-        add_item_provisioning_queue(redis_client, msg_id, msg_type, msg_addr, msg_request)
+        logging.info('Sending request to Redis: %s, %s, %s, %s',
+                     msg_request,
+                     msg_id,
+                     msg_addr,
+                     msg_type)
+        add_item_provisioning_queue(REDIS_CLIENT, msg_id, msg_type, msg_addr, msg_request)
         return True
-    except Exception as err:
-        logging.info(f'Exception in send_request_to_redis: {err}')
+    except Exception as loc_err:
+        logging.info('Exception in send_request_to_redis: %s', loc_err)
         return False
 
 
-def get_telegram_requests(redis_client, TELEGRAM_BOT_TOKEN, TELEGRAM_START_MSG, TELEGRAM_WAIT_MSG):
+# Telegram Handlers
+async def telegram_cmd_start(update, context):
     """
-    This function runs the telegram bot in charge of receiving messages
+    Telegram handle to welcome new users
     """
-    msg_type = "telegram"
 
-    # Telegram Handlers
-    def telegram_cmd_start(update, context):
-        context.bot.send_message(chat_id=update.effective_chat.id, text=TELEGRAM_START_MSG)
-        logging.info('New Telegram chat received')
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=T_START_MSG)
+    logging.info('New Telegram chat received from: %s', update.effective_chat.id)
 
-    def telegram_cmd(update, context, msg_request):
 
-        context.bot.send_message(chat_id=update.effective_chat.id, text=TELEGRAM_WAIT_MSG)
-        logging.info(f'New Telegram {msg_request} request received from: {update.effective_chat.id}')
-        # Write pending account to provision in REDIS
-        send_request_to_redis(int(update.effective_chat.id), update.effective_chat.id, msg_type, msg_request, logging,
-                              redis_client)
-        # Notify manager of new request
-        redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
+async def telegram_cmd(msg_request, update, context):
+    """
+    Telegram handler to process users' requests
+    """
+
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=T_WAIT_MSG)
+    logging.info("New Telegram request: %s (%s)", msg_request, update.effective_chat.id)
+
+    # Write pending account to provision in REDIS
+    send_request_to_redis(int(update.effective_chat.id),
+                          update.effective_chat.id,
+                          'telegram',
+                          msg_request)
+
+    # Notify manager of new request
+    REDIS_CLIENT.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
+
+
+def get_unread_emails(mailbox='Inbox'):
+    """
+    Fetches unread email UIDs and messages from the specified mailbox.
+
+    :param mailbox: The mailbox to fetch from. Defaults to 'Inbox'.
+    :return: Generator of (email UID, message data) tuples.
+    """
 
     try:
-        # Initializing
-        updater = Updater(token=TELEGRAM_BOT_TOKEN, use_context=True)
-        dispatcher = updater.dispatcher
-        logging.info('Telegram bot initialized')
+        # Establish a secure IMAP connection
+        imap_connection = imaplib.IMAP4_SSL(IMAP_SERVER)
+        imap_connection.login(IMAP_USERNAME, IMAP_PASSWORD)
 
-        # Creating handlers per action
-        start_handler = CommandHandler('start', telegram_cmd_start)
-        dispatcher.add_handler(start_handler)
+        logger.info("IMAP connection successful")
 
-        openvpn_handler = CommandHandler('getopenvpn', partial(telegram_cmd, "openvpn"))
-        dispatcher.add_handler(openvpn_handler)
+        # Select mailbox
+        imap_connection.select(mailbox, readonly=False)
 
-        wireguard_handler = CommandHandler('getwireguard', partial(telegram_cmd, "wireguard"))
-        dispatcher.add_handler(wireguard_handler)
+        # Search for all UNSEEN emails
+        status, data = imap_connection.uid('search', None, 'UNSEEN')
+        if status != 'OK':
+            logger.error("No emails found.")
+            return
 
-        novpn_handler = CommandHandler('getnoencryptedvpn', partial(telegram_cmd, "novpn"))
-        dispatcher.add_handler(novpn_handler)
-
-        logging.info('Telegram handlers created')
-
-        # Starting
-        updater.start_polling()
-
-    except Exception as err:
-        logging.debug(f'Exception in get_telegram_requests: {err}')
-
-
-def open_imap_connection():
-    """
-    Functions opens a connection to an email service, logs in to specified email account,
-    and returns a connection.
-    """
-    # Connect to the server
-    connection = imaplib.IMAP4_SSL(IMAP_SERVER)
-    connection.login(IMAP_USERNAME, IMAP_PASSWORD)
-    return connection
-
-
-def select_inbox_messages():
-    """
-    Function logins to email client, selects only new messages in Inbox.
-    Returns tuple generator of email uid and a message.
-    """
-    global mail
-    try:
-        mail = open_imap_connection()
-        # Connect to Inbox. Readyonly option: False=marks msgs as read; True=keep messages as unread.
-        mail.select("Inbox", readonly=False)
-        # Search and return UIDS of all UNSEEN/UNREAD emails in Inbox
-        status, data = mail.uid('search', None, "UNSEEN")
-        if status == "OK":
-            # We receive a list of unread email UID
-            id_msg_list = data[0].split()
-            if len(id_msg_list) > 0:
-                # Process the new unread emails. If zero, nothing returns
-                for msg_id in id_msg_list:
-                    logging.info("Processing message", msg_id)
-                    # Fetch the email headers and body (RFC822) for the given email UID
-                    typ, data = mail.uid('fetch', msg_id, '(RFC822)')
-                    msg = data[0]
-                    yield msg_id, msg
-    except Exception as e:
-        logging.error(f"Exception occurred in select_inbox_messages function {e}")
-        return False
+        # Process unread emails
+        for msg_id in data[0].split():
+            # Fetch the email message by UID
+            msg_type, msg_data = imap_connection.uid('fetch', msg_id, '(RFC822)')
+            if msg_type != 'OK':
+                logger.error("Failed to fetch email UID %s", msg_id)
+                continue
+            yield msg_id, msg_data[0][1]
+    except imaplib.IMAP4.error as loc_err:
+        logger.exception("IMAP4 error occurred: %s", loc_err)
     finally:
-        mail.expunge()
-        mail.close()
-        mail.logout()
+        # Ensure the connection is closed
+        try:
+            imap_connection.close()
+            imap_connection.logout()
+        except Exception as loc_err:
+            logger.exception("IMAP connection failed to properly close: %s", loc_err)
 
 
-def parse_email_messages(inbox_message):
-    # Parse email to extract header and body
-    email_parser = BytesFeedParser()
-    email_parser.feed(inbox_message[1])
-    return email_parser.close()
-
-
-def process_email_message(msg):
+def process_new_request(email_msg):
     """
-    Function takes parsed email message and process only those which
-    current user is a receiver and answers to the emails are not send by AI VPN
-    """
-    # Do not process answers to the emails we send
-    if msg['In-Reply-To'] is None:
-        email_to = re.search(r'[\w\.-]+@[\w\.-]+', msg['to']).group(0)
-        # Do not process messages where we are not the receivers
-        if email_to == IMAP_USERNAME:
-            return msg
+    This function parses new email messages to extract headers and body content,
+    ignoring replies and messages where the recipient is not the intended receiver.
+    It searches the subject and body of the email for specific VPN-related keywords
+    to identify new VPN requests.
 
+    If a new VPN request is found, it is sent to a Redis queue for further processing.
+    If no new request is identified, no action is taken.
 
-def get_email_by_vpn_keyword(email_field):
-    if email_field is None:
-        return ""
-    elif email_field == "NOENCRYPTEDVPN":
-        return "novpn"
-    elif email_field == "WIREGUARD":
-        return "wireguard"
-    elif email_field == "VPN":
-        return "openvpn"
-    else:
-        return False
-
-
-def search_for_vpn_keyword(msg):
-    """
-    Function takes an email message, search for a VPN keyword defined in patterns.
-    If the match found returns a match. If not, returns False.
+    Returns:
+        bool: True if the process completes successfully, False otherwise.
     """
     patterns = ["NOENCRYPTEDVPN", "WIREGUARD", "VPN"]
+    keyword_match = False
+
+    logger.info("Starting process_new_request")
+    # Parse email to extract header and body
+    try:
+        email_parser = BytesFeedParser()
+        email_parser.feed(email_msg)  # Feed the raw email bytes to the parser
+        email_msg_parsed = email_parser.close()  # Finalize parsing and get the message object
+    except TypeError as loc_err:
+        logger.info("TypeError: %s", loc_err)
+        email_msg_parsed = None
+        return False
+    except IndexError as loc_err:
+        logger.info("IndexError: %s", loc_err)
+        email_msg_parsed = None
+        return False
+    except Exception as loc_err:
+        logger.info("General exception: %s", loc_err)
+
+    # Do not process answers
+    if email_msg_parsed['In-Reply-To'] is not None:
+        return False
+
+    # Do not process messages where we are not the receivers
+    email_field_to = re.search(r'[\w\.-]+@[\w\.-]+', email_msg_parsed['to']).group(0)
+    if email_field_to != IMAP_USERNAME:
+        return False
+
+    # Do not process messages whose subject is None
+    if email_msg_parsed['subject'] is None:
+        return False
+
+    # Extract Email subject
+    email_field_subject = email_msg_parsed['subject']
+    # Extract Email body
+    try:
+        email_field_body = email_msg_parsed.get_payload().pop().get_payload()
+    except (IndexError, AttributeError, TypeError) as loc_err:
+        logger.info("Exception parsing body: %s", loc_err)
+        email_field_body = None
+
     for pattern in patterns:
         try:
-            match = re.search(pattern, msg, re.IGNORECASE)
-            if match:
-                logging.info(f"Found the correct match for vpn keyword: {match.group(0)}")
-                return match.group(0)
-        except Exception as e:
-            logging.error(f"Failed to find the correct email subject in parse_email_subject {e}")
-            return False
+            # Search for VPN request in email subject
+            keyword_match = re.search(pattern, email_field_subject, re.IGNORECASE)
+            if keyword_match:
+                break
+        except re.error as loc_err:
+            logger.info("Regex error: %s", loc_err)
+        except TypeError as loc_err:
+            logger.info("Type error: %s", loc_err)
 
+        try:
+            # Search for VPN request in email body
+            keyword_match = re.search(pattern, email_field_body, re.IGNORECASE)
+            if keyword_match:
+                break
+        except re.error as loc_err:
+            logger.info("Regex error: %s", loc_err)
+        except TypeError as loc_err:
+            logger.info("Type error: %s", loc_err)
 
-def search_body_or_subject(email_field):
-    """
-    Function takes a string containing either from email body or subject, searches for vnp keyword match,
-    and returns corresponding vpn name (novpn,openvpn,wireguard) as string
-    """
-    email_search_match = search_for_vpn_keyword(email_field)
-    if email_search_match:
-        return get_email_by_vpn_keyword(email_search_match)
-
-
-def get_email_body_data(message):
-    """
-    Function takes email messages and extracts email body in rich email
-    """
-    try:
-        return message.get_payload().pop().get_payload()
-    except Exception as e:
-        logging.debug(f"Failed with exception {e}. Email body is not in rich email.")
-        return message.get_payload()
-
-
-def get_msg_request(processed_emails):
-    """
-    Function takes email message, performs a search for vpn keyword in subject or body of the email,
-    and returns vpn keyword string as a message request
-    """
-    # search for vpn name in subject of an email
-    if processed_emails['subject'] is not None:
-        email_subject_search = search_body_or_subject(processed_emails['subject'])
-        if email_subject_search:
-            return email_subject_search
-        else:
-            # search for vpn keyword in a body of an email
-            email_body_data = get_email_body_data(processed_emails)
-            email_body_search = search_body_or_subject(email_body_data)
-            if email_body_search:
-                return email_body_search
-
-
-def get_email_requests(redis_client):
-    """
-       This function connects to an email server and retrieves all new emails to
-       identify new VPN requests.
-       """
-    try:
-        messages = select_inbox_messages()
-        for email_uid, inbox_message in messages:
-            msg = parse_email_messages(inbox_message)
-            msg_type = "email"
-            email_reply_to = re.search(r'[\w\.-]+@[\w\.-]+', msg['to']).group(0)
-            processed_emails = process_email_message(msg)
-            msg_request = get_msg_request(processed_emails)
-            if msg_request:
-                email_date = msg['date']
-                email_from = re.search(r'[\w\.-]+@[\w\.-]+', msg['from']).group(0)
-                email_to = re.search(r'[\w\.-]+@[\w\.-]+', msg['to']).group(0)
-                email_subject = msg.get("Subject", "empty")
-                email_body = msg_request
-                logging.info(f"Extracted email request: {email_subject}:{email_body}({msg_request})")
-                # Write pending account to provision in REDIS
-                send_request_to_redis(int(email_uid), email_from, msg_type, msg_request, logging, redis_client)
-                # Notify manager of new request
-                redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
-
-                logging.debug("This email matches the keywords")
-                logging.debug('{:8}: {}'.format("Email ID", int(email_uid)))
-                logging.debug('{:8}: {}'.format("Date", email_date))
-                logging.debug('{:8}: {}'.format("To", email_to))
-                logging.debug('{:8}: {}'.format("From", email_from))
-                logging.debug('{:8}: {}'.format("Reply To", email_reply_to))
-                logging.debug('{:8}: {}'.format("Subject", msg_request))
-                logging.debug('{:8}: {}'.format("Body", msg_request))
-            else:
-                email_date = msg['date']
-                email_from = re.search(r'[\w\.-]+@[\w\.-]+', msg['from']).group(0)
-                email_to = re.search(r'[\w\.-]+@[\w\.-]+', msg['to']).group(0)
-                logging.debug("This email matches the keywords")
-                logging.debug('{:8}: {}'.format("Email ID", int(email_uid)))
-                logging.debug('{:8}: {}'.format("Date", email_date))
-                logging.debug('{:8}: {}'.format("To", email_to))
-                logging.debug('{:8}: {}'.format("From", email_from))
-                logging.debug('{:8}: {}'.format("Reply To", email_reply_to))
-                logging.debug('{:8}: {}'.format("Subject", msg_request))
-                logging.debug('{:8}: {}'.format("Body", msg_request))
-    except Exception as e:
-        print(e)
+    if not keyword_match:
         return False
+
+    if keyword_match.group(0).upper() == "NOENCRYPTEDVPN":
+        email_request = "novpn"
+    elif keyword_match.group(0).upper() == "WIREGUARD":
+        email_request = "wireguard"
+    elif keyword_match.group(0).upper() == "VPN":
+        email_request = "openvpn"
+    else:
+        return False
+    logger.info("Found keyword in email: %s (%s)", keyword_match, email_request)
+
+    try:
+        # Extract fields to send info to redis
+        email_field_from = re.search(r'[\w\.-]+@[\w\.-]+', email_msg_parsed['from']).group(0)
+    except re.error as loc_err:
+        logger.info("Regex error: %s", loc_err)
+        return False
+    except TypeError as loc_err:
+        logger.info("Type error: %s", loc_err)
+        return False
+
+    # Return the sender of the email and keyword
+    return [email_field_from, email_request]
 
 
 if __name__ == '__main__':
-    # Read cofiguration file 
-    config = configparser.ConfigParser()
-    config.read('config/config.ini')
-
-    REDIS_SERVER = config['REDIS']['REDIS_SERVER']
-    CHANNEL = config['REDIS']['REDIS_COMM_RECV_CHECK']
-    LOG_FILE = config['LOGS']['LOG_COMM_RECV']
-    IMAP_SERVER = config['IMAP']['SERVER']
-    IMAP_USERNAME = config['IMAP']['USERNAME']
-    IMAP_PASSWORD = config['IMAP']['PASSWORD']
-    TELEGRAM_BOT_TOKEN = config['TELEGRAM']['TELEGRAM_BOT_TOKEN']
-    TELEGRAM_START_MSG = config['TELEGRAM']['TELEGRAM_START_MSG']
-    TELEGRAM_WAIT_MSG = config['TELEGRAM']['TELEGRAM_WAIT_MSG']
-
-    # Initialize logging
-    logging.basicConfig(filename=LOG_FILE, encoding='utf-8', level=logging.INFO,
-                        format='%(asctime)s, MOD_COMM_RECV, %(message)s')
 
     # Connecting to the Redis database
     try:
-        redis_client = redis_connect_to_db(REDIS_SERVER)
-    except Exception as err:
-        logging.error(f'Unable to connect to the Redis {REDIS_SERVER}: {err}')
-        sys.exit(-1)
-
-    # Creating a Redis subscriber
-    try:
-        db_subscriber = redis_create_subscriber(redis_client)
-    except Exception as err:
-        logging.error(f'Unable to create a Redis subscriber: {err}')
-        sys.exit(-1)
-
-    # Subscribing to Redis channel
-    try:
+        # Connecting to the Redis database
+        REDIS_CLIENT = redis_connect_to_db(REDIS_SERVER)
+        db_subscriber = redis_create_subscriber(REDIS_CLIENT)
         redis_subscribe_to_channel(db_subscriber, CHANNEL)
-    except Exception as err:
-        logging.error('Channel subscription failed: {err}')
+
+        logger.info("Redis connection and subscription successful.")
+    except redis.AuthenticationError as err:
+        logger.error('Redis authentication error (%s): %s', REDIS_SERVER, err)
+        sys.exit(-1)
+    except redis.ConnectionError as err:
+        logger.error('Redis connection error (%s): %s', REDIS_SERVER, err)
+        sys.exit(-1)
+    except redis.TimeoutError as err:
+        logger.error('Redis timeout error (%s): %s', REDIS_SERVER, err)
         sys.exit(-1)
 
+    # Starting Telegram bot to check for new messages
+    application = ApplicationBuilder().token(T_BOT_TOKEN).build()
+    logging.info('Telegram bot initialized')
+
+    # Creating handlers per action
+    start_handler = CommandHandler('start', telegram_cmd_start)
+    application.add_handler(start_handler)
+
+    openvpn_handler = CommandHandler('getopenvpn', partial(telegram_cmd, "openvpn"))
+    wireguard_handler = CommandHandler('getwireguard', partial(telegram_cmd, "wireguard"))
+    novpn_handler = CommandHandler('getnoencryptedvpn', partial(telegram_cmd, "novpn"))
+
+    application.add_handler(openvpn_handler)
+    application.add_handler(wireguard_handler)
+    application.add_handler(novpn_handler)
+
+    logging.info('Telegram handlers created')
+
+    # Starting
+    application.run_polling()
+
     try:
-        logging.info("Connection and channel subscription to redis successful.")
-
-        # Starting Telegram bot to check for new messages
-        telegram_bot = threading.Thread(target=get_telegram_requests,
-                                        args=(redis_client, TELEGRAM_BOT_TOKEN, TELEGRAM_START_MSG, TELEGRAM_WAIT_MSG,),
-                                        daemon=True)
-        telegram_bot.start()
-        logging.info("Telegram bot thread started")
-
-        # Checking for email messages
         for item in db_subscriber.listen():
-            if item['type'] == 'message':
-                logging.info(f"New message received in channel {item['channel']}: {item['data']}")
-                if item['data'] == 'report_status':
-                    if get_email_requests(redis_client):
-                        redis_client.publish('services_status', 'MOD_COMM_RECV:online')
-                        logging.info('Status Online')
-                    else:
-                        IMAP_SERVER = config['IMAP']['SERVER']
-                        IMAP_USERNAME = config['IMAP']['USERNAME']
-                        IMAP_PASSWORD = config['IMAP']['PASSWORD']
-                        redis_client.publish('services_status', 'MOD_COMM_RECV:error_checking_requests')
-                        logging.info('Error checking requests')
+            if item['type'] == 'message' and item['data'] == 'report_status':
+                logger.info("New message received in %s: %s", item['channel'], item['data'])
 
-        redis_client.publish('services_status', 'MOD_COMM_RECV:offline')
-        logging.info("Terminating.")
+                # Process all the new requests
+                for uid, new_message in get_unread_emails():
+                    logger.info("New email with UID: %s", uid)
+                    process_result = process_new_request(new_message)
+
+                    if process_result is not False:
+                        # send request to redis
+                        add_item_provisioning_queue(REDIS_CLIENT,
+                                                    uid,  # email_field_uid
+                                                    "email",  # message_type
+                                                    process_result[0],  # email_field_from
+                                                    process_result[1])  # keyword_match
+                        REDIS_CLIENT.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
+                        logger.info("New request send to redis from %s (%s)",
+                                    process_result[0],  # email_field_from
+                                    process_result[1])  # keyword_match
+
+                    # Report service status to manager
+                    REDIS_CLIENT.publish('services_status', 'MOD_COMM_RECV:online')
+
+    except redis.ConnectionError as err:
+        logger.info("Connection error: %s", err)
+    except redis.TimeoutError as err:
+        logger.info("Timeout error: %s", err)
+    finally:
+        logger.info("Terminating")
         db_subscriber.close()
-        redis_client.close()
-        sys.exit(0)
-    except Exception as err:
-        logging.info(f'Terminating via exception in __main__: {err}')
-        db_subscriber.close()
-        redis_client.close()
+        REDIS_CLIENT.close()
         sys.exit(-1)
