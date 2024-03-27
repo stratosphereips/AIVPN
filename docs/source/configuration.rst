@@ -81,7 +81,7 @@ Find the public IPv4 address of the host machine::
 
 Use this IP address to replace the placeholder in the configuration file::
 
-    $ SERVER_PUBLIC_URL = udp://x.x.x.x
+    $ SERVER_PUBLIC_URL = tcp://x.x.x.x
     $ PKI_ADDRESS = x.x.x.x
     $ NETWORK_CIDR = 192.168.254.0/24
     $ DNS_SERVER = <pi-hole ip address here>
