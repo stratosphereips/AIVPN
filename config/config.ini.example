@@ -51,7 +51,9 @@ NETWORK_CIDR = 192.168.254.0/24
 DNS_SERVER=172.16.1.2
 
 [WIREGUARD]
-SERVER_PUBLIC_URL = tcp://example-server.com
+SERVER_PUBLIC_URL = udp://example-server.com
+# Switch to this for having TCP instead of UDP:
+# SERVER_PUBLIC_URL = tcp://example-server.com
 PKI_ADDRESS = vpn.example-server.com
 NETWORK_CIDR = 192.168.254.0/24
 
