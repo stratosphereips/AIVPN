@@ -6,7 +6,7 @@ class TestSendMimeMsgViaEmail(unittest.TestCase):
 
     @patch('mod_comm_send.SMTP_SSL')
     def test_send_mime_msg_via_email_success(self, mock_smtp_ssl):
-        # Arrange
+        """Test sending a MIME message via email successfully."""
         msg_task = "send_vpn_profile"
         profile_name = "test_profile"
         msg_addr = "test@example.com"
@@ -27,7 +27,7 @@ class TestSendMimeMsgViaEmail(unittest.TestCase):
 
     @patch('mod_comm_send.SMTP_SSL')
     def test_send_mime_msg_via_email_failure(self, mock_smtp_ssl):
-        # Arrange
+        """Test failure scenario when sending a MIME message via email."""
         msg_task = "send_vpn_profile"
         profile_name = "test_profile"
         msg_addr = "test@example.com"
