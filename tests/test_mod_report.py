@@ -14,7 +14,7 @@ def mock_redis_client():
     return mock_client
 
 
-#Tests for process_profile_traffic
+# Test case for verifying the processing of profile traffic works as expected
 def test_process_profile_traffic(mock_redis_client):
     profile_name = "test_profile"
     PATH = "/test/path"
@@ -33,6 +33,7 @@ def test_process_profile_traffic(mock_redis_client):
 
         assert valid_capture == True
 
+# Test case for verifying small file handling in the profile traffic processing
 def test_process_profile_traffic_ignores_small_files(mock_redis_client):
     profile_name = "empty_profile"
     PATH = "/empty/test/path"
@@ -55,6 +56,7 @@ def test_process_profile_traffic_ignores_small_files(mock_redis_client):
             slips_result == False
         ), "Expected slips_result to be False for an empty pcap file"
 
+# Tests for the report generation functionality with detailed data mocking
 @patch("mod_report.mod_report.pdfkit.from_file", return_value=True)
 @patch("mod_report.mod_report.jinja2.Environment.get_template")
 @patch("mod_report.mod_report.json.load")
