@@ -1,9 +1,12 @@
 import unittest
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from unittest.mock import MagicMock, patch
 from mod_comm_send.mod_comm_send import send_mime_msg_via_email
 
-class TestSendMimeMsgViaEmail(unittest.TestCase):
 
+class TestSendMimeMsgViaEmail(unittest.TestCase):
     @patch('mod_comm_send.SMTP_SSL')
     def test_send_mime_msg_via_email_success(self, mock_smtp_ssl):
         """Test sending a MIME message via email successfully."""
