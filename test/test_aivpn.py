@@ -1,7 +1,8 @@
 import unittest
 from unittest.mock import MagicMock, patch
-# import sys
-# sys.path.append('../')  
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from aivpn import *
 
 
@@ -35,6 +36,43 @@ class TestAIVPNCLI(unittest.TestCase):
         with patch('aivpn.exists_active_profile', exists_active_profile), \
              patch('aivpn.add_profile_to_force_expire', add_profile_to_force_expire):
             manage_expire(self.redis_client, profile_name)
+
+    def test_get_validated_data_success_email(self):
+        # Test successful validation of an email identity.
+        identity = "test@example.com"
+        
+        # Act
+        result = get_validated_data(identity)
+        
+        # Assert
+        self.assertEqual(result["msg_type"], "email")
+        self.assertEqual(result["msg_addr "], identity)
+        self.assertEqual(result["msg_request"], ["openvpn", "wireguard", "novpn"])
+        
+    def test_get_validated_data_success_telegram(self):
+        # Test successful validation of a telegram identity.
+        identity = "12345678"  # Assuming a valid telegram ID
+        
+        # Act
+        result = get_validated_data(identity)
+        
+        # Assert
+        self.assertEqual(result["msg_type"], "telegram")
+        self.assertEqual(result["msg_addr "], identity)
+        self.assertEqual(result["msg_request"], ["openvpn", "wireguard", "novpn"])
+        
+    def test_get_validated_data_failure(self):
+        # Test failure scenario when validating an invalid identity.
+        invalid_identity = "invalid_identity"
+        
+        # Act
+        result = get_validated_data(invalid_identity)
+        
+        # Assert
+        self.assertIsInstance(result, dict)
+        self.assertEqual(result["msg_type"], False)
+        self.assertEqual(result["msg_addr "], invalid_identity)
+        self.assertEqual(result["msg_request"], ["openvpn", "wireguard", "novpn"])        
 
 if __name__ == '__main__':
     unittest.main()
