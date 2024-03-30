@@ -32,6 +32,7 @@ Deploy the AI VPN service
 The deployment of the AI VPN is done using docker-compose::
 
     $ cd AIVPN/
+    $ mv docker-compose_EXAMPLE.yml docker-compose.yml
     $ sudo docker-compose -f docker-compose.yml up
 
 
