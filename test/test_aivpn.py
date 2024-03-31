@@ -72,7 +72,39 @@ class TestAIVPNCLI(unittest.TestCase):
         self.assertIsInstance(result, dict)
         self.assertEqual(result["msg_type"], False)
         self.assertEqual(result["msg_addr "], invalid_identity)
-        self.assertEqual(result["msg_request"], ["openvpn", "wireguard", "novpn"])        
+        self.assertEqual(result["msg_request"], ["openvpn", "wireguard", "novpn"])    
+
+    @patch('aivpn.get_active_profiles_keys')
+    def test_audit_active_profiles(self, mock_get_active_profiles_keys):
+        # Mocking the return value of get_active_profiles_keys
+        mock_get_active_profiles_keys.return_value = ['profile1', 'profile2']
+
+        with patch('builtins.print') as mock_print:
+            audit_active_profiles(None, None)
+            mock_print.assert_any_call('[+] Number of active profiles: 2')
+            mock_print.assert_any_call('   [-] profile1')
+            mock_print.assert_any_call('   [-] profile2')
+
+    @patch('aivpn.get_expired_profiles_keys')
+    def test_audit_expired_profiles(self, mock_get_expired_profiles_keys):
+        # Mocking the return value of get_expired_profiles_keys
+        mock_get_expired_profiles_keys.return_value = ['expired_profile1', 'expired_profile2']
+        
+        with patch('builtins.print') as mock_print:
+            audit_expired_profiles(None, None)
+
+            mock_print.assert_any_call('[+] Number of expired profiles: 2')
+            mock_print.assert_any_call('   [-] expired_profile1')
+            mock_print.assert_any_call('   [-] expired_profile2')
+
+    @patch('aivpn.list_items_provisioning_queue')
+    def test_audit_queued_profiles(self, mock_list_items_provisioning_queue):
+        # Mocking the return value of list_items_provisioning_queue
+        mock_list_items_provisioning_queue.return_value = 5
+
+        with patch('builtins.print') as mock_print:
+            audit_queued_profiles(None, None)
+            mock_print.assert_any_call('[+] Number of queued profiles to provision: 5')        
 
 if __name__ == '__main__':
     unittest.main()
