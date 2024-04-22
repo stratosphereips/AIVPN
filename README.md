@@ -40,10 +40,15 @@ The AI VPN is under active development. The functionality of the AI VPN is provi
 | mod_novpn     |     0.1 | active | Provides the unencrypted tunel using OpenVPN   | ![Docker Pulls](https://img.shields.io/docker/pulls/civilsphere/aivpn_mod_novpn?color=green)|
 | mod_pihole    |     0.1 | active | Provides DNS real time blocking using Pi-Hole  | - |
 
+# Support
+
+This project is funded through [NGI0 Entrust](https://nlnet.nl/entrust), a fund established by [NLnet](https://nlnet.nl) with financial support from the European Commission's [Next Generation Internet](https://ngi.eu) program. Learn more at the [NLnet project page](https://nlnet.nl/project/AI-VPN/).
+
+[<img src="https://nlnet.nl/logo/banner.png" alt="NLnet foundation logo" width="20%" />](https://nlnet.nl)
+[<img src="https://nlnet.nl/image/logos/NGI0_tag.svg" alt="NGI Zero Logo" width="20%" />](https://nlnet.nl/entrust)
+
+
 # Acknowledgements
-
-This project was funded through the NGI0 PET Fund, a fund established by NLnet with financial support from the European Commission's Next Generation Internet programme, under the aegis of DG Communications Networks, Content and Technology under grant agreement No 825310.
-
 This project was developed by the Stratosphere Laboratory, Artificial Intelligence Centre, Faculty of Electrical Engineering, Czech Technical University in Prague (2020-2021).
 
 The AI VPN threat detection is provided by the [Stratosphere Linux IPS](https://github.com/stratosphereips/StratosphereLinuxIPS) developed at the Stratosphere Laboratory.
