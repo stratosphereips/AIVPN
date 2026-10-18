@@ -55,9 +55,8 @@ Setting up the IMAP Configuration
 The AI VPN generates VPN profiles automatically. Currently users can request
 new VPN profiles via email by sending an email with an specific keyword: VPN.
 
-The mod_comm_recv and mod_comm_send are the modules that uses the IMAP
-configuration to receive VPN requests from the users and to send new VPN
-profiles from the users.
+The mod_comm module uses the IMAP configuration to receive VPN requests from
+the users and to send new VPN profiles to the users.
 
 We recommend using a dedicated email account to run this service. Some email
 providers offer APP Passwords, which give non-official apps permissions to

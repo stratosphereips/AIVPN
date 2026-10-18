@@ -31,8 +31,7 @@ The AI VPN is under active development. The functionality of the AI VPN is provi
 |   ------      | ------- | ------ | -----------                                    |---- |
 | mod_manager   |     0.2 | active | Coordinates the operation of the AI VPN        | ![Docker Pulls](https://img.shields.io/docker/pulls/civilsphere/aivpn_mod_manager?color=green)|
 | mod_redis     |     0.2 | active | Data storage and messaging system for modules  | - |
-| mod_comm_recv |     0.2 | active | Responsible of receiving new VPN requests      | ![Docker Pulls](https://img.shields.io/docker/pulls/civilsphere/aivpn_mod_comm_recv?color=green)|
-| mod_comm_send |     0.2 | active | Responsible of sending messages back to users  | ![Docker Pulls](https://img.shields.io/docker/pulls/civilsphere/aivpn_mod_comm_send?color=green)|
+| mod_comm      |     0.3 | active | Receives VPN requests and sends information to users | - |
 | mod_report    |     0.2 | active | Responsible for traffic analysis and reporting | ![Docker Pulls](https://img.shields.io/docker/pulls/civilsphere/aivpn_mod_report?color=green)|
 | mod_slips     |     0.1 | active | Threat detection                               | ![Docker Pulls](https://img.shields.io/docker/pulls/civilsphere/aivpn_mod_slips?color=green)|
 | mod_openvpn   |     0.1 | active | Provides the VPN service using OpenVPN         | ![Docker Pulls](https://img.shields.io/docker/pulls/civilsphere/aivpn_mod_openvpn?color=green)|

@@ -28,12 +28,13 @@ services:
         networks:
             network:
                 ipv4_address: 172.16.1.4
-    mod_comm_recv:
-        image: aivpn_mod_comm_recv:latest
+    mod_comm:
+        image: aivpn_mod_comm:latest
         volumes:
             - ./logs:/logs/
-            - ./common:/code/common/:ro
+            - ./data:/data/:ro
             - ./config:/code/config/:ro
+            - ./common:/code/common/:ro
         deploy:
             restart_policy:
                 condition: on-failure
@@ -43,22 +44,6 @@ services:
         networks:
             network:
                 ipv4_address: 172.16.1.5
-    mod_comm_send:
-        image: aivpn_mod_comm_send:latest
-        volumes:
-            - ./logs:/logs/
-            - ./data:/data/
-            - ./config:/code/config/:ro
-            - ./common:/code/common/:ro
-        deploy:
-            restart_policy:
-                condition: on-failure
-        depends_on:
-            - mod_redis
-            - mod_manager
-        networks:
-            network:
-                ipv4_address: 172.16.1.6
     mod_report:
         image: aivpn_mod_report:latest
         volumes:
@@ -197,8 +182,7 @@ volumes:
     mod_report:
     mod_slips:
     mod_redis:
-    mod_comm_send:
-    mod_comm_recv:
+    mod_comm:
     mod_openvpn:
     mod_wireguard:
     mod_novpn:

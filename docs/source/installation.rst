@@ -43,8 +43,7 @@ in the application. The current supported modules are:
 
     * mod_redis: module that uses Redis as the core database for data storage.
     * mod_manager: module responsible for the core functionality of the AI VPN.
-    * mod_comm_recv: module capable of receiving VPN requests from users.
-    * mod_comm_send: module responsible for sending data and files to users.
+    * mod_comm: module capable of receiving VPN requests from users and sending data and files to users.
     * mod_slips: module that runs the Stratosphere IPS for threat detection.
     * mod_report: module responsible for reporting the threats found to users.
     * mod_openvpn: module provides the OpenVPN service.
