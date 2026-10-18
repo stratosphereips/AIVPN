@@ -26,7 +26,7 @@ def redis_channel_monitoring(CHANNEL,db_subscriber,redis_client,ACTIVE_ACCOUNT_L
             for item in db_subscriber.listen():
                 if item['type'] == 'message':
                     logging.info(f"New message received in channel {item['channel']}: {item['data']}")
-                    if item['data'] == 'MOD_COMM_RECV:NEW_REQUEST' or item['data'] == 'MOD_CLI:NEW_REQUEST':
+                    if item['data'] == 'MOD_COMM:NEW_REQUEST' or item['data'] == 'MOD_CLI:NEW_REQUEST':
                         try:
                             new_request = get_item_provisioning_queue(redis_client)
                             logging.info(f'Provisioning new request: {new_request[0]}')
@@ -95,7 +95,7 @@ def provision_account(new_request,REDIS_CLIENT,ACTIVE_ACCOUNT_LIMIT):
     if acc_number_active_profiles > ACTIVE_ACCOUNT_LIMIT:
         # Send message to user notifying limit has been reached. Discard request.
         logging.info(f'Provisioning: user exceeded the number of active profiles.')
-        REDIS_CLIENT.publish('mod_comm_send_check','error_limit_reached:'+p_msg_addr)
+        REDIS_CLIENT.publish('mod_comm_check','error_limit_reached:'+p_msg_addr)
         return False
 
     ## TODO: Check if we have enough storage to provision the new account.
@@ -107,7 +107,7 @@ def provision_account(new_request,REDIS_CLIENT,ACTIVE_ACCOUNT_LIMIT):
     if available_ips<1:
         # Send message notifying the AI VPN is at full capacity. Discard request.
         logging.info(f'Provisioning: not enough ip addresses available to provision {p_msg_addr}')
-        redis_client.publish('mod_comm_send_check',f'error_max_capacity:{p_msg_addr}')
+        redis_client.publish('mod_comm_check',f'error_max_capacity:{p_msg_addr}')
         return False
 
     # Step 2: Generate profile name. Store it. Create folder.
@@ -175,7 +175,7 @@ def provision_account(new_request,REDIS_CLIENT,ACTIVE_ACCOUNT_LIMIT):
                 message=item['data']
                 logging.info(f'provisioning: {message}')
                 if 'no available IP' in message:
-                    redis_client.publish('mod_comm_send_check',f'error_max_capacity:{p_msg_addr}')
+                    redis_client.publish('mod_comm_check',f'error_max_capacity:{p_msg_addr}')
                 else:
                     # Request is stored back in the provisioning queue.
                     add_item_provisioning_queue(REDIS_CLIENT,p_msg_id,p_msg_type,p_msg_addr,p_msg_request)
@@ -183,7 +183,7 @@ def provision_account(new_request,REDIS_CLIENT,ACTIVE_ACCOUNT_LIMIT):
                 return False
 
     # Step 5: Send profile or instruct manager to send profile.
-    REDIS_CLIENT.publish('mod_comm_send_check',f'send_vpn_profile:{acc_profile_name}')
+    REDIS_CLIENT.publish('mod_comm_check',f'send_vpn_profile:{acc_profile_name}')
 
     # Step 6: Provisioning successful, update Redis with account information.
     # If there's an error, these structures are not updated.
@@ -283,7 +283,7 @@ def deprovision_account(profile_name,REDIS_CLIENT):
         status = subs_active_profile_counter(acc_msg_addr,REDIS_CLIENT)
 
         # Notify user that the profile has expired
-        REDIS_CLIENT.publish('mod_comm_send_check',f'send_expire_profile:{profile_name}')
+        REDIS_CLIENT.publish('mod_comm_check',f'send_expire_profile:{profile_name}')
 
         # Add profile to expired_profiles 
         expiration_value,expiration_object,status = add_expired_profile(profile_name,acc_creation_time,REDIS_CLIENT)
