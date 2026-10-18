@@ -12,15 +12,9 @@
         service.depends_on = [ "mod_redis" ];
         service.restart = "on-failure";
       };
-      mod_comm_recv = {
-        service.image = "civilsphere/aivpn_mod_comm_recv:latest";
-        service.volumes = [ "${toString ./.}/logs:/logs/" "${toString ./.}/config:/code/config:ro"  "${toString ./.}/common:/code/common"];
-        service.depends_on = [ "mod_redis" "mod_manager" ];
-        service.restart = "on-failure";
-      };
-      mod_comm_send = {
-        service.image = "civilsphere/aivpn_mod_comm_send:latest";
-        service.volumes = [ "${toString ./.}/data:/data/" "${toString ./.}/logs:/logs/" "${toString ./.}/config:/code/config:ro"  "${toString ./.}/common:/code/common"];
+      mod_comm = {
+        service.image = "civilsphere/aivpn_mod_comm:latest";
+        service.volumes = [ "${toString ./.}/data:/data/:ro" "${toString ./.}/logs:/logs/" "${toString ./.}/config:/code/config:ro"  "${toString ./.}/common:/code/common"];
         service.depends_on = [ "mod_redis" "mod_manager" ];
         service.restart = "on-failure";
       };
