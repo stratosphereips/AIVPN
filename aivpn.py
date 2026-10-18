@@ -135,7 +135,7 @@ def provision_openvpn(redis_client, identity):
         # Add to provisioning queue
         status = add_item_provisioning_queue(redis_client, identity_valid_data["msg_id"], identity_valid_data["msg_type"],
                                              identity_valid_data["msg_addr"], identity_valid_data["msg_request"][0])
-        redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
+        redis_client.publish('services_status', 'MOD_CLI:NEW_REQUEST')
         print(
             f"Provisioning triggered: {status}. Number of items in the queue: {list_items_provisioning_queue(redis_client)}")
     else:
@@ -152,7 +152,7 @@ def provision_wireguard(redis_client, identity):
         # Add to provisioning queue
         status = add_item_provisioning_queue(redis_client, valid_data["msg_id"], valid_data["msg_type"],
                                              valid_data["msg_addr"], valid_data["msg_request"][1])
-        redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
+        redis_client.publish('services_status', 'MOD_CLI:NEW_REQUEST')
         print(
             f"Provisioning triggered: {status}. Number of items in the queue: {list_items_provisioning_queue(redis_client)}")
     else:
@@ -168,7 +168,7 @@ def provision_novpn(redis_client, identity):
     if valid_data["msg_request"][2] and valid_data["msg_type"]:
         status = add_item_provisioning_queue(redis_client, valid_data["msg_id"], valid_data["msg_type"],
                                              valid_data["msg_addr"], valid_data["msg_request"][2])
-        redis_client.publish('services_status', 'MOD_COMM_RECV:NEW_REQUEST')
+        redis_client.publish('services_status', 'MOD_CLI:NEW_REQUEST')
         print(
             f"Provisioning triggered: {status}. Number of items in the queue: {list_items_provisioning_queue(redis_client)}")
     else:
